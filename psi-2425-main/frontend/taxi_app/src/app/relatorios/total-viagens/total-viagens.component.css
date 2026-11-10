@@ -1,0 +1,64 @@
+*{
+  color: black;
+}
+
+.relatPage {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+.motorista-bloco {
+  margin-bottom: 30px;
+}
+
+.motorista-bloco h3 {
+  margin-bottom: 10px;
+}
+
+table.motorista {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+}
+
+table.motorista th,
+table.motorista td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+table.motorista th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.voltar {
+    background-color: #FFEB3B;
+    color: black;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-weight: bold;
+    width: 100px;
+}
+
+.voltar:hover {
+    background-color: #FBC02D;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.botao-centro {
+  text-align: center;
+}

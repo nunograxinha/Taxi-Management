@@ -1,0 +1,172 @@
+.precos-container {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.preco-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 220px;
+  text-align: center;
+  color: #f0f0f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.preco-card:hover {
+  transform: scale(1.03);
+}
+
+.valor-display {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 1rem 0;
+  color: #FFB300;
+}
+
+button {
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  background-color: #FFEB3B;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #FBC02D;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 300px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal h3 {
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #212121;
+}
+
+.modal input {
+  padding: 0.5rem;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal button {
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  background-color: #FFEB3B;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin: 0.5rem 0;
+  width: 60%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal button:hover {
+  background-color: #FBC02D;
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.erro {
+  color: red;
+  margin-top: 0.5rem;
+}
+
+.titulo {
+  color: #212121;
+}
+
+.precario-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.taxas-container {
+  display: flex;
+  justify-content: center;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #FFEB3B;
+  border-radius: 6px;
+  overflow: hidden;
+  width: fit-content;
+  margin-bottom: 1rem;
+}
+
+.input-prefix {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.7rem;
+  background-color: #FFEB3B;
+  color: #212121;
+  font-weight: bold;
+  border: none;
+}
+
+.input-wrapper input {
+  border: none;
+  width: 70px;
+  outline: none;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.btn-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.btn-container button{
+  padding: 0.7rem 2rem;
+  font-size: 1rem;
+  background-color: #FFEB3B;
+  color: #212121;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-container button:hover {
+  background-color: #FBC02D;
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}

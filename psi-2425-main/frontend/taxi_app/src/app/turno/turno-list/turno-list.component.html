@@ -1,0 +1,14 @@
+<div class="turnos-list" *ngIf="turnos.length > 0; else noTurnos">
+    <ul>
+      <li *ngFor="let turno of turnos" class="list-elems">
+        <strong>Inicio:  {{ formatDate(turno.start) }}</strong>
+        <strong>Fim:  {{ formatDate(turno.end) }}</strong>
+        <span>Táxi: {{ getTaxiInfo(turno.taxi) }}</span>      
+      </li>
+    </ul>
+  </div>
+
+  <ng-template #noTurnos>
+    <h3>Não há turnos registados.</h3>
+  </ng-template>
+  

@@ -1,0 +1,71 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #e6e6e6; /* Cor de fundo da aplicação */
+  color: #212121;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Deixar o card alinhado mais para o topo */
+  min-height: 100vh; /* Garantir que o corpo tenha a altura total da tela */
+}
+
+.botao-container {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.home-card {
+  max-width: 600px;
+  text-align: center;
+  padding: 24px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 150px; 
+}
+
+h1 {
+  color: #212121;
+  font-size: 36px;
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button[color="primary"] {
+  background-color: #FFEB3B;
+  color: #212121;
+  border: none;
+}
+
+button[color="primary"]:hover {
+  background-color: #FBC02D;
+  transform: scale(1.04) translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .botao-container {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 10px;
+  }
+}

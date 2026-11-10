@@ -1,0 +1,67 @@
+<div class="navbar">
+  <h2 class="navbar-title">Pedido Aceito</h2>
+</div>
+
+<div class="pedido-aceito-container">
+  <div class="actions">
+    <div class="info-row">
+      <strong>Nome do cliente: </strong>
+      <span>{{ nomeCliente }}</span>
+    </div>
+    <button class="start-btn" (click)="comecarViagem()" [disabled]="bloquearBotoes">
+      {{ startTimeLocal ? 'Atualizar hora de partida' : 'Começar Viagem' }}
+    </button>
+    <div *ngIf="startTimeLocal" class="viagem-info">
+      <div>
+        <strong>Viagem iniciada às:</strong> {{ formatarHoraMinuto(startTimeLocal) }}
+      </div>
+      <div>
+        <strong>Local de partida: </strong>{{ startLocal }}
+      </div>
+      <div class="num-pessoas-row">
+        <div class="input-btn-group">
+          <label for="numPessoasInput"><strong>Número de passageiros: </strong></label>
+          <input id="numPessoasInput"
+                type="number"
+                [(ngModel)]="numPessoas"
+                [disabled]="numPessoasConfirmado"
+                min="1">
+          <button *ngIf="!numPessoasConfirmado"
+                  (click)="confirmarNumeroPessoas()"
+                  [disabled]="!numPessoas">
+            Confirmar
+          </button>
+          <button *ngIf="numPessoasConfirmado" (click)="editarNumeroPessoas()">
+            Atualizar
+          </button>
+        </div>
+      <div *ngIf="numPessoasConfirmado" class="num-confirmado-msg">
+        Número confirmado!
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button
+      class="end-btn" 
+      (click)="terminarViagem()" 
+      [disabled]="!startTimeLocal || bloquearBotoes">Terminar Viagem</button>
+    <div *ngIf="endTimeLocal" class="viagem-end-info">
+      <div>
+        <strong>Viagem terminada às:</strong> {{ formatarHoraMinuto(endTimeLocal) }}
+      </div>
+      <div>
+        <strong>Local de chegada: </strong>{{ endLocal }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Preço final-->
+  <div *ngIf="endTimeLocal && startTimeLocal">
+    <p><strong>Tempo de Viagem:</strong> {{ duracaoViagem }} minutos</p>
+    <p><strong>Preço Final:</strong> {{ precoFinal | currency: 'EUR':'symbol':'1.2-2' }}</p>
+    <button class="confirm-btn" (click)="confirmarFimViagem()" [disabled]="precoFinal === null">
+      Confirmar pagamento recebido e fim da viagem
+    </button>
+  </div>
+</div>

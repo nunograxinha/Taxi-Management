@@ -1,0 +1,54 @@
+<div class="motorista-page">
+    <div class="navbar">
+        <h2 class="navbar-title">Iniciar sessão</h2>
+    </div>
+    <div class="container">
+        <div class="content">
+            <p>Abaixo se encontram os perfis de motoristas disponíveis. Selecione um:</p>
+            <form class="motoristaLoginForm" [formGroup]="motoristaLoginForm" (ngSubmit)="onSubmit()">
+                <label for="nif">Filtre pelo NIF:</label>
+                <input id = "NIF" formControlName = "NIF" type="text"> 
+                <div  *ngIf="motoristaLoginForm.get('NIF')?.invalid && motoristaLoginForm.get('NIF')?.touched">
+                    <small class="error" *ngIf="motoristaLoginForm.get('NIF')?.hasError('invalidFormat')">NIF não válido. Apenas insira dígitos (sem espaços, letras ou símbolos).</small>   
+                    <small class="error" *ngIf="motoristaLoginForm.get('NIF')?.hasError('invalidLength')">NIF não válido. Mínimo 9 dígitos.</small>      
+                    <small class="error" *ngIf="motoristaLoginForm.get('NIF')?.hasError('notPositive')">NIF não válido. Não pode ser negativo.</small>         
+                </div>
+            <div class="btn-container">
+                <button type="button" (click)="limpar()" [disabled]="!motoristaLoginForm.get('NIF')?.value || !motoristaLoginForm.get('NIF')?.touched">
+                    Limpar
+                </button>  
+                <button type="submit" [disabled]="motoristaLoginForm.invalid || todosMotoristas.length <= 0">Procurar</button>
+            </div>  
+        </form>
+        <div class="motoristas-container" *ngIf="!pesquisado">
+            <ul *ngIf="todosMotoristas.length > 0; else noMotoristas">
+                <li *ngFor="let motorista of motoristasFiltrados">
+                    <a [routerLink]="['/motorista', motorista.NIF]">
+                        <strong>{{ motorista.name }} - NIF:</strong>
+                        <span> {{ motorista.NIF }} - atualizado em {{ motorista.updatedAt | date:'dd/MM/yyyy - HH:mm' }} </span>
+                    </a>
+                </li>
+            </ul> 
+            <ng-template #noMotoristas>
+                <p>Não há motoristas registados.</p>
+            </ng-template>
+        </div>
+        <div class="motoristas-container" *ngIf="pesquisado">
+            <ul *ngIf="motoristasFiltrados.length > 0; else noNIF">
+                <li *ngFor="let motorista of motoristasFiltrados">
+                    <a [routerLink]="['/motorista', motorista.NIF]">
+                        <strong>{{ motorista.name }}</strong>
+                        <span>NIF: {{ motorista.NIF }} - adicionado em {{ motorista.createdAt | date:'short' }} </span>
+                    </a>
+                </li>
+            </ul>  
+            <ng-template #noNIF>
+                <p>Não há motoristas registados com o NIF inserido.</p>
+            </ng-template>
+        </div>
+    </div>
+    <div class="btn-sair">
+        <button routerLink="/">Sair</button>
+    </div>
+    </div>
+    

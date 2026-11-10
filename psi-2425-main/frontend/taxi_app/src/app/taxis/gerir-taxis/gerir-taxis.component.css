@@ -1,0 +1,35 @@
+h2 {
+    text-align: center;
+    margin: 20px 0;
+    color: #212121;
+    font-size: 24px;
+  }
+  
+  hr {
+    border: 1px solid #FFEB3B;
+    width: 80%;
+    margin: 20px auto;
+  }
+  
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .app-taxis-form, .app-taxi-list {
+    width: 80%;
+    max-width: 900px;
+    margin: 20px 0;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 10px;
+    }
+    
+    .app-motorista-form, .app-motorista-list {
+      width: 100%;
+    }
+  }

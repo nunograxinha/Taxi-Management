@@ -1,0 +1,50 @@
+<form [formGroup]="clienteForm" (ngSubmit)="onSubmit()">
+    <h3>Dados do Cliente</h3>
+
+    <!-- NIF -->
+    <div>
+        <label for="NIF">NIF do Cliente:</label>
+        <input
+            type="text"
+            id="NIF"
+            formControlName="NIF"
+            placeholder="Coloque seu NIF"
+            [class.invalid]="clienteForm.get('NIF')?.invalid && clienteForm.get('NIF')?.touched"
+        />
+        <div *ngIf="clienteForm.get('NIF')?.invalid && clienteForm.get('NIF')?.touched">
+            <small class="error" *ngIf="clienteForm.get('NIF')?.hasError('required')">NIF é obrigatório.</small>
+            <small class="error" *ngIf="clienteForm.get('NIF')?.hasError('invalidNIF')">O NIF deve ter exatamente 9 dígitos.</small>        
+        </div>
+    </div>
+
+    <!-- Nome -->
+    <div>
+        <label for="name">Nome do Cliente:</label>
+        <input 
+            type="text" 
+            id="name" 
+            formControlName="name" 
+            placeholder="Coloque seu Nome" 
+            [class.invalid]="clienteForm.get('name')?.invalid && clienteForm.get('name')?.touched"
+
+            />
+        <div *ngIf="clienteForm.get('name')?.invalid && clienteForm.get('name')?.touched">
+        <small class="error">Nome é obrigatório.</small>
+        </div>
+    </div>
+
+    <!-- Género -->
+    <div>
+        <label for="gender">Género do Cliente:</label>
+        <select id="gender" formControlName="gender" [class.invalid]="clienteForm.get('gender')?.invalid && clienteForm.get('gender')?.touched">
+            <option value="" disabled hidden>Seleciona o género</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+        </select>
+        <div *ngIf="clienteForm.get('gender')?.invalid && clienteForm.get('gender')?.touched">
+        <small class="error">Género é obrigatório.</small>
+        </div>
+    </div>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    <button type="submit" [disabled]="clienteForm.invalid">Submeter Cliente</button>
+</form>

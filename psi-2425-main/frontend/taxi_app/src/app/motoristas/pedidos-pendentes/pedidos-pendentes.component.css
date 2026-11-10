@@ -1,0 +1,205 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #e6e6e6;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #FFEB3B;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+
+
+.navbar-title {
+  flex: 1;
+  text-align: center;
+  color: #212121;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.home-button {
+    color: black;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+}
+  
+.home-button:hover {
+    background-color: #cecece;
+}
+  
+.home-button mat-icon {
+    margin-right: 5px;
+}
+
+/* Estilo geral */
+.pedidos-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Loading e mensagens de erro */
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Informações do turno */
+.turno-info {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #555;
+}
+
+/* Lista de pedidos */
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.pedido-card {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pedido-card:hover {
+  outline: 2px solid #FFEB3B;
+  outline-offset: 0.5px;
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Cabeçalho do pedido */
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.pedido-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.distance-badge {
+  background-color: #FFEB3B;
+  color: black;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Detalhes do pedido */
+.pedido-details {
+  font-size: 14px;
+  color: #555;
+}
+
+.pedido-details p {
+  margin: 5px 0;
+}
+
+.location-details {
+  margin-top: 10px;
+}
+
+.address {
+  font-weight: bold;
+  color: #333;
+}
+
+.coordinates {
+  font-size: 12px;
+  color: #777;
+}
+
+/* Ações do pedido */
+.pedido-actions {
+  margin-top: 15px;
+  text-align: right;
+}
+
+.accept-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #FFEB3B;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  font-weight: bold;
+}
+
+.accept-btn:hover {
+  background-color: #FDD835;
+  transform: translateY(-1px) scale(1.02);
+}
+
+.accept-btn:active {
+  transform: scale(0.98);
+}
+
+/* Mensagem de "sem pedidos" */
+.no-pedidos {
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  margin-top: 20px;
+}

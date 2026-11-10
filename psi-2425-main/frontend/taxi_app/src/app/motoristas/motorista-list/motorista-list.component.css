@@ -1,0 +1,125 @@
+* {
+  color: black;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    background-color: #f4f4f4;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 6px;
+    display: block;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #212121 ;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+/*     cursor: pointer;
+ */    position: relative;
+    min-height: 60px;
+  }
+  
+/*   li:hover {
+    outline: 2px solid #FFEB3B;
+    outline-offset: 0.5px;
+    transform: scale(1.01);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  } */
+
+  strong {
+    display: block;
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 3px;
+    margin-top: 3px;
+  }
+  
+  span {
+    display: block;
+    font-size: 16px;
+    color: #212121;
+  }
+    
+  .no-motoristas {
+    text-align: center;
+    font-size: 18px;
+    color: #212121;
+    margin-top: 20px;
+  }
+  
+
+.icon-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: inherit;
+  font-size: 24px;
+  outline: none;
+  position: absolute;
+  right: 13px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.icon-button.edit {
+  bottom: 8px;
+}
+
+.icon-button.remove {
+  top: 12px;
+  
+}
+
+.icon-button .material-symbols-outlined {
+  font-size: 25px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: inline-block;
+}
+  
+.icon-button:hover .material-symbols-outlined {
+  transform: scale(1.2);
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  box-shadow: none;
+  background: transparent;
+}
+
+.display-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  text-align: left;
+  gap: 2px;
+  margin-left: 3px;
+}
+
+  @media (max-width: 768px) {
+    li {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    span {
+      margin-top: 5px;
+    }
+  
+    button {
+      margin-top: 10px;
+    }
+
+    .icon-button.edit {
+      bottom: 8px;
+      right: 10px;
+    }
+
+    .icon-button.remove {
+      top: 8px;
+      right: 10px;
+    }
+  }
+  

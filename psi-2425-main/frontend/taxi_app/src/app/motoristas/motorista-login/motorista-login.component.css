@@ -1,0 +1,206 @@
+* {
+  box-sizing: border-box;
+}
+
+.motorista-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #e6e6e6;
+}
+.navbar {
+  background-color: #FFEB3B;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.navbar-title {
+  color: #212121;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.content {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 80vh;
+}
+
+.motoristas-container {
+  height: 50%;
+}
+
+.motoristaLoginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus {
+  border-color: #FFEB3B;
+  outline: none;
+}
+
+input[readonly] {
+  background-color: #f4f4f4;
+  cursor: not-allowed;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #FFEB3B;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  font-weight: bold;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:enabled {
+  background-color: #FDD835;
+  transform: translateY(-1px) scale(1.02);
+}
+
+button:active:enabled {
+  transform: scale(0.98);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.5);
+}
+
+btn-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+button:first-child {
+  margin-right: 10px; /* Botão "Limpar" */
+}
+
+button:last-child {
+  margin-left:10px; /* Botão "Procurar" */
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+small {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+}
+
+.header {
+  height: 10vh;
+}
+
+h1 {
+  text-align: center;
+}
+
+.btn-container {
+  display: flex;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  overflow-y: auto;
+}
+
+li {
+  background-color: #f4f4f4;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #212121;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+li:hover {
+  outline: 2px solid #FFEB3B;
+  transform: scale(1.01);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+strong {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+span {
+  font-size: 16px;
+  color: #212121;
+}
+
+.btn-sair {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.btn-sair button {
+  width: auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #FFEB3B;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-sair button:hover {
+  background-color: #FDD835;
+  transform: translateY(-1px) scale(1.02);
+}

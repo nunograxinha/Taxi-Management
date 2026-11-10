@@ -1,0 +1,45 @@
+<mat-sidenav-container class="sidenav-container" *ngIf="showNavbar">
+  <mat-sidenav #sidenav mode="over" (closedStart)="onClose()" disableClose="false">
+    <mat-nav-list>
+      <a mat-list-item routerLink="/gestor/gerir-taxis" (click)="sidenav.close()">
+        <mat-icon>local_taxi</mat-icon>
+        <span>Gerir Táxis</span>
+      </a>
+      <a mat-list-item routerLink="/gestor/gerir-motoristas" (click)="sidenav.close()">
+        <mat-icon>person</mat-icon>
+        <span>Gerir Motoristas</span>
+      </a>
+      <a mat-list-item routerLink="/gestor/gerir-precos" (click)="sidenav.close()">
+        <mat-icon>euro_symbol</mat-icon>
+        <span>Gerir Preços por Minuto</span>
+      </a>
+      <a mat-list-item routerLink="/gestor/relatorios" (click)="sidenav.close()">
+        <mat-icon>bar_chart</mat-icon>
+        <span>Ver Relatórios</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar style="background-color: #FFEB3B; color: #212121;">
+      <button mat-icon-button (click)="sidenav.toggle()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Gestor da App Táxi</span>
+
+      <button class="home-btn" routerLink="/gestor">
+        <mat-icon>home</mat-icon>
+      </button>
+      
+    </mat-toolbar>
+
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<!-- Show content without navbar when on "/" -->
+<div *ngIf="!showNavbar">
+  <router-outlet></router-outlet>
+</div>

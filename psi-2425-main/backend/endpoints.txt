@@ -1,0 +1,45 @@
+GERAIS:
+/initDataBase -- TODO (Inicializar objectos para tudo)
+
+/fatura:
+GET /fatura
+GET /fatura/get/:id
+POST /fatura/create
+PUT /fatura/update/:id
+DELETE /fatura/delete/:id
+
+/filial:
+GET /filial
+GET /filial/get/:nipc
+POST /filial/create
+PUT /filial/update/:nipc
+DELETE /filial/delete/:nipc
+GET /filial/init
+
+/motorista:
+GET /motorista
+GET /motorista/get/:nif
+POST /motorista/create
+PUT /motorista/update/:nif
+DELETE /motorista/delete/:nif
+
+/taxi:
+GET /taxi
+GET /taxi/get/:plate
+POST /taxi/create
+PUT /taxi/update/:plate
+DELETE /taxi/delete/:plate
+
+/turno:
+GET /turno
+GET /turno/get/:id
+POST /turno/create
+PUT /turno/update/:id
+DELETE /turno/delete/:id
+
+/viagem:
+GET /viagem
+GET /viagem/get/:id
+POST /viagem/create
+PUT /viagem/update/:id
+DELETE /viagem/delete/:id

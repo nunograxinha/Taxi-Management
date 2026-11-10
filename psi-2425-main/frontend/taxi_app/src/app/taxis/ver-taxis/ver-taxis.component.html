@@ -1,0 +1,20 @@
+<div *ngIf="taxis.length > 0; else vazio">
+  <ul>
+    <li *ngFor="let taxi of taxis">
+      <strong>{{ taxi.licensePlate }}</strong> 
+      <span>Modelo: {{ taxi.brand }} {{ taxi.model }} ({{ taxi.confort }}) -
+        atualizado em {{ taxi.updatedAt | date:'dd/MM/yyyy' }} às {{ taxi.updatedAt | date:'HH:mm' }}
+      </span>
+      <button class="icon-button edit" [routerLink]="['/gestor/editar-taxi', taxi.licensePlate]" title="Editar">
+        <span class="material-symbols-outlined">person_edit</span>
+      </button>
+      <button class="icon-button remove" (click)="removerTaxi(taxi)" title="Remover">
+        <span class="material-symbols-outlined">delete</span>
+      </button>
+    </li>
+  </ul>
+</div>
+
+<ng-template #vazio>
+  <p>Não há táxis registados.</p>
+</ng-template>

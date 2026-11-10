@@ -1,0 +1,31 @@
+<div class="simulacao-container">
+  <form [formGroup]="simulacaoForm" (ngSubmit)="calcularCusto()">
+    <label for="conforto">Preço por minuto (€):</label>
+      <select formControlName="conforto">
+        <option value="">Selecione</option>
+        <option value="Basico">{{ precoStandard }} € (Standard) </option>
+        <option value="Luxuoso">{{ precoLuxo }} € (Luxuoso)</option>
+      </select>
+      <!-- <input type="number" formControlName="precoPorMinuto" step="0.01"> -->
+  
+    <label for="agravamentoNoturno">Taxa noturna (%):</label>
+      <input type="number" formControlName="agravamentoNoturno" step="1" min="0">
+  
+    <label for="inicio">Início da viagem:</label>
+      <input type="datetime-local" formControlName="inicio">
+  
+    <label for="fim">Fim da viagem:</label>
+      <input type="datetime-local" formControlName="fim">
+  
+    <button type="submit" [disabled]="simulacaoForm.invalid">Calcular custo</button>
+  </form>
+  
+  <div *ngIf="custoTotal !== null">
+    <h3>Custo total da viagem: {{ custoTotal.toFixed(2) }}€</h3>
+  </div>
+
+  <div class="btn-container">
+    <button class="button" style="font-weight: bold;" routerLink="/gestor/gerir-precos">Voltar</button>
+  </div>
+  
+</div>

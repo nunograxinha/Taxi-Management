@@ -1,0 +1,58 @@
+
+<div class="navbar">
+   <span class="navbar-title">Acompanhar Viagem em Tempo Real</span>
+</div>
+<div class="card-centro" *ngIf="pedido">
+  <p><strong>Motorista:</strong> {{ motoristaNome }}</p>
+  <p><strong>Táxi:</strong> {{ taxiMatricula }} - {{ taxiMarca}} {{ taxiModelo }}</p>
+  <p><strong>Partida:</strong> {{ partidaNome }}</p>
+  <p><strong>Destino:</strong> {{ destinoNome }}</p>
+  <hr>
+  <div *ngIf="status === 'aguardando'">
+    <div class="estado-header">
+      <span class="clock-anim">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="16" stroke="#333" stroke-width="4" fill="#fff"/>
+          <!-- Ponteiro das horas -->
+          <rect x="17" y="8" width="2" height="10" fill="#333" transform="rotate(0 18 18)">
+            <animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="12s" repeatCount="indefinite"/>
+          </rect>
+          <!-- Ponteiro dos minutos -->
+          <rect x="17.5" y="4" width="1" height="14" fill="#333" transform="rotate(0 18 18)">
+            <animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="3s" repeatCount="indefinite"/>
+          </rect>
+        </svg>
+      </span>
+      <h2>Estado da Viagem: Aguardando Motorista</h2>
+    </div>
+    <p>O seu motorista está a caminho do local de partida. Aguarde a chegada motorista.</p>
+    <p>Tempo estimado de chegada do motorista: {{ tempoMotorista }} minutos</p>
+    
+  </div>
+
+  <div *ngIf="status === 'emCurso'">
+    <div class="estado-header">
+      <i class="fa-solid fa-car-side estado-sticker car-anim" style="font-size:36px;"></i>
+      <h2>Estado da Viagem: Viagem em Andamento</h2>
+  </div>
+    <p>Você está a caminho do seu destino.</p>
+    <p>Viagem iniciada às: {{ horaPartida | date: 'HH:mm' }} </p>
+  </div>
+
+  <div *ngIf="status === 'finalizada' && getDuracaoViagemMinutos() !== null">
+    <div class="estado-header">
+    <span class="material-symbols-outlined estado-sticker flag-anim" style="font-size:36px;">
+      sports_score
+    </span>      
+    <h2>Estado da Viagem: Viagem Concluída</h2>
+    </div>
+    <p>Você chegou ao seu destino.</p>
+    <p><strong>Viagem iniciada às:</strong> {{ horaPartida | date: 'HH:mm' }} </p>
+    <p><strong> Viagem concluída às:</strong> {{ horaChegada | date: 'HH:mm' }} </p>
+    <p><strong>Tempo de Viagem:</strong> {{ getDuracaoViagemMinutos() }} minutos</p>
+    <p><strong>Preço Final:</strong> {{ preco | currency: 'EUR':'symbol':'1.2-2' }}</p>
+    <div class="card-actions">
+      <button (click)="voltarClientePage()">Pagamento realizado e voltar à página inicial</button>
+    </div>
+  </div>
+</div>

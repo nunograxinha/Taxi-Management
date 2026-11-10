@@ -1,0 +1,59 @@
+<!-- Navigation Bar -->
+<div class="navbar">
+  <p class="navbar-title">Confirmar Viagem</p>
+</div>
+
+<div class="container">
+  <div class="confirmation-screen">
+      <h2>Detalhes da Viagem</h2>
+      
+      <div *ngIf="loading" class="loading">
+        <p>Carregando detalhes da viagem...</p>
+      </div>
+      
+      <div *ngIf="erro" class="error">
+        <p>{{ erro }}</p>
+        <div class="action-buttons">
+          <button (click)="recusarMotorista()">Cancelar Viagem</button>
+        </div> 
+      </div>
+      
+      <div *ngIf="!loading && !erro && pedido" class="viagem-details">
+        <!-- Detalhes do Motorista -->
+        <div *ngIf="motorista">
+          <h3>Motorista</h3>
+          <p><strong>Nome:</strong> {{ motorista.name }}</p>
+          <p><strong>Distância do Motorista a si:</strong> {{ pedido.distanceKmToMotorista }} km</p>
+          <p><strong>Tempo estimado de chegada do Motorista:</strong> {{ (pedido.distanceKmToMotorista ?? 0) * 4 }} minutos</p>
+      </div>
+        
+        <!-- Detalhes do Taxi -->
+        <div *ngIf="taxi"> 
+          <h3>Táxi</h3>
+          <p><strong>Matrícula:</strong> {{ taxi.licensePlate }}</p>
+          <p><strong>Marca:</strong> {{ taxi.brand }}</p>
+          <p><strong>Modelo:</strong> {{ taxi.model }}</p>
+          <p><strong>Nível de Conforto:</strong> {{ taxi.confort }}</p>
+        </div>
+        
+        <!-- Detalhes da Viagem -->
+        <h3>Informações da Viagem Solicitada</h3>
+        <p><strong>Número de Passageiros:</strong> {{ pedido.numberOfPeople }}</p>
+        <p><strong>Local de Partida:</strong> {{ entryCidadeRua }}: ({{ pedido.entryAddress }})</p>
+        <p><strong>Local de Destino:</strong> {{ exitCidadeRua }}: ({{ pedido.exitAddress }})</p>
+        
+        <!-- Estimates -->
+        <h3>Estimativas</h3>
+        <p ><strong>Tempo Estimado da viagem:</strong> {{ tempoEstimadoMin }} minutos</p>
+        <p><strong>Custo Estimado:</strong> {{ custoEstimado }} €</p>
+        <p *ngIf="showNightWarning" class="night-warning">
+          Nota: Entre as 21h e as 6h pode ser aplicada uma taxa noturna de {{ (nightSurcharge) }}% ao preço apresentado.
+        </p>
+       
+        <div class="action-buttons">
+          <button (click)="aceitarMotorista()">Aceitar Viagem</button>
+          <button (click)="recusarMotorista()">Recusar Viagem</button>
+        </div>    
+      </div>
+    </div>
+  

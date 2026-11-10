@@ -1,0 +1,51 @@
+<p *ngIf="mensagemSucesso"  id="mensagemSucesso">{{ mensagemSucesso }}</p>
+<p *ngIf="mensagemErro"  id="mensagemErro">{{ mensagemErro }}</p>
+
+<form [formGroup]="taxiForm" (ngSubmit)="onSubmit()">
+  <label for=" licensePlate">Matrícula:</label>
+    <input type="text" formControlName="licensePlate">
+  <div *ngIf="taxiForm.get('licensePlate')?.invalid && taxiForm.get('licensePlate')?.touched">
+    <small *ngIf="taxiForm.get('licensePlate')?.errors?.['required']">Matrícula é obrigatória.</small>
+    <small *ngIf="taxiForm.get('licensePlate')?.errors?.['pattern']">Insira uma sequência de três duplas de números (00) e de letras (XX) separados por hífen. Exemplo: XX-00-XX.</small>
+  </div>
+  
+    <label for="brand">Marca:</label>
+      <select formControlName="brand" (change)="onMarcaChange($event)">
+        <option value="">Selecione uma marca</option>
+        <option *ngFor="let brand of marcasDisponiveis" [value]="brand">
+          {{ brand }}
+        </option>
+      </select>
+  
+    <label *ngIf="selectedMarca">
+      <label for="model">Modelo:</label>
+      <select formControlName="model">
+        <option value="">Selecione um modelo</option>
+        <option *ngFor="let model of marcasModelos[selectedMarca]">
+          {{ model }}
+        </option>
+      </select>
+    </label>
+  
+    <label for="confort">Conforto:</label>
+      <select formControlName="confort">
+        <option value="">Selecione</option>
+        <option value="Basico">Básico</option>
+        <option value="Luxuoso">Luxuoso</option>
+      </select>
+      <small *ngIf="emTurno">Nota: Não será possível alterar o conforto pois o Taxi está em algum turno.</small>
+  
+    <label>Ano de Compra:</label>
+      <!-- <select formControlName="purchaseYear">
+        <option value="">Selecione um ano</option>
+        <option *ngFor="let ano of anosDisponiveis" [value]="ano">{{ ano }}</option>
+      </select> -->
+      <input type="number" formControlName="purchaseYear">
+      <div *ngIf="taxiForm.get('purchaseYear')?.invalid && taxiForm.get('purchaseYear')?.touched">
+        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('negativeYear')">Insira um número positivo.</small>
+        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('invalidYearFormat')">O ano deve ter 4 dígitos.</small>
+        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('futureYear')">O ano não pode ser um ano futuro.</small>
+      </div>
+    <button type="submit" [disabled]="taxiForm.invalid">Submeter</button>
+  </form>
+  

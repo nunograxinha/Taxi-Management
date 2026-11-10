@@ -1,0 +1,24 @@
+<div class="relatPage">
+  <h1>Relatório detalhado</h1>
+  <hr>
+  <div *ngFor="let item of viagensPorMotorista" class="motorista-bloco">
+    <h3>Motorista: {{ getNomeMotorista(item.motoristaId) }}</h3>
+    <table class="motorista">
+      <thead>
+        <tr>
+          <th>Viagem ID</th>
+          <th>Duração (horas)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let viagem of item.viagens">
+          <td>{{ viagem._id }}</td>
+          <td>{{ getIntervaloTempo(viagem.entryTime, viagem.exitTime) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+<div class="botao-centro">
+      <button class="voltar" [routerLink]="['../']">Voltar</button>     
+    </div>
+</div>

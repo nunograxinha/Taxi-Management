@@ -1,0 +1,27 @@
+<div class="relatorios-page">
+  <h1>Relatórios de hoje</h1>
+  <hr>
+
+  <div *ngIf="viagens.length > 0; else semViagens">
+    <div class="content">
+      <div class="card" routerLink="total-viagens">
+        <h2>Total de viagens</h2>
+        <div class="card-number">{{ viagens.length }}</div>
+      </div>
+
+      <div class="card" routerLink="total-horas"> 
+        <h2>Total de horas <br><div class="second-line">(em viagens realizadas)</div></h2>
+        <div class="card-number">{{ calcularTotalHoras() }} h</div>
+      </div>
+
+      <div class="card" routerLink="total-kms"> 
+        <h2>Total de kilómetros <br><div class="second-line">(em viagens realizadas)</div></h2>
+        <div class="card-number">{{ calcularTotalKm() }} Km</div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #semViagens>
+    <p class="sem-viagens-msg">Não existem viagens concluídas no sistema hoje.</p>
+  </ng-template>
+</div>

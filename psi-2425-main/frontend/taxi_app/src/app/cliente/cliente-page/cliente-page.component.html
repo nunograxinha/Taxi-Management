@@ -1,0 +1,20 @@
+<!-- Navigation Bar -->
+<div class="navbar">
+    <p class="navbar-title">Formulário de Pedido de Viagem</p>
+    <button class="home-button" routerLink="/">
+      <mat-icon>home</mat-icon>
+      Voltar para o Início
+    </button>
+  </div>
+  
+  <div class="cliente-page-container">
+    <div class="cliente-form-container">
+      <app-cliente-form (clienteCriado)="onClienteCriado($event)"></app-cliente-form>
+    </div>
+    
+    <div *ngIf="clienteSelecionado" class="pedido-form-container">
+      <div class="section-divider"></div>
+      <app-pedido-viagem [clienteData]="clienteSelecionado"></app-pedido-viagem>
+    </div>
+  </div>
+  

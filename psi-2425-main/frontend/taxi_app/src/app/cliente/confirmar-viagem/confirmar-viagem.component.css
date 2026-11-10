@@ -1,0 +1,127 @@
+/* Navigation bar styling */
+.navbar {
+  background-color: #FFEB3B;
+  color: #212121;
+  padding: 5px 16px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  margin-bottom: 24px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-title {
+  margin-left: 10px;
+  font-size: 20px;
+  font-weight: 500;
+
+}
+  
+  
+ :host {
+  display: block;
+  min-height: 100vh;
+  background: #e6e6e6;
+} 
+  /* Content styling */
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .confirmation-screen {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    color: #666;
+  }
+  
+  .error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  
+  h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  h3 {
+    color: #555;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+  }
+  
+  .viagem-details {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 15px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background-color: #FFEB3B;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #FDD835;
+    transform: translateY(-1px) scale(1.02);
+  }
+  
+  button:active {
+    transform: scale(0.98);
+  }
+  
+  button:last-child {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  button:last-child:hover {
+    background-color: #e53935;
+  }
+  
+  @media (max-width: 768px) {
+    .container {
+      padding: 15px;
+    }
+    
+    .navbar {
+      padding: 10px 15px;
+    }
+    
+    .navbar-title {
+      font-size: 18px;
+    }
+  }
+  

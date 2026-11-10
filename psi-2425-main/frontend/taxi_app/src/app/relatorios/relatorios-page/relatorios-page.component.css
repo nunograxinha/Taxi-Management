@@ -1,0 +1,89 @@
+* {
+    color: black;
+}
+
+/* .relatorios-page{
+    
+} */
+
+.content{
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-top: 5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    align-items: stretch;
+}
+
+.card{
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s ease;;
+    font-weight: bold;
+    justify-content: space-between;
+    color: #212121;
+    cursor: pointer;
+}
+
+.card-number{
+    font-size: larger;
+}
+
+.exit-btn{
+    background-color: #FFEB3B;
+    color: black;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-weight: bold;
+}
+
+.exit-btn:hover{
+    background-color: #FBC02D;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.exit-btn-container{
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center
+}
+
+.card h2 {
+    margin-top: -4px;
+    margin-bottom: 50px;
+    color: #212121;
+}
+
+.card:hover{
+    outline: 2px solid #FFEB3B;
+    outline-offset: 0.5px;
+    transform: scale(1.01);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.second-line{
+    font-size: small;
+}
+
+.sem-viagens-msg {
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: 20px;
+  color: #856404;
+  background-color:#fff3cd;
+  padding: 15px;
+}
