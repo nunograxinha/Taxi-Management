@@ -5,15 +5,15 @@ const motoristaSchema = new mongoose.Schema({
         type: String, 
         unique: true, 
         required: true,
-        match: [/^\d{9}$/, 'NIF de um Motorista tem de ter exatamente 9 digitos'] 
+        match: [/^\d{9}$/, 'Driver NIF must have exactly 9 digits'] 
       },
     name: { type: String, required: true },
-    gender: { type: String, enum: ['Masculino', 'Feminino'], required: true,},
+    gender: { type: String, enum: ['Male', 'Female'], required: true },
     birthYear: { type: Number, required: true, validate: {
       validator: function(value) {
         return value <= new Date().getFullYear() - 18;
       },
-      message: 'Motorista tem de ter pelo menos 18 anos'
+      message: 'Driver must be at least 18 years old'
     }},
     address: {
         street: { type: String },

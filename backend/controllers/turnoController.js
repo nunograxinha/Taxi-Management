@@ -36,7 +36,7 @@ exports.post_turno = async (req, res) => {
   console.log("TurnoController, Rq.body:", req.body)
   try {
     const { motorista, taxi, start, end } = req.body;
-    const turno = await turnoService.createTurno(motorista, taxi._id, start, end);
+    const turno = await turnoService.createTurno(motorista, taxi?._id || taxi, start, end);
     res.status(201).json(turno);
   } catch (error) {
     console.error(error);
@@ -69,14 +69,14 @@ exports.delete_turno = async (req, res) => {
   }
 };
 
-exports.   get_turnos_in_time_frame = async (req, res) => {
+exports.get_turnos_in_time_frame = async (req, res) => {
   const { motoristaNIF, start, end } = req.query;
   if (!motoristaNIF || !start || !end) {
-    return res.status(400).json({ error: 'motoristaNIF, start e end são obrigatórios.' });
+    return res.status(400).json({ error: 'motoristaNIF, start, and end are required.' });
   }
 
   if (motoristaNIF === "null" || motoristaNIF === null) {
-    return res.status(400).json({ error: 'motoristaNIF deve ser um ID válido.' });
+    return res.status(400).json({ error: 'motoristaNIF must be a valid ID.' });
   }
 
   try {
@@ -84,14 +84,14 @@ exports.   get_turnos_in_time_frame = async (req, res) => {
     const endTime = new Date(end);
 
     if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      return res.status(400).json({ error: 'start e end devem ser datas válidas.' });
+      return res.status(400).json({ error: 'start and end must be valid dates.' });
     }
 
     const turnos = await turnoService.getTurnosInTimeframe(motoristaNIF, startTime, endTime);
     res.status(200).json(turnos);
   } catch (error) { 
     console.error(error);
-    res.status(500).json({ error: 'Erro ao buscar turnos no intervalo' });
+    res.status(500).json({ error: 'Error fetching shifts in timeframe' });
   }
 };
 
@@ -100,15 +100,12 @@ exports.get_turnos_by_motorista = async (req, res) => {
     const { motoristaNIF } = req.params;
     console.log("motoristaNIF", motoristaNIF);
     const turnos = await turnoService.getTurnosByMotoristaNIF(motoristaNIF);
-    console.log("turnos", turnos);
-    if (turnos.length === 0) {
-      return res.status(200).json({ message: 'Nenhum turno encontrado para este motorista.' });
-    }
+    console.log("shifts", turnos);
 
-    res.status(200).json(turnos);
+    res.status(200).json(turnos || []);
   } catch (error) {
-    console.error("Erro ao obter turnos por motorista ID:", error);
-    res.status(500).json({ error: 'Erro ao obter turnos do motorista.' });
+    console.error("Error fetching shifts by driver NIF:", error);
+    res.status(500).json({ error: 'Error fetching driver shifts.' });
   }
 };
 
@@ -116,12 +113,9 @@ exports.get_turnos_by_taxi = async (req, res) => {
   try {
     const { licensePlate } = req.params;
     const turnos = await turnoService.getTurnosByTaxiPlate(licensePlate);
-    if (!turnos || turnos.length === 0) {
-      return res.status(200).json({ message: 'Nenhum turno encontrado para este táxi.' });
-    }
-    res.status(200).json(turnos);
+    res.status(200).json(turnos || []);
   } catch (error) {
-    console.error("Erro ao obter turnos por matrícula do táxi:", error);
-    res.status(500).json({ error: 'Erro ao obter turnos do táxi.' });
+    console.error("Error fetching shifts by taxi license plate:", error);
+    res.status(500).json({ error: 'Error fetching taxi shifts.' });
   }
 };

@@ -108,11 +108,17 @@ getTaxiInfo(taxiId: string): string {
   if (this.taxiInfoMap.has(taxiId)) {
     return this.taxiInfoMap.get(taxiId)!;
   } else {
-    this.taxiService.getTaxiById(taxiId).subscribe((taxi) => {
-      const info = taxi ? taxi.licensePlate : 'Taxi não encontrado';
-      this.taxiInfoMap.set(taxiId, info);
+    this.taxiInfoMap.set(taxiId, 'A carregar...');
+    this.taxiService.getTaxiById(taxiId).subscribe({
+      next: (taxi) => {
+        const info = taxi ? taxi.licensePlate : 'Taxi não encontrado';
+        this.taxiInfoMap.set(taxiId, info);
+      },
+      error: () => {
+        this.taxiInfoMap.set(taxiId, 'Taxi não encontrado');
+      }
     });
-    return 'A carregar...'; // valor temporário enquanto o dado não chega
+    return 'A carregar...';
   }
 }
 

@@ -1,5 +1,6 @@
-import {  AfterViewChecked, Component, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { AfterViewChecked, Component, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import * as Papa from 'papaparse';
@@ -163,7 +164,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     async getLocation(): Promise<void> {
       if (this.useGeolocation) {
         try {
-          const position = await this.geolocationService.getCurrentPosition().toPromise();
+          const position = await firstValueFrom(this.geolocationService.getCurrentPosition());
           if (position) {
             console.log('Localização obtida:', position);
             const coordenadas = `${position.latitude},${position.longitude}`;
@@ -271,7 +272,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
         confort: this.form.value.confort,
         numberOfPeople: this.form.value.numberOfPeople
       };
-          const response = await this.pedidoViagemService.createPedido(pedidoData).toPromise();
+          const response = await firstValueFrom(this.pedidoViagemService.createPedido(pedidoData));
           if (response) {
             alert("Pedido criado com sucesso!");
             console.log(`Redirecionando para /cliente/aguardar-resposta/${response._id}`);
@@ -431,6 +432,8 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
   }
 
   ngOnDestroy() {
+    this.clearMap();
+    this.clearMapExit();
     if (this.miniMap) {
       this.miniMap.remove();
       this.miniMap = null;

@@ -21,8 +21,12 @@ exports.get_taxis_available_turno = async (req, res) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
 
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return res.status(400).json({ error: 'start and end must be valid dates' });
+    }
+
     try {
-        const turnosHappening = await turnoService.getTurnosInTimeframe(start, end);
+        const turnosHappening = await turnoService.getAllTurnosInTimeframe(startDate, endDate);
         const allTaxis = await taxiService.getTaxis();
         const busyTaxiIds = new Set(turnosHappening.map(t => t.taxi.toString()));
         const availableTaxis = allTaxis.filter(taxi => !busyTaxiIds.has(taxi._id.toString()));

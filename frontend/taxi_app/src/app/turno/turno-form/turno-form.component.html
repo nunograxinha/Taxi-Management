@@ -37,7 +37,7 @@
       </select>
     </div>
 
-    <div *ngIf="turnoForm.valid && taxisDisponiveis.length <= 0">
+    <div *ngIf="turnoForm.get('inicio')?.valid && turnoForm.get('fim')?.valid && !turnoForm.errors && taxisDisponiveis.length <= 0">
       <small class="info">Nenhum táxi disponível neste horário.</small>
     </div>
   

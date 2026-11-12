@@ -45,26 +45,26 @@ module.exports = {
         try {
             const viagem = await Viagem.findById(id);
             if (!viagem) {
-                throw new Error('Viagem não encontrada');
+                throw new Error('Trip not found');
             }
             
             if (updateData.motorista) {
                 const motorista = await Motorista.findById(updateData.motorista);
                 if (!motorista) {
-                    throw new Error('Motorista não encontrado');
+                    throw new Error('Driver not found');
                 }
             }
 
             if (updateData.turno) {
                 const turno = await Turno.findById(updateData.turno);
                 if (!turno) {
-                    throw new Error('Turno não encontrado');
+                    throw new Error('Shift not found');
                 }
             }
 
             if (updateData.cliente) {
                 const cliente = await Cliente.findById(updateData.cliente);
-                if (!cliente) throw new Error('Cliente não encontrado');
+                if (!cliente) throw new Error('Client not found');
             }
             
             return await Viagem.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true }).populate('motorista').populate('turno').exec();
@@ -77,7 +77,7 @@ module.exports = {
         try {
             const viagem = await Viagem.findByIdAndDelete(id);
             if (!viagem) {
-                throw new Error('Viagem não encontrada');
+                throw new Error('Trip not found');
             }
             return viagem;
         } catch (error) {

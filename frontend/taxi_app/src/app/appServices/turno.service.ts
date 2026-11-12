@@ -7,7 +7,7 @@ import { Turno } from '../turno/turno_interface';
   providedIn: 'root'
 })
 export class TurnoService {
-  private readonly API_URL = 'http://localhost:3073/turno';
+  private readonly API_URL = 'http://localhost:3073/shift';
 
   constructor(private http: HttpClient) {}
 
@@ -15,14 +15,13 @@ export class TurnoService {
     return this.http.get<Turno[]>(`${this.API_URL}`);
   }
 
-  //a testar
   getTurnosInTimeFrame(motoristaNIF: string, start: string, end: string): Observable<Turno[]> {
     const params = new HttpParams()
       .set('motoristaNIF', motoristaNIF)
       .set('start', start)
       .set('end', end);
   
-    return this.http.get<Turno[]>(`${this.API_URL}/intervalo`, { params });
+    return this.http.get<Turno[]>(`${this.API_URL}/interval`, { params });
   }
   
 
@@ -43,7 +42,7 @@ export class TurnoService {
   }
 
   getTurnosByMotoristaNIF(motoristaNIF: string): Observable<Turno[]> {
-    return this.http.get<Turno[]>(`${this.API_URL}/motorista/${motoristaNIF}`);
+    return this.http.get<Turno[]>(`${this.API_URL}/driver/${motoristaNIF}`);
   }
 
   getTurnosByTaxiPlate(plate: string): Observable<Turno[]> {

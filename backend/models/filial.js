@@ -5,12 +5,12 @@ const filialSchema = new mongoose.Schema({
         type: String,
         unique: true,
         required: true,
-        match: [/^\d{9}$/, 'NIPC tem de ter exatamente 9 digitos']
+        match: [/^\d{9}$/, 'NIPC must have exactly 9 digits']
       },
     name: { type: String, required: true },
     phone: {
         type: String,
-        match: [/^\d{9}$/, 'Phone tem de ter exatamente 9 digitos']
+        match: [/^\d{9}$/, 'Phone must have exactly 9 digits']
       },
     address: {
         street: { type: String },

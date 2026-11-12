@@ -2,17 +2,17 @@ import { Cliente } from "./cliente_interface";
 
 export interface PedidoViagem {
     _id?: string;
-    cliente: string | Cliente; // guarda id do Cliente
+    cliente: string | Cliente; // stores Client ID
     numberOfPeople: number;
     distanceKmToMotorista?: number;
     entryAddress: string;
     exitAddress: string;
-    confort: 'Basico' | 'Luxuoso';
+    confort: 'Basic' | 'Luxury';
     motoristaId?: string;
     taxi?: string;
     clienteAceitou?: boolean;
     startTime?: Date;
     endTime?: Date;
     price?: number;
-    rejeitados?: string[]; // IDs dos motoristas em que os clientes rejeitaram o pedido
+    rejeitados?: string[]; // IDs of drivers rejected by the client
   }

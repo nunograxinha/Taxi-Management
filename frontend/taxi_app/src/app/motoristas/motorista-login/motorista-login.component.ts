@@ -53,7 +53,7 @@ export class MotoristaLoginComponent {
         }
       },
       error: (err: any) => {
-        console.error('Erro ao carregar motoristas:', err);
+        console.error('Error loading drivers:', err);
       }
     });
   } 

@@ -14,7 +14,7 @@ exports.get_clientes = async (req, res) => {
 exports.get_cliente_by_id = async (req, res) => {
   const { id } = req.params;
   try {
-    const cliente = await clienteService.getClienteBy_idy(id);
+    const cliente = await clienteService.getClienteBy_id(id);
     if (!cliente) {
       return res.status(404).json({ error: `Cliente with ID ${id} not found` });
     }
@@ -37,10 +37,10 @@ exports.post_cliente = async (req, res) => {
 // PUT cliente/update/:id
 exports.update_cliente = async (req, res) => {
   const { id } = req.params;
-  const { name, gender, birthYear, address, drivingLicenseNumber} = req.body;
+  const { NIF, name, gender } = req.body;
   
   try {
-    const updatedCliente = await clienteService.updateClienteByID(id, { name, gender, birthYear, address, drivingLicenseNumber});
+    const updatedCliente = await clienteService.updateClienteBy_id(id, { NIF, name, gender });
     if (!updatedCliente) {
       return res.status(404).json({ error: `Cliente with ID ${id} not found` });
     }
@@ -54,7 +54,7 @@ exports.update_cliente = async (req, res) => {
 exports.delete_cliente = async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedCliente = await clienteService.deleteClienteByID(id);
+    const deletedCliente = await clienteService.deleteClienteBy_id(id);
     if (!deletedCliente) {
       return res.status(404).json({ error: `Cliente with ID ${id} not found` });
     }

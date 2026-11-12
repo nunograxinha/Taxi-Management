@@ -5,10 +5,10 @@ const clienteSchema = new mongoose.Schema({
         type: String, 
         unique: false, 
         required: true,
-        match: [/^\d{9}$/, 'NIF de um Cliente tem de ter exatamente 9 digitos'] 
+        match: [/^\d{9}$/, 'Client NIF must have exactly 9 digits'] 
       },
     name: { type: String, required: true },
-    gender: { type: String, enum: ['Masculino', 'Feminino'], required: true,},
+    gender: { type: String, enum: ['Male', 'Female'], required: true },
 }, { timestamps: true });
 
 clienteSchema.index({ createdAt: -1 });

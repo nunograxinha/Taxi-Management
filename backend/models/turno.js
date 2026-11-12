@@ -11,7 +11,7 @@ const turnoSchema = new mongoose.Schema({
       validator: function (value) {
         return value > this.start;
       },
-      message: 'end tem de ser após start'
+      message: 'end must be after start'
     }
   },
 }, { timestamps: true });

@@ -1,35 +1,35 @@
 
 <div class="precario-container">
-  <h1 class="titulo precario-header"> Preçário </h1>
+  <h1 class="titulo precario-header"> Pricing </h1>
 
   <div class="precos-container">
     <div class="preco-card">
-      <h2 class="titulo" style="font-size: 1.4em;">Carro "Básico"</h2>
+      <h2 class="titulo" style="font-size: 1.4em;">"Basic" Car</h2>
       <p class="valor-display">{{ custoBase }}€ / min</p>
-      <button (click)="alterarValor('custoBase')">Alterar</button>
+      <button (click)="alterarValor('custoBase')">Change</button>
     </div>
   
     <div class="preco-card">
-      <h2 class="titulo"> Carro "Luxo"</h2>
+      <h2 class="titulo"> "Luxury" Car</h2>
       <p class="valor-display">{{ custoLuxo }}€ / min</p>
-      <button (click)="alterarValor('custoLuxo')">Alterar</button>
+      <button (click)="alterarValor('custoLuxo')">Change</button>
     </div>
   </div>
   
-  <h1 class="titulo taxas-header">Taxas</h1>
+  <h1 class="titulo taxas-header">Surcharges</h1>
 
   <div class="taxas-container">
     <div class="preco-card">
-      <h2 class="titulo">Taxa Noturna (21:00 - 06:00)</h2>
+      <h2 class="titulo">Night Surcharge (21:00 - 06:00)</h2>
       <p class="valor-display">{{ taxaNocturna }}% / min</p>
-      <button (click)="alterarValor('taxaNocturna')">Alterar</button>
+      <button (click)="alterarValor('taxaNocturna')">Change</button>
     </div>
   </div>
   
   <!-- Popup Modal -->
   <div class="modal-backdrop" *ngIf="showModal">
     <div class="modal">
-      <h3>Alterar valor de {{ campoAtual }}</h3>
+      <h3>Change value</h3>
       <div class="input-wrapper">
         <span class="input-prefix">
           {{ campoAtual === 'taxaNocturna' ? '%' : '€' }}
@@ -37,10 +37,10 @@
         <input type="text" [(ngModel)]="valorTemporario" />
       </div>
       <div class="erro" *ngIf="erroValidacao">{{ erroValidacao }}</div>
-      <button (click)="confirmarAlteracao()">Confirmar</button>
-      <button (click)="cancelarAlteracao()">Cancelar</button>
+      <button (click)="confirmarAlteracao()">Confirm</button>
+      <button (click)="cancelarAlteracao()">Cancel</button>
     </div>
   </div>
   <div class="btn-container">
-    <button style="font-weight: bold;" routerLink="/gestor/gerir-precos/simulacao"> Fazer Simulação </button>
+    <button style="font-weight: bold;" routerLink="/gestor/gerir-precos/simulacao"> Run Simulation </button>
   </div>

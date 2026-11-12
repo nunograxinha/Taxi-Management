@@ -1,45 +1,52 @@
-GERAIS:
-/initDataBase -- TODO (Inicializar objectos para tudo)
+GENERAL:
+/initDataBase -- Initialize database with sample data
 
-/fatura:
-GET /fatura
-GET /fatura/get/:id
-POST /fatura/create
-PUT /fatura/update/:id
-DELETE /fatura/delete/:id
+/invoice (/fatura):
+GET /invoice
+GET /invoice/:id
+POST /invoice
+PUT /invoice/:id
+DELETE /invoice/:id
 
-/filial:
+/branch (/filial):
 GET /filial
-GET /filial/get/:nipc
-POST /filial/create
-PUT /filial/update/:nipc
-DELETE /filial/delete/:nipc
+GET /filial/:nipc
+POST /filial
+PUT /filial/:nipc
+DELETE /filial/:nipc
 GET /filial/init
 
-/motorista:
-GET /motorista
-GET /motorista/get/:nif
-POST /motorista/create
-PUT /motorista/update/:nif
-DELETE /motorista/delete/:nif
+/driver (/motorista):
+GET /driver
+GET /driver/:nif
+GET /driver/id/:id
+POST /driver
+PUT /driver/:nif
+DELETE /driver/:nif
 
 /taxi:
 GET /taxi
-GET /taxi/get/:plate
-POST /taxi/create
-PUT /taxi/update/:plate
-DELETE /taxi/delete/:plate
+GET /taxi/:plate
+GET /taxi/id/:id
+GET /taxi/turno
+POST /taxi
+PUT /taxi/:plate
+DELETE /taxi/:plate
 
-/turno:
-GET /turno
-GET /turno/get/:id
-POST /turno/create
-PUT /turno/update/:id
-DELETE /turno/delete/:id
+/shift (/turno):
+GET /shift
+GET /shift/:id
+GET /shift/intervalo
+GET /shift/motorista/:motoristaNIF
+GET /shift/taxi/:licensePlate
+POST /shift
+PUT /shift/:id
+DELETE /shift/:id
 
-/viagem:
-GET /viagem
-GET /viagem/get/:id
-POST /viagem/create
-PUT /viagem/update/:id
-DELETE /viagem/delete/:id
+/trip (/viagem):
+GET /trip
+GET /trip/:id
+GET /trip/motorista/:id
+POST /trip
+PUT /trip/:id
+DELETE /trip/:id

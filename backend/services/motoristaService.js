@@ -57,7 +57,7 @@ module.exports = {
       const turnoService = require('./turnoService'); 
       const turno = await turnoService.getTurnosByMotoristaNIF(nif);
       if(Array.isArray(turno) && turno.length > 0){
-        return "Turno associado ao Motorista, não é possível eliminar o Motorista";
+        return "Shift associated with Driver, cannot delete Driver";
       }else{
         const deletedMotorista = await Motorista.findOneAndDelete({ NIF: nif });
         return deletedMotorista;

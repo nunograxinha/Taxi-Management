@@ -28,7 +28,7 @@ export class GerirPrecosComponent implements OnInit {
         this.taxaNocturna = data.nightTimeSurcharge;
         this.precoId = data._id;
       },
-      error: (err) => console.error('[ERROR] Erro ao buscar preços:', err)
+      error: (err) => console.error('[ERROR] Error fetching prices:', err)
     });
   }
 
@@ -44,36 +44,36 @@ export class GerirPrecosComponent implements OnInit {
     const valor = parseFloat(valorTexto);
   
     if (isNaN(valor)) {
-      this.erroValidacao = 'Insira um número válido.';
+      this.erroValidacao = 'Please enter a valid number.';
       return;
     }
   
     if (valor < 0) {
-      this.erroValidacao = 'Insira um número positivo.';
+      this.erroValidacao = 'Please enter a positive number.';
       return;
     }
   
     const duasDecimais = /^\d+([.,]\d{1,2})?$/.test(this.valorTemporario);
     if (!duasDecimais) {
-      this.erroValidacao = 'Use no máximo duas casas decimais.';
+      this.erroValidacao = 'Use at most two decimal places.';
       return;
     }
   
     if (this.campoAtual === 'custoBase' || this.campoAtual === 'custoLuxo') {
       if (valor <= 0) {
-        this.erroValidacao = 'O valor deve ser maior que 0.';
+        this.erroValidacao = 'The value must be greater than 0.';
         return;
       }
     }
   
     if (this.campoAtual === 'taxaNocturna') {
       if (valor < 0 || valor > 100) {
-        this.erroValidacao = 'A taxa deve estar entre 0% e 100%.';
+        this.erroValidacao = 'The surcharge must be between 0% and 100%.';
         return;
       }
     }
   
-    // Valor válido
+    // Valid value
     this[this.campoAtual!] = valor;
     this.showModal = false;
     this.salvarPreco();
@@ -98,8 +98,8 @@ export class GerirPrecosComponent implements OnInit {
     };
 
     this.precoService.atualizarPreco(this.precoId, precoAtualizado).subscribe({
-      next: () => console.log('[SUCCESS] Preço atualizado com sucesso.'),
-      error: (err) => console.error('[ERROR] Erro ao atualizar preço:', err)
+      next: () => console.log('[SUCCESS] Price updated successfully.'),
+      error: (err) => console.error('[ERROR] Error updating price:', err)
     });
   }
 }

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Garante que os schemas referenciados estão registados
+// Ensure referenced schemas are registered
 require('./motorista');
 require('./turno');
 require('./cliente');
@@ -17,7 +17,7 @@ const viagemSchema = new mongoose.Schema({
       validator: function (value) {
         return value > this.entryTime;
       },
-      message: 'exitTime tem de ser após entryTime'
+      message: 'exitTime must be after entryTime'
     }
   },
   entryAddress: { type: String, required: true },
@@ -34,8 +34,8 @@ viagemSchema.index({ turno: 1, sequenceNumber: 1 }, { unique: true });
 viagemSchema.pre('save', async function (next) {
   if (this.isNew) {
     const Viagem = mongoose.model('Viagem');
-    const count = await Viagem.countDocuments({ turno: this.turno });
-    this.sequenceNumber = count + 1;
+    const lastViagem = await Viagem.findOne({ turno: this.turno }).sort({ sequenceNumber: -1 });
+    this.sequenceNumber = lastViagem && lastViagem.sequenceNumber ? lastViagem.sequenceNumber + 1 : 1;
   }
   next();
 });

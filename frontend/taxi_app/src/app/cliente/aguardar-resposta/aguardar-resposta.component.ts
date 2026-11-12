@@ -3,14 +3,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
 import { PedidoViagem } from '../../cliente/pedidoViagem_interface';
 import { Motorista } from '../../motoristas/motorista_interface';
-import { Subscription, interval }from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-aguardar-resposta',
   templateUrl: './aguardar-resposta.component.html',
   styleUrls: ['./aguardar-resposta.component.css']
 })
-export class AguardarRespostaComponent implements OnInit {
+export class AguardarRespostaComponent implements OnInit, OnDestroy {
   pedidoId: string = '';
   pedido: PedidoViagem | null = null;
   motorista: Motorista | null = null;
@@ -31,13 +31,17 @@ export class AguardarRespostaComponent implements OnInit {
       this.loading = false;
       return;
     }
-    this.carregarPedido();
     this.pedidoId = paramId;
-    this.pedidoViagemService.requestMotorista(this.pedidoId).subscribe({
-      next: (res) => {
-        console.log(res)
-        console.log("accepted")
-        this.router.navigate(['/cliente/confirmar-viagem', this.pedidoId])
+    this.carregarPedido();
+    this.polllingSubscription = this.pedidoViagemService.requestMotorista(this.pedidoId).subscribe({
+      next: (res: any) => {
+        console.log(res);
+        if (res && res.motoristaId) {
+          console.log("accepted");
+          this.router.navigate(['/cliente/confirmar-viagem', this.pedidoId]);
+        } else {
+          this.erro = 'Ainda não foi encontrado nenhum motorista disponível. Tente novamente ou aguarde.';
+        }
       },
       error: (err) => {
         console.error('Error requesting driver:', err);
@@ -50,27 +54,20 @@ export class AguardarRespostaComponent implements OnInit {
       this.polllingSubscription.unsubscribe();
     }
   }
-  async carregarPedido() {
-    try {
-      const pedido = await this.pedidoViagemService.getPedidoById(this.pedidoId).toPromise();
-      this.pedidoViagemService.getPedidoById(this.pedidoId).subscribe({
+
+  carregarPedido(): void {
+    this.pedidoViagemService.getPedidoById(this.pedidoId).subscribe({
       next: (pedido) => {
-        console.log(pedido)
+        console.log(pedido);
         this.pedido = pedido ? pedido : null;
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading pedido:', err);
+        console.error('Erro ao carregar pedido:', err);
+        this.erro = 'Erro ao carregar o pedido.';
         this.loading = false;
       }
     });
-      
-      this.loading = false;
-    } catch (error) {
-      console.error('Erro ao carregar pedido:', error);
-      this.erro = 'Erro ao carregar o pedido.';
-      this.loading = false;
-    }
   }
 
   async cancelarPedido() {
@@ -79,7 +76,7 @@ export class AguardarRespostaComponent implements OnInit {
       return;
     }
     try {
-      await this.pedidoViagemService.deletePedido(this.pedidoId).toPromise();
+      await firstValueFrom(this.pedidoViagemService.deletePedido(this.pedidoId));
       this.router.navigate(['/cliente']);
     } catch (error) {
       console.error('Erro ao cancelar pedido:', error);

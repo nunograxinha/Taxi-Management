@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { position } from 'carbon-components-angular';
 import { from, map, Observable } from 'rxjs';
 
 @Injectable({
@@ -45,14 +44,14 @@ export class GeolocationService {
       const data = await response.json();
       
       if (data && data.address) {
-        const cidade = data.address.city || data.address.town || data.address.village || data.address.hamlet || 'Cidade desconhecida';
-        const rua = data.address.road || `${data.address.suburb}, ${data.address.city_district}` || data.address.neighborhood || 'Rua desconhecida';
+        const cidade = data.address.city || data.address.town || data.address.village || data.address.hamlet || 'Unknown city';
+        const rua = data.address.road || `${data.address.suburb}, ${data.address.city_district}` || data.address.neighborhood || 'Unknown street';
         return [cidade, rua].join(', ');
       } else {
-        throw new Error('Endereço não encontrado');
+        throw new Error('Address not found');
       }
     } catch (error) {
-      console.error('Erro ao obter endereço:', error);
+      console.error('Error fetching address:', error);
       throw error;
     }
   }
@@ -69,10 +68,10 @@ export class GeolocationService {
           const longitude: string = location.lon;
           return { latitude, longitude};
         } else {
-          throw new Error('Coordenadas não encontradas para o endereço');
+          throw new Error('Coordinates not found for address');
         }
       } catch (error) {
-        console.error('Erro ao obter coordenadas:', error);
+        console.error('Error fetching coordinates:', error);
         throw error;
       }
   }

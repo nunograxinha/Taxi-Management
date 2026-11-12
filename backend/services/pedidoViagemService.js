@@ -8,8 +8,8 @@ module.exports = {
         const pedidos = await PedidoViagem.find().populate('cliente');
         return pedidos;
     } catch (error) {
-        console.error('Erro ao buscar pedidos de viagem:', error);
-        throw new Error('Erro ao buscar pedidos de viagem');
+        console.error('Error fetching ride requests:', error);
+        throw new Error('Error fetching ride requests');
     }
   },
 
@@ -17,12 +17,12 @@ module.exports = {
     try {
         const deletedPedido = await PedidoViagem.findByIdAndDelete(id);
         if (!deletedPedido) {
-            throw new Error('Pedido de viagem não encontrado');
+            throw new Error('Ride request not found');
         }
         return deletedPedido;
     } catch (error) {
-        console.error('Erro ao excluir pedido de viagem:', error);
-        throw new Error('Erro ao excluir pedido de viagem');
+        console.error('Error deleting ride request:', error);
+        throw new Error('Error deleting ride request');
     }
   },
 
@@ -30,12 +30,12 @@ module.exports = {
       try {
           const pedido = await PedidoViagem.findById(id).populate('cliente');
           if (!pedido) {
-            throw new Error('Pedido de viagem não encontrado');
+            throw new Error('Ride request not found');
           }
           return pedido;
       } catch (error) {
-          console.error('Erro ao buscar pedido de viagem por ID:', error);
-          throw new Error('Erro ao buscar pedido de viagem por ID');
+          console.error('Error fetching ride request by ID:', error);
+          throw new Error('Error fetching ride request by ID');
         }
     },
 
@@ -43,14 +43,14 @@ module.exports = {
       try {
         const cliente = await clienteService.getClienteBy_id(body.cliente);
         if (!cliente) {
-          throw new Error('Cliente não encontrado');
+          throw new Error('Client not found');
         }
         const pedido = new PedidoViagem(body);
         const savedpedido = await pedido.save();
         return savedpedido;
       } catch (error) {
-        console.error('Erro ao criar pedido de viagem:', error);
-        throw new Error('Erro ao criar pedido de viagem');      }
+        console.error('Error creating ride request:', error);
+        throw new Error('Error creating ride request');      }
     },
     
 };

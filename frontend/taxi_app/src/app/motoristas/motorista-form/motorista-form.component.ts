@@ -132,17 +132,17 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
     this.carregarCodigosPostais();
   }
 
-  // Carregar os dados do CSV
+  // Load data from CSV
   carregarCodigosPostais() {
     Papa.parse('/assets/data/codigos_postais.csv', {
       download: true,
       header: true,
       complete: (result: Papa.ParseResult<any>) => {
         this.codigosPostais = result.data;
-        console.log('Códigos postais carregados');
+        console.log('Postal codes loaded');
       },
       error: (error) => {
-        console.error('Erro ao carregar o CSV: ', error);
+        console.error('Error loading CSV: ', error);
       }
     });
   }
@@ -167,7 +167,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
   
 
       if (this.motoristaParaEditar) {
-      // Edição
+      // Edit
       this.motoristaService.atualizarMotorista(
         this.motoristaParaEditar.NIF,
         motoristaPayload
@@ -175,28 +175,28 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
         next: () => {
           this.motoristaForm.reset();
           this.motoristaEditado.emit();
-          this.mensagemSucesso = 'Motorista editado com sucesso!';
+          this.mensagemSucesso = 'Driver updated successfully!';
           setTimeout(() => { this.mensagemSucesso = ''; }, 3000);
         },
         error: (err: any) => {
-          this.mensagemErro = 'Ocorreu um erro ao editar o motorista. Tente novamente.';
+          this.mensagemErro = 'An error occurred while updating the driver. Please try again.';
           setTimeout(() => { this.mensagemErro = ''; }, 3000);
         }
       });
     } else {
       this.motoristaService.criarMotorista(motoristaPayload).subscribe({
         next: (res: any) => {
-          console.log('Motorista criado com sucesso:', res);
+          console.log('Driver created successfully:', res);
           this.motoristaForm.reset();
-          this.motoristaCriado.emit(); // notificar componente pai
-          this.mensagemSucesso = 'Motorista registado com sucesso!';
+          this.motoristaCriado.emit();
+          this.mensagemSucesso = 'Driver registered successfully!';
           setTimeout(() => {
             this.mensagemSucesso = '';
           }, 3000);
         },
         error: (err: any) => {
-          console.error('Erro ao criar motorista:', err);
-          this.mensagemErro = 'Ocorreu um erro ao registar o Motorista. Tente novamente.';
+          console.error('Error creating driver:', err);
+          this.mensagemErro = 'An error occurred while registering the driver. Please try again.';
           setTimeout(() => {
             this.mensagemErro = '';
           }, 3000);
@@ -204,7 +204,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
       });
     }
     } else {
-      console.log('Formulário inválido!');
+      console.log('Invalid form!');
     }
 }
 

@@ -121,29 +121,29 @@ maxCurrentYearValidator(control: AbstractControl): ValidationErrors | null {
         next: (res) => {
           this.taxiForm.reset();
           this.taxiEditado.emit();
-          this.mensagemSucesso = 'Táxi atualizado com sucesso!';
+          this.mensagemSucesso = 'Taxi updated successfully!';
           setTimeout(() => { this.mensagemSucesso = ''; }, 3000);
         },
         error: (err) => {
-          this.mensagemErro = 'Ocorreu um erro ao atualizar o táxi. Tente novamente.';
+          this.mensagemErro = 'An error occurred while updating the taxi. Please try again.';
           setTimeout(() => { this.mensagemErro = ''; }, 3000);
         }
       });
       } else {
         this.taxiService.createTaxi(taxiPayload).subscribe({
           next: (res) => {
-            console.log('Táxi criado com sucesso:', res);
+            console.log('Taxi created successfully:', res);
             this.taxiForm.reset();
             this.taxiCriado.emit();
-            this.mensagemSucesso = 'Táxi registado com sucesso!';
+            this.mensagemSucesso = 'Taxi registered successfully!';
 
             setTimeout(() => {
               this.mensagemSucesso = '';
             }, 3000);
           },
           error: (err) => {
-            console.error('Erro ao criar táxi:', err);
-            this.mensagemErro = 'Ocorreu um erro ao registar o táxi. Tente novamente.';
+            console.error('Error creating taxi:', err);
+            this.mensagemErro = 'An error occurred while registering the taxi. Please try again.';
 
             setTimeout(() => {
               this.mensagemErro = '';
@@ -152,7 +152,7 @@ maxCurrentYearValidator(control: AbstractControl): ValidationErrors | null {
         });
     }
     } else {
-      console.log('Formulário inválido!');
+      console.log('Invalid form!');
     }
   }
 

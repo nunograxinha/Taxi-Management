@@ -21,6 +21,6 @@ export class AppComponent implements OnInit {
   }
 
   onClose() {
-    console.log('Menu fechado');
+    console.log('Menu closed');
   }
 }

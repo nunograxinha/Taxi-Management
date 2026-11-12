@@ -62,7 +62,6 @@ import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
     GerirTaxisComponent,
     GerirMotoristasComponent,
     GerirPrecosComponent,
-    TaxiFormComponent,
     SimularPrecoComponent,
     MotoristaLoginComponent,
     PedidoViagemComponent,

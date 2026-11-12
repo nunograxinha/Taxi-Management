@@ -27,7 +27,7 @@ export class MotoristaPageComponent implements OnInit {
         this.motoristaService.setMotorista(motorista);
       },
       error: (err) => {
-        console.error('Erro ao buscar motorista:', err);
+        console.error('Error fetching driver:', err);
       }
     });
   }

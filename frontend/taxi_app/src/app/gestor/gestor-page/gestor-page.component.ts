@@ -23,7 +23,7 @@ export class GestorPageComponent {
    }
 
   onClose() {
-    console.log('Menu fechado');
+    console.log('Menu closed');
   }
 
   private carregarTaxis(): void {
@@ -32,7 +32,7 @@ export class GestorPageComponent {
         this.taxis = data;
       },
       error: (err) => {
-        console.error('Erro ao buscar táxis:', err);
+        console.error('Error fetching taxis:', err);
       }
     });
   }
@@ -43,7 +43,7 @@ export class GestorPageComponent {
         this.motoristas = data;
       },
       error: (err) => {
-        console.error('Erro ao buscar táxis:', err);
+        console.error('Error fetching drivers:', err);
       }
     });
   }

@@ -7,9 +7,8 @@ import { Motorista } from '../motoristas/motorista_interface';
   providedIn: 'root'
 })
 export class MotoristaService {
-  private apiUrl = 'http://localhost:3073/motorista'; //3073
+  private apiUrl = 'http://localhost:3073/driver';
   
-  ///
   private motoristaSubject = new BehaviorSubject<Motorista| null>(null);
 
   motorista$ = this.motoristaSubject.asObservable();
@@ -21,36 +20,35 @@ export class MotoristaService {
   getMotorista(): Motorista | null {
     return this.motoristaSubject.getValue();
   }
-  ///
 
   constructor(private http: HttpClient) {}
 
-  // Obter todos os motoristas
+  // Get all drivers
   obterMotoristas(): Observable<Motorista[]> {
     return this.http.get<Motorista[]>(this.apiUrl);
   }
 
-  // Criar um novo motorista
+  // Create a new driver
   criarMotorista(motorista: Motorista): Observable<Motorista> {
     return this.http.post<Motorista>(this.apiUrl, motorista);
   }
 
-  // Apagar motorista por NIF
+  // Delete driver by NIF
   apagarMotoristaPorNIF(nif: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${nif}`);
   }
 
-  // (Opcional) Obter um motorista por ID
+  // Get a driver by NIF
   obterMotorista(nif: string): Observable<Motorista> {
     return this.http.get<Motorista>(`${this.apiUrl}/${nif}`);
   }
 
-  // Atualizar motorista por NIF
+  // Update driver by NIF
   atualizarMotorista(nif: string, updateData: Partial<Motorista>): Observable<Motorista> {
     return this.http.put<Motorista>(`${this.apiUrl}/${nif}`, updateData);
   }
 
-  // (Opcional) Obter um motorista por NIF
+  // Get a driver by NIF
   getMotoristaPorNIF(nif: string): Observable<Motorista> {
     return this.http.get<Motorista>(`${this.apiUrl}/${nif}`);
   }
@@ -59,10 +57,10 @@ export class MotoristaService {
     return this.http.get<Motorista>(`${this.apiUrl}/id/${id}`);
   }
 
-  // Função para ordenar os motoristas por data de criação
+  // Sort drivers by updatedAt date
   sortMotoristasByUpdatedAt(motoristas: Motorista[]): Motorista[] {
     return [...motoristas].sort((a, b) => {
-      const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0; // Garantir que createdAt não seja undefined
+      const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
       return dateB - dateA;
     });

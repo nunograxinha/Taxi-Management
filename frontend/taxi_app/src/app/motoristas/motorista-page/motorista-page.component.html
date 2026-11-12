@@ -3,11 +3,11 @@
     <mat-nav-list>
       <a mat-list-item [routerLink]="['/motorista', motorista?.NIF, 'turnos']" (click)="sidenav.close()">
         <mat-icon>local_taxi</mat-icon>
-        <span>Gerir Turnos</span>
+        <span>Manage Shifts</span>
       </a>
       <a mat-list-item [routerLink]="['/motorista', motorista?.NIF, 'pedidos-pendentes']" (click)="sidenav.close()">
         <mat-icon>notifications</mat-icon>
-        <span>Pedidos Pendentes</span>
+        <span>Pending Requests</span>
         </a>
     </mat-nav-list>
   </mat-sidenav>
@@ -18,7 +18,7 @@
         <mat-icon>menu</mat-icon>
       </button>
 
-      <span class="toolbar-title">Olá {{ motorista?.name }}</span>
+      <span class="toolbar-title">Hello {{ motorista?.name }}</span>
 
       <button class="logout-btn" routerLink="/motorista">
         <mat-icon>logout</mat-icon>

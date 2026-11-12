@@ -3,15 +3,15 @@ const mongoose = require('mongoose');
 const pedidoViagemSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente', required: true },
   numberOfPeople: { type: Number, required: true, min:1},
-  distanceKmToMotorista: { type: Number, required: false, min: 0.01, default:null },
+  distanceKmToMotorista: { type: Number, required: false, min: 0, default: null },
   entryAddress: { type: String, required: true },
   exitAddress: { type: String, required: true },
   confort: {
     type: String,
     required: true,
     enum: {
-        values: ['Basico', 'Luxuoso'],
-        message: 'Conforto deve ser "Basico" ou "Luxuoso"'
+        values: ['Basic', 'Luxury'],
+        message: 'Comfort level must be "Basic" or "Luxury"'
     }
   },
   motoristaId: { type: String, default: null },

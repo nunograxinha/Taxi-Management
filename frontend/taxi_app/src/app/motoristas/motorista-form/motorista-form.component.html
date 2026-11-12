@@ -3,20 +3,20 @@
 
 <form [formGroup]="motoristaForm" (ngSubmit)="onSubmit()">
   <div>
-    <label for="name">Nome:</label>
+    <label for="name">Name:</label>
     <input id="name" formControlName="name">
     <div *ngIf="motoristaForm.get('name')?.invalid && motoristaForm.get('name')?.touched">
-      <small class="error">Nome é obrigatório.</small>
+      <small class="error">Name is required.</small>
     </div>
   </div>
 
   <div>
-    <label for="birthYear">Ano de Nascimento:</label>
+    <label for="birthYear">Birth Year:</label>
     <input id="birthYear" formControlName="birthYear" type="text">
     <div *ngIf="motoristaForm.get('birthYear')?.invalid && motoristaForm.get('birthYear')?.touched">
-      <small class="error" *ngIf="motoristaForm.get('birthYear')?.hasError('invalidYearFormat')">Ano de nascimento inválido. Insira um número com 4 dígitos (sem espaços, letras ou símbolos).</small>
-      <small class="error" *ngIf="motoristaForm.get('birthYear')?.hasError('minor')">Ano de nascimento inválido. O motorista deve ter pelo menos 18 anos.</small>
-      <small class="error" *ngIf="motoristaForm.get('birthYear')?.hasError('futureYear')">Ano de nascimento inválido. O ano de nascimento não pode ser no futuro.</small>
+      <small class="error" *ngIf="motoristaForm.get('birthYear')?.hasError('invalidYearFormat')">Invalid birth year. Enter a 4-digit number (no spaces, letters, or symbols).</small>
+      <small class="error" *ngIf="motoristaForm.get('birthYear')?.hasError('minor')">Invalid birth year. The driver must be at least 18 years old.</small>
+      <small class="error" *ngIf="motoristaForm.get('birthYear')?.hasError('futureYear')">Invalid birth year. Birth year cannot be in the future.</small>
     </div>
   </div>
 
@@ -24,61 +24,61 @@
     <label for="NIF">NIF:</label>
     <input id="NIF" formControlName="NIF" type="text">
     <div *ngIf="motoristaForm.get('NIF')?.invalid && motoristaForm.get('NIF')?.touched">
-      <small class="error" *ngIf="motoristaForm.get('NIF')?.hasError('invalidFormat')">Formato inválido. Insira apenas dígitos (sem espaços, letras ou símbolos).</small>
-      <small class="error" *ngIf="motoristaForm.get('NIF')?.hasError('notPositive')">Formato inválido. Insira um número positivo.</small>
-      <small class="error" *ngIf="motoristaForm.get('NIF')?.hasError('invalidLength')">Formato inválido. Insira um número com 9 dígitos.</small>
+      <small class="error" *ngIf="motoristaForm.get('NIF')?.hasError('invalidFormat')">Invalid format. Enter digits only (no spaces, letters, or symbols).</small>
+      <small class="error" *ngIf="motoristaForm.get('NIF')?.hasError('notPositive')">Invalid format. Enter a positive number.</small>
+      <small class="error" *ngIf="motoristaForm.get('NIF')?.hasError('invalidLength')">Invalid format. Enter a 9-digit number.</small>
     </div>
   </div>
 
   <div>
-    <label for="gender">Género:</label>
+    <label for="gender">Gender:</label>
     <select id="gender" formControlName="gender">
-      <option value="">Seleciona</option>
-      <option value="Masculino">Masculino</option>
-      <option value="Feminino">Feminino</option>
+      <option value="">Select</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
     </select>
     <div *ngIf="motoristaForm.get('gender')?.invalid && motoristaForm.get('gender')?.touched">
-      <small class="error">Género é obrigatório.</small>
+      <small class="error">Gender is required.</small>
     </div>
   </div>
 
   <div>
-    <label for="drivingLicenseNumber">Nº Carta de Condução:</label>
+    <label for="drivingLicenseNumber">Driving License Number:</label>
     <input id="drivingLicenseNumber" formControlName="drivingLicenseNumber">
     <div *ngIf="motoristaForm.get('drivingLicenseNumber')?.invalid && motoristaForm.get('drivingLicenseNumber')?.touched">
-      <small class="error">Número de carta de condução inválido.</small>
+      <small class="error">Invalid driving license number.</small>
     </div>
   </div>
 
   <div>
-    <label for="postalCode">Código Postal:</label>
+    <label for="postalCode">Postal Code:</label>
     <input id="postalCode" formControlName="postalCode" (input)="onCodigoPostalChange()">
     <div *ngIf="motoristaForm.get('postalCode')?.invalid && motoristaForm.get('postalCode')?.touched">
-      <small class="error">Código Postal é obrigatório.</small>
+      <small class="error">Postal Code is required.</small>
     </div>
   </div>
 
   <div>
-    <label for="city">Localidade:</label>
-    <input id="city" formControlName="city" readonly placeholder="Preenchido automaticamente">
+    <label for="city">City:</label>
+    <input id="city" formControlName="city" readonly placeholder="Filled automatically">
   </div>
 
   <div>
-    <label for="street">Rua:</label>
+    <label for="street">Street:</label>
     <input id="street" formControlName="street">
     <div *ngIf="motoristaForm.get('street')?.invalid && motoristaForm.get('street')?.touched">
-      <small class="error">Rua é obrigatória.</small>
+      <small class="error">Street is required.</small>
     </div>
   </div>
 
   <div>
-    <label for="doorNumber">Nº Porta:</label>
+    <label for="doorNumber">Door Number:</label>
     <input id="doorNumber" formControlName="doorNumber">
     <div *ngIf="motoristaForm.get('doorNumber')?.invalid && motoristaForm.get('doorNumber')?.touched">
-      <small class="error" *ngIf="motoristaForm.get('doorNumber')?.hasError('required')">Número da porta é obrigatório.</small>      
-        <small class="error" *ngIf="motoristaForm.get('doorNumber')?.hasError('notDigitsOnly')">Nº Porta inválido. Insira apenas dígitos (sem espaços, letras ou símbolos).</small>
+      <small class="error" *ngIf="motoristaForm.get('doorNumber')?.hasError('required')">Door number is required.</small>      
+        <small class="error" *ngIf="motoristaForm.get('doorNumber')?.hasError('notDigitsOnly')">Invalid door number. Enter digits only (no spaces, letters, or symbols).</small>
     </div>
   </div>
 
-  <button type="submit" [disabled]="motoristaForm.invalid">Submeter</button>
+  <button type="submit" [disabled]="motoristaForm.invalid">Submit</button>
 </form>

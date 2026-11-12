@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { Viagem } from '../viagem/viagem_interface';
 import { ViagemService } from '../appServices/viagem.service';
 import { Motorista } from '../motoristas/motorista_interface';
@@ -17,31 +17,28 @@ export class RelatorioStateService {
   constructor(private viagemService: ViagemService, private motoristaService: MotoristaService
 ) {
     this.atualizarViagens();
-    this.atualizarMotoristas();
   }
 
   atualizarViagens(): void {
-    this.viagemService.listarTodasViagens().subscribe({
-      next: (viagens) => {
+    forkJoin({
+      motoristas: this.motoristaService.obterMotoristas(),
+      viagens: this.viagemService.listarTodasViagens()
+    }).subscribe({
+      next: ({ motoristas, viagens }) => {
+        this._motoristasMap.clear();
+        motoristas.forEach(m => {
+          if (m._id) {
+            this._motoristasMap.set(m._id, m);
+          }
+        });
+
         const viagensHoje = this.filtrarViagensDeHoje(viagens);
         this._viagensHoje$.next(viagensHoje);
         this._viagensPorMotoristaHoje$.next(this.gerarMapa(viagensHoje));
-        console.log("Lista das viagens de hoje:", this._viagensHoje$.getValue()); //
+        console.log("Today's trips list:", this._viagensHoje$.getValue());
       },
       error: (err) => {
-        console.error('Erro ao buscar viagens:', err);
-      }
-    });
-  }
-
-  private atualizarMotoristas(): void {
-    this.motoristaService.obterMotoristas().subscribe({
-      next: (motoristas: Motorista[]) => {
-        motoristas.forEach(m => this._motoristasMap.set(m._id!, m));
-        console.log("Mapa dos motoristas preenchido:", this._motoristasMap); //
-      },
-      error: (err) => {
-        console.error('Erro ao buscar motoristas:', err);
+        console.error('Error updating report data:', err);
       }
     });
   }

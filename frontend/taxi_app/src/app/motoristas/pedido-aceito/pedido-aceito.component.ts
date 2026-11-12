@@ -1,6 +1,6 @@
-import { sequence } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { ClienteService } from '../../appServices/cliente.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import { MotoristaService } from '../../appServices/motorista.service';
@@ -50,7 +50,7 @@ export class PedidoAceitoComponent implements OnInit {
   ngOnInit(): void {
     const pedidoId = this.route.snapshot.paramMap.get('pedidoId');
     if (!pedidoId) {
-      console.error('Pedido ID não fornecido');
+      console.error('Request ID not provided');
       return;
     }
     this.pedidoId = pedidoId;
@@ -63,17 +63,17 @@ export class PedidoAceitoComponent implements OnInit {
               this.nomeCliente = '';
             }
         },
-      error: (error) => { console.error('Erro ao buscar o pedido:', error); }
+      error: (error) => { console.error('Error fetching ride request:', error); }
     });
     this.precoService.getPreco().subscribe({
       next: (preco) => { this.preco = preco; },
-      error: (error) => { console.error('Erro ao buscar o preço:', error); }
+      error: (error) => { console.error('Error fetching price:', error); }
     });
   }
 
   comecarViagem(): void {
   if (!this.pedidoId || this.bloquearBotoes) {
-    console.error('Pedido ID não está definido (ou já iniciado e terminado).');
+    console.error('Request ID is not defined (or already started and finished).');
     return;
   }
   this.geolocationService.getCurrentPosition().subscribe({
@@ -87,90 +87,76 @@ export class PedidoAceitoComponent implements OnInit {
             this.pedido.startTime = startTime;
             this.pedido.entryAddress = entryAddress;
           }
-          // Obter endereço legível
+          // Get readable address
           try {
             this.startLocal = await this.geolocationService.getAddressFromCoordinates(pos.latitude, pos.longitude);
           } catch {
-            this.startLocal = 'endereço não encontrado';
+            this.startLocal = 'address not found';
           }
         },
-        error: (error) => console.error('Erro ao iniciar a viagem:', error)
+        error: (error) => console.error('Error starting trip:', error)
       });
     },
-    error: (error) => console.error('Erro ao obter localização inicial:', error)
+    error: (error) => console.error('Error getting initial location:', error)
   });
 }
 
   terminarViagem(): void {
-    if (!this.pedidoId || this.bloquearBotoes) {
-      console.error('Pedido ID não está definido (ou já iniciado e terminado).');
+    if (!this.pedidoId || !this.pedido || this.bloquearBotoes) {
+      console.error('Request ID is not defined (or already started and finished).');
       return;
     }
     this.geolocationService.getCurrentPosition().subscribe({
-    next: async (pos) => {
-      const exitAddress = `${pos.latitude},${pos.longitude}`;
-      const endTime = new Date();
-      this.pedidoViagemService.updatePedido(this.pedidoId, { endTime, exitAddress }).subscribe({
-        next: async () => {
-          this.endTimeLocal = endTime.toISOString();
-          if (this.pedido) {
-            this.pedido.endTime = endTime;
-            this.pedido.exitAddress = exitAddress;
-          }
-          try {
-            this.endLocal = await this.geolocationService.getAddressFromCoordinates(pos.latitude, pos.longitude);
-          } catch {
-            this.endLocal = 'endereço não encontrado';
-          }
-          this.pedidoViagemService.updatePedido(this.pedidoId, { endTime }).subscribe({
-            next: () => {
-              console.log('Viagem terminada.')
-              this.endTimeLocal = endTime.toISOString();
-              if (this.pedido) {
-                this.pedido.endTime = endTime;
-              } else {
-                console.error('Pedido não está definido.');
-                return;
-              }
-              setTimeout(() => {
-                this.bloquearBotoes = true;
-              }, 1000);
+      next: async (pos) => {
+        const exitAddress = `${pos.latitude},${pos.longitude}`;
+        const endTime = new Date();
 
-              const start = new Date(this.pedido!.startTime!);
-              const end = endTime;
-              const totalMinutos = Math.floor((end.getTime() - start.getTime()) / 60000);
-              const minutosNoite = this.calcularTempoNoite(start, end);
+        try {
+          this.endLocal = await this.geolocationService.getAddressFromCoordinates(pos.latitude, pos.longitude);
+        } catch {
+          this.endLocal = 'address not found';
+        }
 
-              this.taxiService.getTaxiById(this.pedido!.taxi!).toPromise().then(taxi => {
-              const confort = taxi?.confort;
-              let precoMinuto = 0;
-              if (confort === 'Basico') {
-                precoMinuto = this.preco!.pricePerMinuteConfort;
-              } else if (confort === 'Luxuoso') {
-                precoMinuto = this.preco!.pricePerMinuteLuxury;
-              }
-              this.duracaoViagem = totalMinutos;
-              const minutosDia = totalMinutos - minutosNoite;
-              const precoDia = precoMinuto * minutosDia;
-              const precoNoite = minutosNoite * (precoMinuto * (1 + (this.preco!.nightTimeSurcharge / 100)));
-              this.precoFinal = Math.round((precoDia + precoNoite) *100) / 100;
+        const start = new Date(this.pedido!.startTime!);
+        const totalMinutos = Math.floor((endTime.getTime() - start.getTime()) / 60000);
+        const minutosNoite = this.calcularTempoNoite(start, endTime);
 
-              this.pedidoViagemService.updatePedido(this.pedidoId, { price: this.precoFinal }).subscribe({
-              next: () => {
-                console.log('Preço do pedido atualizado:', this.precoFinal);},
-              error: (error) => {
-                console.error('Erro ao atualizar o preço do pedido:', error);
-              }
-            });
-          });
-        },
-        error: (error) => console.error('Erro ao terminar a viagem:', error)
-      });
-        },
-        error: (error) => console.error('Erro ao terminar a viagem:', error)
-      });
-    },
-      error: (error) => console.error('Erro ao terminar a viagem:', error)
+        const taxi = await firstValueFrom(this.taxiService.getTaxiById(this.pedido!.taxi!));
+        const confort = taxi?.confort || this.pedido!.confort;
+        let precoMinuto = 0;
+        if (confort === 'Basic') {
+          precoMinuto = this.preco!.pricePerMinuteConfort;
+        } else if (confort === 'Luxury') {
+          precoMinuto = this.preco!.pricePerMinuteLuxury;
+        }
+
+        this.duracaoViagem = totalMinutos;
+        const minutosDia = totalMinutos - minutosNoite;
+        const precoDia = precoMinuto * minutosDia;
+        const precoNoite = minutosNoite * (precoMinuto * (1 + (this.preco!.nightTimeSurcharge / 100)));
+        this.precoFinal = Math.round((precoDia + precoNoite) * 100) / 100;
+
+        this.pedidoViagemService.updatePedido(this.pedidoId, {
+          endTime,
+          exitAddress,
+          price: this.precoFinal
+        }).subscribe({
+          next: () => {
+            console.log('Trip finished and price updated:', this.precoFinal);
+            this.endTimeLocal = endTime.toISOString();
+            if (this.pedido) {
+              this.pedido.endTime = endTime;
+              this.pedido.exitAddress = exitAddress;
+              this.pedido.price = this.precoFinal!;
+            }
+            setTimeout(() => {
+              this.bloquearBotoes = true;
+            }, 1000);
+          },
+          error: (error) => console.error('Error finishing trip:', error)
+        });
+      },
+      error: (error) => console.error('Error getting final location:', error)
     });
   }
 
@@ -195,18 +181,18 @@ export class PedidoAceitoComponent implements OnInit {
 
   confirmarFimViagem(): void {
     if (!this.pedido || !this.pedido.endTime || !this.pedido.startTime || this.precoFinal === null) {
-      alert('Dados da viagem incompletos.');
+      alert('Incomplete trip data.');
       return;
     } else {
 
-    // Obter o motorista pelo ID para ter o NIF
+    // Get driver by ID to obtain NIF
     this.motoristaService.getMotoristaPorId(this.pedido.motoristaId!).subscribe({
       next: (motorista) => {
         if (!motorista || !motorista.NIF) {
-          alert('Não foi possível encontrar o NIF do motorista.');
+          alert('Could not find driver NIF.');
           return;
         }
-        const startTimeISO = this.pedido!.startTime!.toISOString();
+        const startTimeISO = new Date(this.pedido!.startTime!).toISOString();
 
         const entryCoords = this.pedido!.entryAddress!.split(',').map(Number);
         const exitCoords = this.pedido!.exitAddress!.split(',').map(Number);
@@ -234,35 +220,35 @@ export class PedidoAceitoComponent implements OnInit {
               cliente: this.pedido!.cliente,
               preco: this.precoFinal
             };
-            console.log('Dados enviados para criarViagem:', novaViagem);
+            console.log('Data sent to criarViagem:', novaViagem);
             this.viagemService.criarViagem(novaViagem).subscribe({
               next: () => {
                 this.pedidoViagemService.deletePedido(this.pedidoId).subscribe({
                   next: () => {
-                    alert('Viagem finalizada com sucesso!');
+                    alert('Trip finished successfully!');
                     this.router.navigate(['/motorista', motorista.NIF]);
                   },
                   error: (error) => {
-                    console.error('Erro ao excluir o pedido:', error);
-                    alert('Erro ao excluir o pedido.');
+                    console.error('Error deleting ride request:', error);
+                    alert('Error deleting ride request.');
                   }
                 });
               },
               error: (error) => {
-                console.error('Erro ao criar viagem:', error);
-                alert('Erro ao criar viagem.');
+                console.error('Error creating trip:', error);
+                alert('Error creating trip.');
               }
             });
           },
           error: (error) => {
-            console.error('Erro ao buscar turno:', error);
-            alert('Erro ao buscar turno.');
+            console.error('Error fetching shift:', error);
+            alert('Error fetching shift.');
           }
         });
       },
       error: (error) => {
-        console.error('Erro ao obter o motorista:', error);
-        alert('Erro ao obter o motorista.');
+        console.error('Error fetching driver:', error);
+        alert('Error fetching driver.');
       }
     });
   }
@@ -277,7 +263,7 @@ export class PedidoAceitoComponent implements OnInit {
         if (this.pedido) this.pedido.numberOfPeople = this.numPessoas;
       },
       error: (error) => {
-        console.error('Erro ao confirmar número de pessoas:', error);
+        console.error('Error confirming number of passengers:', error);
       }
     });
   }

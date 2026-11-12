@@ -1,12 +1,12 @@
 <div class="navbar">
-  <h2 class="navbar-title">Pedidos de Táxis Pendentes</h2>
+  <h2 class="navbar-title">Pending Taxi Requests</h2>
   <button class="back-btn" (click)="voltarPaginaAnterior()">
     <mat-icon>home</mat-icon></button>
 </div>
 
 <div class="pedidos-container">
   <div *ngIf="loading" class="loading">
-    <p>Carregando pedidos pendentes...</p>
+    <p>Loading pending requests...</p>
   </div>
 
   <div *ngIf="erro" class="error">
@@ -14,51 +14,51 @@
   </div>
 
   <div *ngIf="!loading && !erro">
-    <!-- Informações do turno atual -->
+    <!-- Current shift info -->
     <div class="turno-info" *ngIf="temTurnoAtivo">
-      <p><strong>Turno atual:</strong> Termina em {{ tempoRestanteTurno }} minutos</p>
-      <p class="info-text">Apenas pedidos que podem ser concluídos dentro do seu turno são exibidos.</p>
+      <p><strong>Current shift:</strong> Ends in {{ tempoRestanteTurno }} minutes</p>
+      <p class="info-text">Only requests that can be completed within your shift are shown.</p>
     </div>
 
     <div *ngIf="!temTurnoAtivo" class="warning">
-      <p>Você não tem um turno ativo no momento. Todos os pedidos pendentes estão sendo exibidos.</p>
+      <p>You do not have an active shift right now. All pending requests are shown.</p>
     </div>
 
     <div *ngIf="pedidosPendentes.length === 0" class="no-pedidos">
-      <p>Não há pedidos de táxi pendentes no momento.</p>
+      <p>There are no pending taxi requests at the moment.</p>
     </div>
 
     <div *ngIf="pedidosPendentes.length > 0" class="pedidos-list">
       <div *ngFor="let pedido of pedidosPendentes" class="pedido-card">
         <div class="pedido-header">
-          <h3>Pedido #{{ pedido._id?.substr(-5) }}</h3>
-          <span class="distance-badge">Distância ao Cliente: {{ getDistanciaCliente(pedido._id || '') | number:'1.1-1' }} km</span>
+          <h3>Request #{{ pedido._id?.substr(-5) }}</h3>
+          <span class="distance-badge">Distance to Client: {{ getDistanciaCliente(pedido._id || '') | number:'1.1-1' }} km</span>
         </div>
 
         <div class="pedido-details">
-          <p><strong>Passageiros:</strong> {{ pedido.numberOfPeople }}</p>
-          <p><strong>Nível de Conforto:</strong> {{ pedido.confort }}</p>
+          <p><strong>Passengers:</strong> {{ pedido.numberOfPeople }}</p>
+          <p><strong>Comfort Level:</strong> {{ pedido.confort }}</p>
 
           <div class="location-details">
-            <p><strong>Localização do Cliente:</strong></p>
+            <p><strong>Client Location:</strong></p>
             <p class="address">{{ getClienteEndereco(pedido._id || '') }}</p>
             <p class="coordinates">({{ pedido.entryAddress }})</p>
 
-            <p><strong>Destino:</strong></p>
+            <p><strong>Destination:</strong></p>
             <p class="address">{{ getDestinoEndereco(pedido._id || '') }}</p>
             <p class="coordinates">({{ pedido.exitAddress }})</p>
           </div>
 
           <div class="time-details">
-            <p><strong>Tempo estimado até o cliente:</strong> {{ getTempoChegada(pedido._id || '') }} minutos</p>
-            <p><strong>Distância da viagem:</strong> {{ getDistanciaViagem(pedido._id || '') | number:'1.1-1' }} km</p>
-            <p><strong>Tempo estimado da viagem:</strong> {{ getTempoViagem(pedido._id || '') }} minutos</p>
-            <p><strong>Tempo total estimado:</strong> {{ getTempoTotal(pedido._id || '') }} minutos</p>
+            <p><strong>Estimated time to client:</strong> {{ getTempoChegada(pedido._id || '') }} minutes</p>
+            <p><strong>Trip distance:</strong> {{ getDistanciaViagem(pedido._id || '') | number:'1.1-1' }} km</p>
+            <p><strong>Estimated trip duration:</strong> {{ getTempoViagem(pedido._id || '') }} minutes</p>
+            <p><strong>Estimated total time:</strong> {{ getTempoTotal(pedido._id || '') }} minutes</p>
           </div>
         </div>
 
         <div class="pedido-actions">
-          <button (click)="onAceitarPedido(pedido)" class="accept-btn">Aceitar Pedido</button>
+          <button (click)="onAceitarPedido(pedido)" class="accept-btn">Accept Request</button>
         </div>
       </div>
     </div>

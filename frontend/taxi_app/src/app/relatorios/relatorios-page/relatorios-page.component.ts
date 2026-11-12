@@ -19,6 +19,8 @@ export class RelatoriosPageComponent {
     ) {}
 
   ngOnInit() {
+    this.relatorioState.atualizarViagens();
+
     this.relatorioState.getViagensPorMotoristaHoje$().subscribe(mapa => {
       this.viagensPorMotorista = Array.from(mapa.entries());
     });

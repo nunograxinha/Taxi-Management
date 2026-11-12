@@ -9,7 +9,7 @@ import { throwError } from 'rxjs';
   providedIn: 'root'
 })
 export class PedidoViagemService {
-  private apiUrl = 'http://localhost:3073/pedidoViagem';
+  private apiUrl = 'http://localhost:3073/rideRequest';
 
   constructor(private http: HttpClient) { }
 
@@ -22,13 +22,13 @@ export class PedidoViagemService {
 
   getPedidosPendentes(): Observable<PedidoViagem[]> {
     return this.getPedidos().pipe(
-      // Filter out pedidos that already have a motorista assigned
+      // Filter out ride requests that already have a driver assigned
       map(pedidos => pedidos.filter(pedido => !pedido.motoristaId)),
       catchError(this.handleError)
     );
   }
 
-  // calcula a distancia em km entre duas coordenadas com base na formula de Haversine
+  // Calculate distance in km between two coordinates using Haversine formula
   calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Radius of the Earth in km
     const dLat = this.deg2rad(lat2 - lat1);
@@ -76,18 +76,18 @@ export class PedidoViagemService {
 
   
   private handleError(error: any) {
-    console.error('Erro no pedido:', error);
-    let errorMessage = 'Erro na comunicação com o servidor.';
+    console.error('Ride request error:', error);
+    let errorMessage = 'Error communicating with server.';
     
     if (error.status === 500) {
-      errorMessage = `Erro no servidor: ${error.message || error.statusText}`;
+      errorMessage = `Server error: ${error.message || error.statusText}`;
     }
     
     return throwError(() => new Error(errorMessage));
   }
 
   requestMotorista(idPedido: string): Observable<string> {
-    return this.http.get<string>(`${this.apiUrl}/${idPedido}/requestMotorista`)
+    return this.http.get<string>(`${this.apiUrl}/${idPedido}/requestDriver`)
       .pipe(
         catchError(this.handleError)
       );
@@ -106,7 +106,7 @@ export class PedidoViagemService {
     taxiId: string,
     distanceKmToMotorista: number,
   ): Observable<any> {    
-    return this.http.patch<any>(`${this.apiUrl}/${idPedido}/acceptMotorista`, {
+    return this.http.patch<any>(`${this.apiUrl}/${idPedido}/acceptDriver`, {
       motoristaId: motoristaId,
       taxi: taxiId,
       distanceKmToMotorista: distanceKmToMotorista,

@@ -38,15 +38,22 @@ async function main() {
   await precoService.initPreco();
 }
 
-// Use routes
+// Use routes (English & legacy aliases)
 app.use('/', initRoutes);
+app.use('/invoice', faturaRoutes);
 app.use('/fatura', faturaRoutes);
+app.use('/driver', motoristaRoutes);
 app.use('/motorista', motoristaRoutes);
 app.use('/taxi', taxiRoutes);
+app.use('/shift', turnoRoutes);
 app.use('/turno', turnoRoutes);
+app.use('/trip', viagemRoutes);
 app.use('/viagem', viagemRoutes);
+app.use('/price', precoRoutes);
 app.use('/preco', precoRoutes);
+app.use('/rideRequest', pedidoViagensRoutes);
 app.use('/pedidoViagem', pedidoViagensRoutes);
+app.use('/client', clienteRoutes);
 app.use('/cliente', clienteRoutes);
 
 // Start the server

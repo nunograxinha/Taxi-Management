@@ -33,7 +33,7 @@ export class SimularPrecoComponent implements OnInit {
         });
       },
       error: (err) => {
-        console.error('Erro ao carregar valores default:', err);
+        console.error('Error loading default values:', err);
       }
     });
   }
@@ -41,7 +41,7 @@ export class SimularPrecoComponent implements OnInit {
   calcularCusto(): void {
     const { conforto, agravamentoNoturno, inicio, fim } = this.simulacaoForm.value;
 
-    const precoPorMinuto = conforto === 'Basico' ? this.precoStandard : this.precoLuxo;
+    const precoPorMinuto = conforto === 'Basic' ? this.precoStandard : this.precoLuxo;
 
     const dataInicio = new Date(inicio);
     const dataFim = new Date(fim);
@@ -53,7 +53,7 @@ export class SimularPrecoComponent implements OnInit {
 
     while (dataAtual < dataFim) {
       const hora = dataAtual.getHours();
-      const isNoturno = hora >= 21 || hora < 7;
+      const isNoturno = hora >= 21 || hora < 6;
 
       if (isNoturno) minutosNoturnos++;
 

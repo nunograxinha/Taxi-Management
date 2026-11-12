@@ -2,50 +2,46 @@
 <p *ngIf="mensagemErro"  id="mensagemErro">{{ mensagemErro }}</p>
 
 <form [formGroup]="taxiForm" (ngSubmit)="onSubmit()">
-  <label for=" licensePlate">Matrícula:</label>
+  <label for=" licensePlate">License Plate:</label>
     <input type="text" formControlName="licensePlate">
   <div *ngIf="taxiForm.get('licensePlate')?.invalid && taxiForm.get('licensePlate')?.touched">
-    <small *ngIf="taxiForm.get('licensePlate')?.errors?.['required']">Matrícula é obrigatória.</small>
-    <small *ngIf="taxiForm.get('licensePlate')?.errors?.['pattern']">Insira uma sequência de três duplas de números (00) e de letras (XX) separados por hífen. Exemplo: XX-00-XX.</small>
+    <small *ngIf="taxiForm.get('licensePlate')?.errors?.['required']">License plate is required.</small>
+    <small *ngIf="taxiForm.get('licensePlate')?.errors?.['pattern']">Enter a sequence of three pairs of numbers (00) and letters (XX) separated by hyphens. Example: XX-00-XX.</small>
   </div>
   
-    <label for="brand">Marca:</label>
+    <label for="brand">Brand:</label>
       <select formControlName="brand" (change)="onMarcaChange($event)">
-        <option value="">Selecione uma marca</option>
+        <option value="">Select a brand</option>
         <option *ngFor="let brand of marcasDisponiveis" [value]="brand">
           {{ brand }}
         </option>
       </select>
   
     <label *ngIf="selectedMarca">
-      <label for="model">Modelo:</label>
+      <label for="model">Model:</label>
       <select formControlName="model">
-        <option value="">Selecione um modelo</option>
+        <option value="">Select a model</option>
         <option *ngFor="let model of marcasModelos[selectedMarca]">
           {{ model }}
         </option>
       </select>
     </label>
   
-    <label for="confort">Conforto:</label>
+    <label for="confort">Comfort:</label>
       <select formControlName="confort">
-        <option value="">Selecione</option>
-        <option value="Basico">Básico</option>
-        <option value="Luxuoso">Luxuoso</option>
+        <option value="">Select</option>
+        <option value="Basic">Basic</option>
+        <option value="Luxury">Luxury</option>
       </select>
-      <small *ngIf="emTurno">Nota: Não será possível alterar o conforto pois o Taxi está em algum turno.</small>
+      <small *ngIf="emTurno">Note: Comfort cannot be changed because this taxi is assigned to a shift.</small>
   
-    <label>Ano de Compra:</label>
-      <!-- <select formControlName="purchaseYear">
-        <option value="">Selecione um ano</option>
-        <option *ngFor="let ano of anosDisponiveis" [value]="ano">{{ ano }}</option>
-      </select> -->
+    <label>Purchase Year:</label>
       <input type="number" formControlName="purchaseYear">
       <div *ngIf="taxiForm.get('purchaseYear')?.invalid && taxiForm.get('purchaseYear')?.touched">
-        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('negativeYear')">Insira um número positivo.</small>
-        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('invalidYearFormat')">O ano deve ter 4 dígitos.</small>
-        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('futureYear')">O ano não pode ser um ano futuro.</small>
+        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('negativeYear')">Please enter a positive number.</small>
+        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('invalidYearFormat')">Year must have 4 digits.</small>
+        <small *ngIf="taxiForm.get('purchaseYear')?.hasError('futureYear')">Year cannot be in the future.</small>
       </div>
-    <button type="submit" [disabled]="taxiForm.invalid">Submeter</button>
+    <button type="submit" [disabled]="taxiForm.invalid">Submit</button>
   </form>
   

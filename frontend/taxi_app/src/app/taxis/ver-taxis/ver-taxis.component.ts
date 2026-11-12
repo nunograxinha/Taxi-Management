@@ -29,28 +29,28 @@ export class VerTaxisComponent implements OnInit, OnChanges{
           this.taxis = this.sortTaxisByUpdatedAt(data);
         },
         error: (err) => {
-          console.error('Erro ao buscar táxis:', err);
+          console.error('Error fetching taxis:', err);
         }
       });
     }
 
     private sortTaxisByUpdatedAt(taxis: any[]): any[] {
       return [...taxis].sort((a, b) => {
-        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0; // Garantir que updatedAt não seja undefined
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
         return dateB - dateA;
       });
     }
 
     removerTaxi(taxi: any) {
-      if (confirm(`Tem a certeza que quer remover o táxi ${taxi.licensePlate}?`)) {
+      if (confirm(`Are you sure you want to remove taxi ${taxi.licensePlate}?`)) {
         this.taxiService.deleteTaxiByLicensePlate(taxi.licensePlate).subscribe({
           next: () => {
             this.carregarTaxis();
-            alert('Taxi removido com sucesso!');
+            alert('Taxi removed successfully!');
           },
           error: (err) => {
-            alert(err.error?.error || 'Não foi possível remover o Taxi.');          }
+            alert(err.error?.error || 'Could not remove the taxi.');          }
         });
       }
     }

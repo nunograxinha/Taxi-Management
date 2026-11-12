@@ -29,20 +29,20 @@ export class MotoristaListComponent implements OnInit, OnChanges {
         this.motoristas = this.motoristaService.sortMotoristasByUpdatedAt(data);
       },
       error: (err) => {
-        console.error('Erro ao carregar motoristas:', err);
+        console.error('Error loading drivers:', err);
       }
     });
   } 
 
   removerMotorista(motorista: any) {
-    if (confirm(`Tem a certeza que quer remover o Motorista ${motorista.name}?`)) {
+    if (confirm(`Are you sure you want to remove driver ${motorista.name}?`)) {
       this.motoristaService.apagarMotoristaPorNIF(motorista.NIF).subscribe({
         next: () => {
           this.carregarMotoristas();
-          alert('Motorista removido com sucesso!');
+          alert('Driver removed successfully!');
         },
         error: (err) => {
-          alert(err.error?.error || 'Não foi possível remover o Motorista.');
+          alert(err.error?.error || 'Could not remove the driver.');
         }
       });
     }

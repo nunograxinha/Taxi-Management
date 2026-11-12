@@ -7,7 +7,7 @@ import { Preco } from '../gerir-precos/preco_interface';
   providedIn: 'root'
 })
 export class PrecoService {
-  private apiUrl = 'http://127.0.0.1:3073/preco';
+  private apiUrl = 'http://localhost:3073/price';
   private cachedPreco$: Observable<Preco> | null = null;
 
 

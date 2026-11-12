@@ -1,6 +1,5 @@
 const pedidoViagemService = require('../services/pedidoViagemService');
 const { PedidoViagem } = require('../models/pedidoViagem');
-const { error } = require('console');
 
 // GET pedidoViagens
 exports.get_pedidosViagens = async (req, res) => { 
@@ -30,7 +29,7 @@ exports.post_pedidoViagem = async (req, res) => {
 
     res.status(201).json(newPedido);
   } catch (error) {
-    console.error('Erro ao criar pedido de viagem:', error);
+    console.error('Error creating ride request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   };
 };
@@ -40,11 +39,11 @@ exports.get_pedidoViagem = async (req, res) => {
     const { id } = req.params;
     const pedido = await PedidoViagem.findById(id).populate('cliente');
     if (!pedido) {
-      return res.status(404).json({ error: 'Pedido de viagem não encontrado' });
+      return res.status(404).json({ error: 'Ride request not found' });
     }
     res.status(200).json(pedido);
   } catch (error) {
-    console.error('Erro ao buscar pedido de viagem:', error);
+    console.error('Error fetching ride request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -64,11 +63,11 @@ exports.accept_pedidoViagem = async (req, res) => {
       { new: true }
     ).populate('cliente');
 
-    if (!updated) return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (!updated) return res.status(404).json({ error: 'Ride request not found' });
     res.status(200).json(updated);
   } catch (err) {
-    console.error('Erro ao aceitar pedido:', err);
-    res.status(500).json({ error: 'Erro interno' });
+    console.error('Error accepting ride request:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
@@ -79,26 +78,42 @@ exports.request_motorista = async (req, res) => {
   console.log(`Starting request_motorista for PedidoViagem with id: ${id}`);
 
   const timeoutMs = 5 * 60 * 1000; // 5 minutes timeout
-  const intervalMs = 15 * 1000; // 3 seconds interval
+  const intervalMs = 15 * 1000; // 15 seconds interval
 
   let elapsed = 0;
 
-  console.log(`Timeout set to: ${timeoutMs / 1000} seconds`);
-  console.log(`Interval set to: ${intervalMs / 1000} seconds`);
+  const cleanup = () => {
+    clearInterval(intervalCheck);
+    clearTimeout(timeoutTimer);
+  };
+
+  req.on('close', () => {
+    cleanup();
+  });
 
   const intervalCheck = setInterval(async () => {
     try {
-      elapsed += intervalMs; // Increment elapsed time first
+      elapsed += intervalMs;
 
       console.log(`Checking PedidoViagem with id: ${id} (Elapsed time: ${elapsed / 1000}s)`);
 
       const pedidoViagem = await PedidoViagem.findById(id);
 
-      if (pedidoViagem && pedidoViagem.motoristaId) {
-        clearInterval(intervalCheck);
-        clearTimeout(timeoutTimer);
+      if (!pedidoViagem) {
+        cleanup();
+        if (!res.headersSent) {
+          return res.status(404).json({ message: 'Ride request not found or cancelled' });
+        }
+        return;
+      }
+
+      if (pedidoViagem.motoristaId) {
+        cleanup();
         console.log(`Driver found: ${pedidoViagem.motoristaId}`);
-        return res.status(200).json({ motoristaId: pedidoViagem.motoristaId });
+        if (!res.headersSent) {
+          return res.status(200).json({ motoristaId: pedidoViagem.motoristaId });
+        }
+        return;
       }
 
       if (elapsed >= timeoutMs) {
@@ -106,17 +121,20 @@ exports.request_motorista = async (req, res) => {
         console.log("Timeout reached without finding a driver.");
       }
     } catch (err) {
-      clearInterval(intervalCheck);
+      cleanup();
       console.log("Error checking driver status:", err);
-      clearTimeout(timeoutTimer);
-      return res.status(500).json({ message: 'Error checking driver status' });
+      if (!res.headersSent) {
+        return res.status(500).json({ message: 'Error checking driver status' });
+      }
     }
   }, intervalMs);
 
   const timeoutTimer = setTimeout(() => {
-    clearInterval(intervalCheck);
+    cleanup();
     console.log("No driver assigned within the timeout period.");
-    return res.status(202).json({ message: 'No driver assigned yet' });
+    if (!res.headersSent) {
+      return res.status(202).json({ motoristaId: null, message: 'No driver assigned yet' });
+    }
   }, timeoutMs);
 };
 
@@ -128,26 +146,44 @@ exports.clientConfirm = async (req, res) => {
   console.log(`Starting clientConfirm for PedidoViagem with id: ${id}`);
 
   const timeoutMs = 5 * 60 * 1000; // 5 minutes timeout
-  const intervalMs = 15 * 1000; // 3 seconds interval
+  const intervalMs = 15 * 1000; // 15 seconds interval
 
   let elapsed = 0;
 
-  console.log(`Timeout set to: ${timeoutMs / 1000} seconds`);
-  console.log(`Interval set to: ${intervalMs / 1000} seconds`);
+  const cleanup = () => {
+    clearInterval(intervalCheck);
+    clearTimeout(timeoutTimer);
+  };
+
+  req.on('close', () => {
+    cleanup();
+  });
 
   const intervalCheck = setInterval(async () => {
     try {
-      elapsed += intervalMs; // Increment elapsed time first
+      elapsed += intervalMs;
 
       console.log(`Checking PedidoViagem with id: ${id} (Elapsed time: ${elapsed / 1000}s)`);
 
       const pedidoViagem = await PedidoViagem.findById(id);
 
-      if (pedidoViagem && pedidoViagem.clienteAceitou) {
-        clearInterval(intervalCheck);
-        clearTimeout(timeoutTimer);
+      // If the request was cancelled or the client rejected the driver (motoristaId returned to null)
+      if (!pedidoViagem || !pedidoViagem.motoristaId) {
+        cleanup();
+        console.log("Client rejected driver or cancelled order.");
+        if (!res.headersSent) {
+          return res.status(200).json({ confirmed: false, rejected: true, message: 'Client rejected or cancelled' });
+        }
+        return;
+      }
+
+      if (pedidoViagem.clienteAceitou) {
+        cleanup();
         console.log(`Client accepted: ${pedidoViagem.clienteAceitou}`);
-        return res.status(200).json({ message: 'Client confirmed' });
+        if (!res.headersSent) {
+          return res.status(200).json({ confirmed: true, message: 'Client confirmed' });
+        }
+        return;
       }
 
       if (elapsed >= timeoutMs) {
@@ -155,17 +191,20 @@ exports.clientConfirm = async (req, res) => {
         console.log("Timeout reached without confirming with the client.");
       }
     } catch (err) {
-      clearInterval(intervalCheck);
+      cleanup();
       console.log("Error checking client status:", err);
-      clearTimeout(timeoutTimer);
-      return res.status(500).json({ message: 'Error checking client status' });
+      if (!res.headersSent) {
+        return res.status(500).json({ message: 'Error checking client status' });
+      }
     }
   }, intervalMs);
 
   const timeoutTimer = setTimeout(() => {
-    clearInterval(intervalCheck);
+    cleanup();
     console.log("Client did not answer");
-    return res.status(202).json({ message: 'Client did not answer' });
+    if (!res.headersSent) {
+      return res.status(202).json({ confirmed: false, rejected: false, message: 'Client did not answer' });
+    }
   }, timeoutMs);
 };
 
@@ -179,11 +218,11 @@ exports.accept_pedidoViagemCliente = async (req, res) => {
       { new: true }
     ).populate('cliente');
 
-    if (!updated) return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (!updated) return res.status(404).json({ error: 'Ride request not found' });
     res.status(200).json(updated);
   } catch (err) {
-    console.error('Erro ao aceitar pedido (cliente):', err);
-    res.status(500).json({ error: 'Erro interno' });
+    console.error('Error accepting ride request (client):', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
@@ -195,7 +234,7 @@ exports.reject_pedidoViagem = async (req, res) => {
       motoristaId: null,
       clienteAceitou: false,
       taxi: null,
-      distanceKmToMotorista: 0
+      distanceKmToMotorista: null
     }
   };
 
@@ -210,11 +249,11 @@ exports.reject_pedidoViagem = async (req, res) => {
       { new: true }
     ).populate('cliente');
 
-    if (!updated) return res.status(404).json({ error: 'Pedido não encontrado' });
+    if (!updated) return res.status(404).json({ error: 'Ride request not found' });
     res.status(200).json(updated);
   } catch (err) {
-    console.error('Erro ao rejeitar pedido:', err);
-    res.status(500).json({ error: 'Erro ao rejeitar pedido' });
+    console.error('Error rejecting ride request:', err);
+    res.status(500).json({ error: 'Error rejecting ride request' });
   }
 };
 
@@ -226,10 +265,10 @@ exports.update_pedidoViagem = async (req, res) => {
       { $set: req.body },
       { new: true }
     ).populate('cliente');
-    if (!updated) return res.status(404).json({error: 'Pedido não encontrado'});
+    if (!updated) return res.status(404).json({error: 'Ride request not found'});
     res.status(200).json(updated);
   } catch (err) {
-    console.error('Erro ao atualizar pedido:', err);
-    res.status(500).json({ error: 'Erro ao atualizar pedido' });
+    console.error('Error updating ride request:', err);
+    res.status(500).json({ error: 'Error updating ride request' });
   }
 };

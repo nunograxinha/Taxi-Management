@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
 import { PedidoViagem } from '../pedidoViagem_interface';
 import { Motorista } from '../../motoristas/motorista_interface';
@@ -51,7 +52,7 @@ export class ConfirmarViagemComponent implements OnInit {
   async carregarDados(pedidoId: string) {
     try {
       // Carregar dados do pedido
-      const pedidoResponse = await this.pedidoViagemService.getPedidoById(pedidoId).toPromise();
+      const pedidoResponse = await firstValueFrom(this.pedidoViagemService.getPedidoById(pedidoId));
       if (!pedidoResponse) {
         throw new Error('Pedido não encontrado');
       }
@@ -66,14 +67,14 @@ export class ConfirmarViagemComponent implements OnInit {
       }
       
       // Carregar dados do motorista
-      const motoristaResponse = await this.motoristaService.getMotoristaPorId(this.pedido.motoristaId).toPromise();
+      const motoristaResponse = await firstValueFrom(this.motoristaService.getMotoristaPorId(this.pedido.motoristaId));
       if (!motoristaResponse) {
         throw new Error('Motorista não encontrado');
       }
       this.motorista = motoristaResponse;
 
       // Carregar dados do táxi
-      const taxiResponse = await this.taxiService.getTaxiById(this.pedido.taxi).toPromise();
+      const taxiResponse = await firstValueFrom(this.taxiService.getTaxiById(this.pedido.taxi));
       if (!taxiResponse) {
         throw new Error('Táxi não encontrado');
       }
@@ -87,7 +88,7 @@ export class ConfirmarViagemComponent implements OnInit {
       const [lat2, lng2] = this.pedido.exitAddress.split(',').map(Number);
       this.exitCidadeRua = await this.geolocationService.getAddressFromCoordinates(lat2.toString(), lng2.toString());
 
-      const preco = await this.precoService.getPreco().toPromise();
+      const preco = await firstValueFrom(this.precoService.getPreco());
       if (!preco) {
         throw new Error('Preço não encontrado');
       }
@@ -145,7 +146,7 @@ export class ConfirmarViagemComponent implements OnInit {
     }
 
     try {
-      await this.pedidoViagemService.rejectMotorista(pedidoId, this.pedido?.motoristaId).toPromise();
+      await firstValueFrom(this.pedidoViagemService.rejectMotorista(pedidoId, this.pedido?.motoristaId));
       this.router.navigate(['/cliente/aguardar-resposta', pedidoId]);
     } catch (error) {
       console.error('Erro ao cancelar viagem:', error);

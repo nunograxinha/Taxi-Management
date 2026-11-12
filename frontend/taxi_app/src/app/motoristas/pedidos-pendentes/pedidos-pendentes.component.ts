@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import { MotoristaService } from '../../appServices/motorista.service';
@@ -52,11 +53,11 @@ export class PedidosPendentesComponent implements OnInit {
     const match = url.match(/\/motorista\/(\d+)\//); // Expressão regular para capturar o NIF entre "/motorista/" e "/"
 
     if (match && match[1]) {
-      this.motoristaNIF = match[1]; // Captura o NIF
-      this.carregarDados(); // Carrega os dados necessários
+      this.motoristaNIF = match[1];
+      this.carregarDados();
     } else {
-      console.error('NIF do motorista não encontrado na URL.');
-      this.erro = 'Erro ao carregar dados do motorista. NIF não encontrado.';
+      console.error('Driver NIF not found in URL.');
+      this.erro = 'Error loading driver data. NIF not found.';
       this.loading = false;
     }
   }
@@ -90,11 +91,11 @@ export class PedidosPendentesComponent implements OnInit {
       })
       
       // Load pricing data
-      this.precos = await this.precoService.getPreco().toPromise() || null;
+      this.precos = await firstValueFrom(this.precoService.getPreco()) || null;
       
     } catch (error) {
       console.error('Error in carregarDados:', error);
-      this.erro = 'Erro ao carregar dados necessários';
+      this.erro = 'Error loading required data';
       this.loading = false;
     }
   }
@@ -103,7 +104,7 @@ export class PedidosPendentesComponent implements OnInit {
     try {
       
       const agora = new Date();
-      const turnos = await this.turnoService.getTurnos().toPromise() || [];
+      const turnos = await firstValueFrom(this.turnoService.getTurnos()) || [];
       console.log("turnos:", turnos)
       console.log("agora:", agora)
 
@@ -119,14 +120,15 @@ export class PedidosPendentesComponent implements OnInit {
       console.log("turnoAtual:", this.turnoAtual)
       if (this.turnoAtual) {
         this.taxiService.getTaxiById(this.turnoAtual.taxi).subscribe({
-        next: (taxi) => {
-          this.taxi = taxi;
-        },
-        error: (err) => {
-          console.error('Error getting taxi id:', err);
-        }
-        })
-        this.carregarPedidosPendentes();
+          next: (taxi) => {
+            this.taxi = taxi;
+            this.carregarPedidosPendentes();
+          },
+          error: (err) => {
+            console.error('Error getting taxi id:', err);
+            this.loading = false;
+          }
+        });
       } else {
         this.loading = false;
       }
@@ -146,7 +148,7 @@ export class PedidosPendentesComponent implements OnInit {
       this.temposViagem.clear();
       this.temposTotais.clear();
       
-      const pedidos = await this.pedidoViagemService.getPedidos().toPromise() || [];
+      const pedidos = await firstValueFrom(this.pedidoViagemService.getPedidos()) || [];
       let pedidosFiltrados = pedidos.filter(pedido => 
         !pedido.motoristaId && !(pedido.rejeitados && pedido.rejeitados.includes(this.motorista?._id))
       );
@@ -200,7 +202,7 @@ export class PedidosPendentesComponent implements OnInit {
               destLng.toString()
             );
             if (destinoEndereco !== null) {
-              this.destinoEnderecos.set(pedido._id, destinoEndereco ?? 'Endereço não disponível');
+              this.destinoEnderecos.set(pedido._id, destinoEndereco ?? 'Address not available');
             }
           } catch (addressError) {
             console.error('Error getting address:', addressError);
@@ -232,7 +234,7 @@ export class PedidosPendentesComponent implements OnInit {
       this.loading = false;
     } catch (error) {
       console.error('Error in carregarPedidosPendentes:', error);
-      this.erro = 'Erro ao carregar pedidos pendentes';
+      this.erro = 'Error loading pending ride requests';
       this.loading = false;
     }
 
@@ -241,7 +243,7 @@ export class PedidosPendentesComponent implements OnInit {
     console.log("pedido:", pedido)
     try {
       if (!pedido._id || !this.motorista || !this.precos) {
-        throw new Error('Dados do motorista ou preços não disponíveis');
+        throw new Error('Driver or pricing data not available');
       }
       
       const tripTime = this.temposViagem.get(pedido._id) || 0;
@@ -251,7 +253,7 @@ export class PedidosPendentesComponent implements OnInit {
 
       
       // Calculate estimated cost
-      const pricePerMinute = pedido.confort === 'Basico' 
+      const pricePerMinute = pedido.confort === 'Basic' 
         ? this.precos.pricePerMinuteConfort 
         : this.precos.pricePerMinuteLuxury;
       
@@ -264,16 +266,21 @@ export class PedidosPendentesComponent implements OnInit {
       distanciaKmToMotorista
     ).subscribe({
         next: (motoristaId) => {
-          alert('Pedido aceito com sucesso! Aguardando confirmação do cliente.');
+          alert('Request accepted! Waiting for client confirmation.');
           console.log("response:", motoristaId)
           this.pedidoViagemService.clientConfirm(pedido._id!).subscribe({
-            next: (res) => {
-              console.log(res)
-              console.log("accepted")
-              this.router.navigate([`/motorista/pedido-aceito/${pedido._id}`])
-              // console.log("refreshing list")
-              // this.carregarPedidosPendentes();
-              // this.router.navigate(['/cliente/confirmar-viagem', this.pedidoId])
+            next: (res: any) => {
+              console.log(res);
+              if (res && res.confirmed) {
+                console.log("accepted");
+                this.router.navigate([`/motorista/pedido-aceito/${pedido._id}`]);
+              } else if (res && res.rejected) {
+                alert('The client rejected or cancelled the request.');
+                this.carregarPedidosPendentes();
+              } else {
+                alert('The client did not respond within the time limit.');
+                this.carregarPedidosPendentes();
+              }
             },
             error: (err) => {
               console.error('Error requesting driver:', err);
@@ -286,8 +293,8 @@ export class PedidosPendentesComponent implements OnInit {
         }
       });
     } catch (error) {
-      console.error('Erro ao aceitar pedido:', error);
-      alert('Erro ao aceitar o pedido. Tente novamente.');
+      console.error('Error accepting request:', error);
+      alert('Error accepting the request. Please try again.');
     }
   }
 
@@ -312,18 +319,18 @@ export class PedidosPendentesComponent implements OnInit {
   }
   
   getClienteEndereco(pedidoId: string): string {
-    return this.clienteEnderecos.get(pedidoId) || 'Endereço não disponível';
+    return this.clienteEnderecos.get(pedidoId) || 'Address not available';
   }
   
   getDestinoEndereco(pedidoId: string): string {
-    return this.destinoEnderecos.get(pedidoId) || 'Endereço não disponível';
+    return this.destinoEnderecos.get(pedidoId) || 'Address not available';
   }
   
   get temTurnoAtivo(): boolean {
     return this.turnoAtual !== null;
   }
   
-  // Retorna o tempo restante do turno em minutos
+  // Returns remaining shift time in minutes
   get tempoRestanteTurno(): number {
     if (!this.turnoAtual) return 0;
     
@@ -334,11 +341,11 @@ export class PedidosPendentesComponent implements OnInit {
 
   voltarPaginaAnterior() {
     if (this.motoristaNIF) {
-      this.router.navigate([`/motorista/${this.motoristaNIF}`]); // Navega para a página do motorista
+      this.router.navigate([`/motorista/${this.motoristaNIF}`]);
     } else {
-      console.error('NIF do motorista não está disponível.');
-      alert('Erro ao voltar para a página anterior. NIF não encontrado.');
-      this.router.navigate(['/motorista']); // Fallback para uma rota padrão
+      console.error('Driver NIF is not available.');
+      alert('Error returning to previous page. NIF not found.');
+      this.router.navigate(['/motorista']);
     }
   }
 }  

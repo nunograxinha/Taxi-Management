@@ -4,25 +4,25 @@ module.exports = {
 
     getPrecos: async () => {
         try {
-            console.log('[DEBUG] getPrecos() chamado');
+            console.log('[DEBUG] getPrecos() called');
             const preco = await Preco.findOne();
-            console.log('[DEBUG] Preço encontrado:', preco);
+            console.log('[DEBUG] Price found:', preco);
             return preco;
         } catch (error) {
-            console.error('[ERROR] Erro ao buscar preço:', error);
+            console.error('[ERROR] Error fetching price:', error);
             throw error;
         }
     },
 
     updatePreco: async (id, body) => {
       try {
-        console.log(`[DEBUG] updatePreco() chamado com id=${id}`);
-        console.log('[DEBUG] Dados recebidos para atualização:', body);
+        console.log(`[DEBUG] updatePreco() called with id=${id}`);
+        console.log('[DEBUG] Data received for update:', body);
         const updated = await Preco.findByIdAndUpdate(id, body, { new: true });
-        console.log('[DEBUG] Preço atualizado:', updated);
+        console.log('[DEBUG] Price updated:', updated);
         return updated;
       } catch (error) {
-        console.error('[ERROR] Erro ao atualizar preço:', error);
+        console.error('[ERROR] Error updating price:', error);
         throw error;
       }
     },
@@ -43,7 +43,7 @@ module.exports = {
         const saved = await newPreco.save();
         return saved;
       } catch (error) {
-        console.error('[ERROR] Erro ao inicializar preço:', error);
+        console.error('[ERROR] Error initializing price:', error);
         throw error;
       }
     }

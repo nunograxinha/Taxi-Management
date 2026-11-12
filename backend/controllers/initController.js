@@ -1,31 +1,31 @@
 const { Motorista } = require('../models/motorista');
-// Adicionar aqui outros modelos como Taxi, etc.
+// Add other models such as Taxi, etc. here
 
 exports.init_database = async (req, res) => {
   try {
-    // Exemplo: cria motoristas de teste
+    // Example: create sample drivers
     const motoristas = [
       {
         NIF: '123456789',
-        name: 'João Silva',
-        gender: 'Masculino',
+        name: 'John Smith',
+        gender: 'Male',
         birthYear: 1985,
         drivingLicenseNumber: 'DL123456',
         address: {
-          street: 'Rua A',
+          street: 'Street A',
           doorNumber: '10',
           postalCode: '1000-100',
-          city: 'Lisboa'
+          city: 'Lisbon'
         }
       },
       {
         NIF: '987654321',
-        name: 'Maria Santos',
-        gender: 'Feminino',
+        name: 'Mary Johnson',
+        gender: 'Female',
         birthYear: 1990,
         drivingLicenseNumber: 'DL654321',
         address: {
-          street: 'Rua B',
+          street: 'Street B',
           doorNumber: '20',
           postalCode: '2000-200',
           city: 'Porto'
@@ -36,11 +36,11 @@ exports.init_database = async (req, res) => {
     await Motorista.insertMany(motoristas);
 
     res.status(200).json({
-      message: 'Base de dados inicializada com sucesso!',
-      motoristasCriados: motoristas.length
+      message: 'Database initialized successfully!',
+      driversCreated: motoristas.length
     });
   } catch (error) {
-    console.error('Erro a inicializar a base de dados:', error);
-    res.status(500).json({ error: 'Erro ao inicializar a base de dados' });
+    console.error('Error initializing database:', error);
+    res.status(500).json({ error: 'Error initializing database' });
   }
 };

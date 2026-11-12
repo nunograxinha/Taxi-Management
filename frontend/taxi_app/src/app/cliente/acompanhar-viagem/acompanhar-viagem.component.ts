@@ -26,6 +26,8 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
   tempoMotorista: number = 0;
   horaPartida: Date = new Date();
   horaChegada: Date = new Date();
+  private ultimoEntryAddress: string = '';
+  private ultimoExitAddress: string = '';
 
 
   constructor(
@@ -48,12 +50,12 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
       this.pedidoViagemService.getPedidoById(pedidoId).subscribe(res => {
         this.pedido = res;
 
-        if (res.motoristaId) {
+        if (res.motoristaId && !this.motoristaNome) {
           this.motoristaService.getMotoristaPorId(res.motoristaId).subscribe(motorista => {
             this.motoristaNome = motorista.name;
           });
         }
-        if (res.taxi) {
+        if (res.taxi && !this.taxiMatricula) {
           this.taxiService.getTaxiById(res.taxi).subscribe(taxi => {
             this.taxiMatricula = taxi.licensePlate;
             this.taxiMarca = taxi.brand;
@@ -72,8 +74,9 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
         } else if (res.endTime) {
           this.status = 'finalizada';
           this.horaChegada = res.endTime;
-          if (res.price) {
+          if (res.price !== undefined && res.price !== null) {
             this.preco = res.price;
+            clearInterval(this.polling);
           } 
         }
       });
@@ -87,11 +90,13 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
   }
 
   async atualizarNomesLocalidades(pedido: PedidoViagem) {
-    if (pedido.entryAddress) {
+    if (pedido.entryAddress && pedido.entryAddress !== this.ultimoEntryAddress) {
+      this.ultimoEntryAddress = pedido.entryAddress;
       const [lat, lon] = pedido.entryAddress.split(',');
       this.partidaNome = await this.geolocationService.getAddressFromCoordinates(lat, lon);
     }
-    if (pedido.exitAddress) {
+    if (pedido.exitAddress && pedido.exitAddress !== this.ultimoExitAddress) {
+      this.ultimoExitAddress = pedido.exitAddress;
       const [lat, lon] = pedido.exitAddress.split(',');
       this.destinoNome = await this.geolocationService.getAddressFromCoordinates(lat, lon);
     }

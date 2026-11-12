@@ -1,4 +1,3 @@
-import { GenerateOptions } from "rxjs/internal/observable/generate";
 import { Pessoa } from "../models/pessoa_interface";
 
 export interface Motorista extends Pessoa{

@@ -60,10 +60,7 @@ module.exports = {
     try {
       const motorista = await getMotoristaByNIF(nif);
       if (!motorista) {
-        return await Turno.find({
-        start: { $lt: endTime },
-        end: { $gt: startTime }
-      });
+        return [];
       }
 
       console.log('Found Motorista:', motorista); 
@@ -78,12 +75,24 @@ module.exports = {
     }
   },
 
+  getAllTurnosInTimeframe: async (startTime, endTime) => {
+    try {
+      return await Turno.find({
+        start: { $lt: endTime },
+        end: { $gt: startTime }
+      });
+    } catch (error) {
+      console.error('Error fetching all turnos in timeframe:', error);
+      throw error;
+    }
+  },
+
   getTurnosByMotoristaNIF: async (nif) => {
     try {
       const motorista = await getMotoristaByNIF(nif);
 
       if (!motorista) {
-        throw new Error('Motorista não encontrado.');
+        throw new Error('Driver not found.');
       }
 
       return await Turno.find({
@@ -99,7 +108,7 @@ module.exports = {
     try {
       const taxi = await getTaxiByLicensePlate(plate);
       if (!taxi) {
-        throw new Error('Taxi não encontrado.');
+        throw new Error('Taxi not found.');
       }
       return await Turno.find({
         taxi: taxi._id

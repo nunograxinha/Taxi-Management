@@ -6,10 +6,10 @@ const faturaSchema = new mongoose.Schema({
   clientNIF: {
     type: String,
     required: true,
-    match: [/^\d{9}$/, 'NIF de um Cliente tem de ter exatamente 9 digitos']
+    match: [/^\d{9}$/, 'Client NIF must have exactly 9 digits']
   },
   clientName: { type: String, required: true },
-  clientGender: { type: String, enum: ['Masculino', 'Feminino'], required: true },
+  clientGender: { type: String, enum: ['Male', 'Female'], required: true },
   totalAmount: { type: Number, required: true },
   sequenceNumber: { type: Number, required: true, min: 1 },
 }, { timestamps: true });

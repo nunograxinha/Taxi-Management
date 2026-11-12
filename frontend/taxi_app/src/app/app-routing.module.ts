@@ -34,7 +34,6 @@ const routes: Routes = [
   { path: 'gestor/editar-motorista/:nif', component: EditarMotoristaComponent },
   { path: 'gestor/editar-taxi/:licensePlate', component: EditarTaxiComponent },
   { path: 'gestor/relatorios', component: RelatoriosPageComponent },
-  { path: 'gestor/relatorios', component: RelatoriosPageComponent },
   { path: 'gestor/relatorios/total-viagens', component: TotalViagensComponent },
   { path: 'gestor/relatorios/total-horas', component: TotalHorasComponent },
   { path: 'gestor/relatorios/total-kms', component: TotalKmsComponent },
@@ -45,8 +44,6 @@ const routes: Routes = [
   { path: 'motorista/:nif/turnos', component: GerirTurnoComponent },
   { path: 'motorista/:nif/turnos/registar-turno', component: TurnoFormComponent },
   { path: 'motorista/pedido-aceito/:pedidoId', component: PedidoAceitoComponent },
-
-  { path: 'motorista/:nif/pedidos-pendentes', component: PedidosPendentesComponent },
 
   { path: 'cliente', component: ClientePageComponent },
   { path: 'cliente/aguardar-resposta/:pedidoId', component: AguardarRespostaComponent },

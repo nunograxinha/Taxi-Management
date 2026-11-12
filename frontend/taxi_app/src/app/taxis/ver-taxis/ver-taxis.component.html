@@ -2,13 +2,13 @@
   <ul>
     <li *ngFor="let taxi of taxis">
       <strong>{{ taxi.licensePlate }}</strong> 
-      <span>Modelo: {{ taxi.brand }} {{ taxi.model }} ({{ taxi.confort }}) -
-        atualizado em {{ taxi.updatedAt | date:'dd/MM/yyyy' }} às {{ taxi.updatedAt | date:'HH:mm' }}
+      <span>Model: {{ taxi.brand }} {{ taxi.model }} ({{ taxi.confort }}) -
+        updated on {{ taxi.updatedAt | date:'dd/MM/yyyy' }} at {{ taxi.updatedAt | date:'HH:mm' }}
       </span>
-      <button class="icon-button edit" [routerLink]="['/gestor/editar-taxi', taxi.licensePlate]" title="Editar">
+      <button class="icon-button edit" [routerLink]="['/gestor/editar-taxi', taxi.licensePlate]" title="Edit">
         <span class="material-symbols-outlined">person_edit</span>
       </button>
-      <button class="icon-button remove" (click)="removerTaxi(taxi)" title="Remover">
+      <button class="icon-button remove" (click)="removerTaxi(taxi)" title="Remove">
         <span class="material-symbols-outlined">delete</span>
       </button>
     </li>
@@ -16,5 +16,5 @@
 </div>
 
 <ng-template #vazio>
-  <p>Não há táxis registados.</p>
+  <p>No taxis registered.</p>
 </ng-template>

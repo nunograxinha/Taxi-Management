@@ -7,19 +7,19 @@ import { Viagem } from '../viagem/viagem_interface';
   providedIn: 'root'
 })
 export class ViagemService {
-  private url = 'http://localhost:3073/viagem';
+  private url = 'http://localhost:3073/trip';
 
   constructor(private http: HttpClient) { }
 
-  // Função para tratar erros e retornar um valor padrão
+  // Handle errors and return a default value
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
-      console.error(`${operation} failed: ${error.message}`); // Log de erro
-      return of(result as T); // Retorna um valor padrão em caso de erro
+      console.error(`${operation} failed: ${error.message}`);
+      return of(result as T);
     };
   }
 
-  //listar todas as viagens na BD
+  // List all trips in DB
   listarTodasViagens(): Observable<any[]> {
     return this.http.get<Viagem[]>(`${this.url}/`).pipe(
       catchError(this.handleError<Viagem[]>('listarTodasViagens', []))
@@ -32,24 +32,24 @@ export class ViagemService {
     );
   }
 
-  // Listar todas as viagens do motorista
+  // List all trips for a driver
   listarViagens(motoristaId: string): Observable<Viagem[]> {
-    return this.http.get<Viagem[]>(`${this.url}/motorista/${motoristaId}`).pipe(
+    return this.http.get<Viagem[]>(`${this.url}/driver/${motoristaId}`).pipe(
       catchError(this.handleError<Viagem[]>('listarViagens', []))
     );
   }
 
-  // Obter os detalhes de uma viagem específica
+  // Get details of a specific trip
   detalharViagem(viagemId: string): Observable<Viagem | null> {
-    const url = `${this.url}/get/${viagemId}`;
+    const url = `${this.url}/${viagemId}`;
     return this.http.get<Viagem>(url).pipe(
       catchError(this.handleError<Viagem>('detalharViagem', null!))
     );
   }
 
-  // Aceitar um pedido de viagem
+  // Accept a ride request
   aceitarPedido(viagemId: string, motoristaId: string): Observable<Viagem> {
-    const url = `${this.url}/update/${viagemId}`;
+    const url = `${this.url}/${viagemId}`;
     const body = { motorista: motoristaId };
     
     return this.http.put<Viagem>(url, body).pipe(
@@ -57,9 +57,9 @@ export class ViagemService {
     );
   }
 
-  // Registar uma viagem (quando o cliente entra no táxi)
+  // Register a trip (when the client enters the taxi)
 registarViagem(viagemId: string): Observable<Viagem> {
-  const url = `${this.url}/update/${viagemId}`;
+  const url = `${this.url}/${viagemId}`;
   
   const payload = {
     entryTime: new Date()
@@ -70,9 +70,9 @@ registarViagem(viagemId: string): Observable<Viagem> {
   );
 }
 
-// Finalizar uma viagem (registrar o fim da viagem)
+// Finish a trip (register the end of the trip)
 finalizarViagem(viagemId: string): Observable<Viagem> {
-  const url = `${this.url}/update/${viagemId}`;
+  const url = `${this.url}/${viagemId}`;
   
   const payload = {
     exitTime: new Date()
@@ -84,7 +84,7 @@ finalizarViagem(viagemId: string): Observable<Viagem> {
 }
 
   recusarViagem(viagemId: string): Observable<any> {
-    const url = `${this.url}/delete/${viagemId}`;
+    const url = `${this.url}/${viagemId}`;
     return this.http.delete<Viagem>(url).pipe(
       catchError(this.handleError<Viagem>('recusarViagem'))
     );

@@ -3,7 +3,7 @@ export interface Taxi{
     licensePlate: string;
     brand: string;
     model: string;
-    confort: 'Basico' | 'Luxuoso';
+    confort: 'Basic' | 'Luxury';
     purchaseYear: number;
     dataCriacao? : Date;
 }

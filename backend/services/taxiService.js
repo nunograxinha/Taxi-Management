@@ -54,7 +54,7 @@ module.exports = {
             const turnoService = require('./turnoService'); 
             const turno = await turnoService.getTurnosByTaxiPlate(plate);
             if (Array.isArray(turno) && turno.length > 0) {
-                return "Turno associado ao Taxi, não é possível eliminar o Taxi";
+                return "Shift associated with Taxi, cannot delete Taxi";
             }else{
                 return await Taxi.findOneAndDelete({ licensePlate: plate });
             }
