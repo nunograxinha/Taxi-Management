@@ -6,11 +6,11 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-<!-- Formulário para Pedido -->
+<!-- Ride Request Form -->
 <form *ngIf="clienteData" [formGroup]="form" (ngSubmit)="submeterPedido()">
-    <h3>Dados do Pedido de Viagem</h3>
+    <h3>Ride Request Details</h3>
     
-    <!-- Campo para Localização do Cliente -->
+    <!-- Client Pickup Location -->
     <div>
         <div class="checkbox-container">
             <input 
@@ -19,11 +19,11 @@
                 [checked]="useGeolocation" 
                 (change)="onGeolocationChange($event)" 
             />
-            <label for="useGeolocation">Usar Localização atual?</label>
+            <label for="useGeolocation">Use current location?</label>
         </div>
 
         <div *ngIf="useGeolocation">
-            <label for="entryAddress">Endereço de Partida (Automaticamente obtido): </label>
+            <label for="entryAddress">Pickup Address (Obtained automatically): </label>
             <input
                 type="text"
                 id="entryAddress"
@@ -31,16 +31,16 @@
                 readonly
                 autocomplete="off"
             />
-            <p *ngIf="cidade && rua">Localização: {{ cidade }}, {{ rua }}</p>
+            <p *ngIf="cidade && rua">Location: {{ cidade }}, {{ rua }}</p>
             <div id="map"></div>
         </div>
 
         <div *ngIf="!useGeolocation">    
-            <label for="codigoPostal">Código Postal do Endereço de Partida:</label>
+            <label for="codigoPostal">Pickup Address Postal Code:</label>
             <input 
                 id="codigoPostal" 
                 formControlName="codigoPostal"
-                placeholder="Digite seu endereço de partida (ex: 1234-567)"
+                placeholder="Enter pickup postal code (e.g. 1234-567)"
                 pattern="\d{4}-\d{3}"
                 (blur)="onCodigoPostalChange()"
                 autocomplete="off" 
@@ -48,21 +48,21 @@
             />
             <div *ngIf="form.get('codigoPostal')?.touched && form.get('codigoPostal')?.invalid">
                 <small class="error" *ngIf="form.get('codigoPostal')?.errors?.['pattern']">
-                  Código postal inválido. Use o formato 1234-567.
+                  Invalid postal code. Use format 1234-567.
                 </small>
             </div>
             <div *ngIf="cidade && rua">
-                <label for="city">Localidade:</label>
-                <input id="city" [value]="cidade" readonly placeholder="Preenchido automaticamente">
+                <label for="city">City:</label>
+                <input id="city" [value]="cidade" readonly placeholder="Filled automatically">
                 
-                <label for="street">Rua:</label>
-                <input id="street" [value]="rua.includes(',') ? rua.split(',')[0] : rua" readonly placeholder="Preenchido automaticamente">
+                <label for="street">Street:</label>
+                <input id="street" [value]="rua.includes(',') ? rua.split(',')[0] : rua" readonly placeholder="Filled automatically">
             </div>
         </div>
     </div>
 
 
-    <!-- Campo para Localização de Destino -->
+    <!-- Destination Location -->
     <div>
         <div class="checkbox-container">
             <input 
@@ -71,11 +71,11 @@
                 [checked]="useExitGeolocation" 
                 (change)="onExitGeolocationChange($event)"
             />
-            <label for="useExitGeolocation">Definir Endereço de Destino no Mapa?</label>
+            <label for="useExitGeolocation">Set Destination Address on Map?</label>
         </div>
-        <!-- Mapa de Geolocalização -->
+        <!-- Geolocation Map -->
         <div *ngIf="useExitGeolocation"> 
-            <label for="exitAddress">Endereço de Destino (Clique no mapa para selecionar): </label>
+            <label for="exitAddress">Destination Address (Click on the map to select): </label>
             <input
                 type="text"
                 id="exitAddress"
@@ -85,29 +85,29 @@
             />
             <div id="mapExit"></div>
         </div>
-        <!-- Campo de texto para entrada manual do endereço de destino -->
+        <!-- Manual destination address input -->
         <div *ngIf="!useExitGeolocation" class="manual-address">
             <div>
-            <label for="exitCidade">Cidade de Destino</label>
+            <label for="exitCidade">Destination City</label>
             <input 
                 id="exitCidade" 
                 formControlName="exitCidade" 
-                placeholder="Digite cidade de destino"
+                placeholder="Enter destination city"
               />
                 <div *ngIf="form.get('exitCidade')?.invalid && form.get('exitCidade')?.touched">
-                    <small class="error">Cidade de destino é obrigatória.</small>
+                    <small class="error">Destination city is required.</small>
                 </div>
             </div>
 
             <div>
-                <label for="exitRua">Rua de Destino</label>
+                <label for="exitRua">Destination Street</label>
                 <input 
                     id="exitRua" 
                     formControlName="exitRua" 
-                    placeholder="Digite rua de destino"
+                    placeholder="Enter destination street"
                 />
                 <div *ngIf="form.get('exitRua')?.invalid && form.get('exitRua')?.touched">
-                    <small class="error">Rua de destino é obrigatória.</small>
+                    <small class="error">Destination street is required.</small>
                 </div>
             </div>
 
@@ -117,8 +117,8 @@
                 (click)="verificarEndereco()"
                 [disabled]="!form.get('exitCidade')?.value || !form.get('exitRua')?.value || loading"
             >
-               <span *ngIf="loading">Verificando...</span>
-               <span *ngIf="!loading">Verificar Endereço</span>
+               <span *ngIf="loading">Verifying...</span>
+               <span *ngIf="!loading">Verify Address</span>
             </button>
             <!-- Address verification message -->
             <div *ngIf="addressMessage" class="address-message" 
@@ -126,28 +126,28 @@
                 {{ addressMessage }}
             </div>
 
-            <!-- Mini map para mostrar o endereço verificado -->
+            <!-- Mini map to show verified address -->
             <div *ngIf="addressVerified" class="mini-map-container">
                 <div id="miniMap"></div>
             </div>
         </div>
     </div>
   
-    <!-- Campo para Conforto -->
+    <!-- Comfort Level -->
     <div>
-      <label for="confort">Nível de Conforto:</label>
+      <label for="confort">Comfort Level:</label>
       <select id="confort" formControlName="confort">
-        <option value="" disabled hidden>Seleciona o nível de Conforto</option>
+        <option value="" disabled hidden>Select Comfort Level</option>
         <option *ngFor="let option of confortOptions" [value]="option">{{ option }}</option>
       </select>
       <div *ngIf="form.get('confort')?.invalid && form.get('confort')?.touched">
-        <small class="error">Nível de Conforto é obrigatório.</small>
+        <small class="error">Comfort Level is required.</small>
       </div>
     </div>
 
-    <!-- Campo para Numero Pessoas -->
+    <!-- Number of Passengers -->
     <div>
-        <label for="numberOfPeople">Número de Pessoas Para a Viagem</label>
+        <label for="numberOfPeople">Number of Passengers for the Trip</label>
         <input 
             id="numberOfPeople" 
             formControlName="numberOfPeople" 
@@ -156,13 +156,13 @@
         />
         <div *ngIf="form.get('numberOfPeople')?.invalid && form.get('numberOfPeople')?.touched">
             <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['required']">
-                Número de passageiros é obrigatório.
+                Number of passengers is required.
             </small>
             <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['min']">
-                Deve haver pelo menos 1 passageiro.
+                There must be at least 1 passenger.
             </small>
         </div>
     </div> 
 
-    <button type="submit" [disabled]="!form.valid">Submeter Pedido</button>
+    <button type="submit" [disabled]="!form.valid">Submit Request</button>
 </form>

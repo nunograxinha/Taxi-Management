@@ -9,10 +9,11 @@ const clienteSchema = new mongoose.Schema({
       },
     name: { type: String, required: true },
     gender: { type: String, enum: ['Male', 'Female'], required: true },
+    passwordHash: { type: String, select: false },
 }, { timestamps: true });
 
 clienteSchema.index({ createdAt: -1 });
 
-const Cliente = mongoose.model('Cliente', clienteSchema);
+const Cliente = mongoose.model('Client', clienteSchema);
 
-module.exports = { Cliente };
+module.exports = { Cliente, Client: Cliente };

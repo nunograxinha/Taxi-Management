@@ -7,6 +7,6 @@ const PrecoSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-const Preco = mongoose.model('Preco', PrecoSchema);
+const Preco = mongoose.model('Price', PrecoSchema);
 
-module.exports = { Preco };
+module.exports = { Preco, Price: Preco };

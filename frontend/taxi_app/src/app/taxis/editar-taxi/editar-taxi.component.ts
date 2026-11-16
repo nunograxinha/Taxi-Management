@@ -9,7 +9,7 @@ import { TaxiService } from '../../appServices/taxi.service';
   styleUrls: ['./editar-taxi.component.css']
 })
 export class EditarTaxiComponent implements OnInit {
-  taxiParaEditar: any;
+  taxiToEdit: any;
   constructor(
     private route: ActivatedRoute,
     private taxiService: TaxiService,
@@ -20,12 +20,12 @@ export class EditarTaxiComponent implements OnInit {
     const licensePlate = this.route.snapshot.paramMap.get('licensePlate');
     if (licensePlate) {
       this.taxiService.getTaxiByLicensePlate(licensePlate).subscribe(taxi => {
-        this.taxiParaEditar = taxi;
+        this.taxiToEdit = taxi;
       });
     }
   }
 
-  voltarALista() {
+  backToList() {
     this.router.navigate(['/gestor/gerir-taxis']);
   }
 }

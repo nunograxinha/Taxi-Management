@@ -1,5 +1,6 @@
 const pedidoViagemService = require('../services/pedidoViagemService');
 const { PedidoViagem } = require('../models/pedidoViagem');
+const { getIO } = require('../socket');
 
 // GET pedidoViagens
 exports.get_pedidosViagens = async (req, res) => { 
@@ -16,6 +17,11 @@ exports.delete_pedidoViagem = async (req, res) => {
   try {
     const { id } = req.params;
     const updatedpedido = await pedidoViagemService.deletePedido(id);
+    const io = getIO();
+    if (io) {
+      io.to(String(id)).emit('pedido:deleted', { id });
+      io.emit('pedido:deleted', { id });
+    }
 
     res.status(200).json(updatedpedido);
   } catch (error) {
@@ -26,6 +32,10 @@ exports.delete_pedidoViagem = async (req, res) => {
 exports.post_pedidoViagem = async (req, res) => {
   try {
     const newPedido = await pedidoViagemService.postPedido(req.body);
+    const io = getIO();
+    if (io) {
+      io.emit('pedido:created', newPedido);
+    }
 
     res.status(201).json(newPedido);
   } catch (error) {
@@ -37,7 +47,7 @@ exports.post_pedidoViagem = async (req, res) => {
 exports.get_pedidoViagem = async (req, res) => {
   try {
     const { id } = req.params;
-    const pedido = await PedidoViagem.findById(id).populate('cliente');
+    const pedido = await PedidoViagem.findById(id).populate('client');
     if (!pedido) {
       return res.status(404).json({ error: 'Ride request not found' });
     }
@@ -50,20 +60,29 @@ exports.get_pedidoViagem = async (req, res) => {
 
 exports.accept_pedidoViagem = async (req, res) => {
   const { id } = req.params;
-  console.log("accept_pedido_viagem body", req.body)
-  const { motoristaId, taxi, distanceKmToMotorista, clienteAceitou } = req.body;
+  const driverId = req.body.driverId ?? req.body.motoristaId;
+  const taxi = req.body.taxi;
+  const distanceKmToDriver = req.body.distanceKmToDriver ?? req.body.distanceKmToMotorista;
+  const clientAccepted = req.body.clientAccepted ?? req.body.clienteAceitou;
 
   try {
     const updated = await PedidoViagem.findByIdAndUpdate(
       id,
-      { motoristaId: motoristaId,
-        taxi: taxi,
-        distanceKmToMotorista: distanceKmToMotorista, 
-        clienteAceitou: clienteAceitou },
+      {
+        driverId,
+        taxi,
+        distanceKmToDriver,
+        clientAccepted
+      },
       { new: true }
-    ).populate('cliente');
+    ).populate('client');
 
     if (!updated) return res.status(404).json({ error: 'Ride request not found' });
+    const io = getIO();
+    if (io) {
+      io.to(String(id)).emit('pedido:driverAccepted', updated);
+      io.emit('pedido:updated', updated);
+    }
     res.status(200).json(updated);
   } catch (err) {
     console.error('Error accepting ride request:', err);
@@ -107,11 +126,11 @@ exports.request_motorista = async (req, res) => {
         return;
       }
 
-      if (pedidoViagem.motoristaId) {
+      if (pedidoViagem.driverId) {
         cleanup();
-        console.log(`Driver found: ${pedidoViagem.motoristaId}`);
+        console.log(`Driver found: ${pedidoViagem.driverId}`);
         if (!res.headersSent) {
-          return res.status(200).json({ motoristaId: pedidoViagem.motoristaId });
+          return res.status(200).json({ driverId: pedidoViagem.driverId, motoristaId: pedidoViagem.driverId });
         }
         return;
       }
@@ -167,8 +186,8 @@ exports.clientConfirm = async (req, res) => {
 
       const pedidoViagem = await PedidoViagem.findById(id);
 
-      // If the request was cancelled or the client rejected the driver (motoristaId returned to null)
-      if (!pedidoViagem || !pedidoViagem.motoristaId) {
+      // If the request was cancelled or the client rejected the driver (driverId returned to null)
+      if (!pedidoViagem || !pedidoViagem.driverId) {
         cleanup();
         console.log("Client rejected driver or cancelled order.");
         if (!res.headersSent) {
@@ -177,9 +196,9 @@ exports.clientConfirm = async (req, res) => {
         return;
       }
 
-      if (pedidoViagem.clienteAceitou) {
+      if (pedidoViagem.clientAccepted) {
         cleanup();
-        console.log(`Client accepted: ${pedidoViagem.clienteAceitou}`);
+        console.log(`Client accepted: ${pedidoViagem.clientAccepted}`);
         if (!res.headersSent) {
           return res.status(200).json({ confirmed: true, message: 'Client confirmed' });
         }
@@ -210,15 +229,20 @@ exports.clientConfirm = async (req, res) => {
 
 exports.accept_pedidoViagemCliente = async (req, res) => {
   const { id } = req.params;
-  const { clienteAceitou } = req.body;
+  const clientAccepted = req.body.clientAccepted ?? req.body.clienteAceitou;
   try {
     const updated = await PedidoViagem.findByIdAndUpdate(
       id,
-      { clienteAceitou: clienteAceitou },
+      { clientAccepted },
       { new: true }
-    ).populate('cliente');
+    ).populate('client');
 
     if (!updated) return res.status(404).json({ error: 'Ride request not found' });
+    const io = getIO();
+    if (io) {
+      io.to(String(id)).emit('pedido:clientConfirmed', updated);
+      io.to(String(id)).emit('pedido:updated', updated);
+    }
     res.status(200).json(updated);
   } catch (err) {
     console.error('Error accepting ride request (client):', err);
@@ -228,18 +252,18 @@ exports.accept_pedidoViagemCliente = async (req, res) => {
 
 exports.reject_pedidoViagem = async (req, res) => {
   const { id } = req.params;
-  const { motoristaId } = req.body;
+  const driverId = req.body.driverId ?? req.body.motoristaId;
   const update = {
     $set: {
-      motoristaId: null,
-      clienteAceitou: false,
+      driverId: null,
+      clientAccepted: false,
       taxi: null,
-      distanceKmToMotorista: null
+      distanceKmToDriver: null
     }
   };
 
-  if (motoristaId) {
-    update.$addToSet = { rejeitados: motoristaId };
+  if (driverId) {
+    update.$addToSet = { rejectedDrivers: driverId };
   }
 
   try {
@@ -247,9 +271,14 @@ exports.reject_pedidoViagem = async (req, res) => {
       id,
       update,
       { new: true }
-    ).populate('cliente');
+    ).populate('client');
 
     if (!updated) return res.status(404).json({ error: 'Ride request not found' });
+    const io = getIO();
+    if (io) {
+      io.to(String(id)).emit('pedido:clientRejected', updated);
+      io.emit('pedido:updated', updated);
+    }
     res.status(200).json(updated);
   } catch (err) {
     console.error('Error rejecting ride request:', err);
@@ -264,8 +293,12 @@ exports.update_pedidoViagem = async (req, res) => {
       id,
       { $set: req.body },
       { new: true }
-    ).populate('cliente');
+    ).populate('client');
     if (!updated) return res.status(404).json({error: 'Ride request not found'});
+    const io = getIO();
+    if (io) {
+      io.to(String(id)).emit('pedido:updated', updated);
+    }
     res.status(200).json(updated);
   } catch (err) {
     console.error('Error updating ride request:', err);

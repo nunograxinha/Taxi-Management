@@ -1,14 +1,29 @@
 <div class="turnos-list" *ngIf="turnos.length > 0; else noTurnos">
-    <ul>
-      <li *ngFor="let turno of turnos" class="list-elems">
-        <strong>Inicio:  {{ formatDate(turno.start) }}</strong>
-        <strong>Fim:  {{ formatDate(turno.end) }}</strong>
-        <span>Táxi: {{ getTaxiInfo(turno.taxi) }}</span>      
-      </li>
-    </ul>
-  </div>
+  <ul>
+    <li *ngFor="let turno of turnos" class="shift-card">
+      <div class="shift-icon">
+        <mat-icon>local_taxi</mat-icon>
+      </div>
+      <div class="shift-details">
+        <div class="shift-taxi">{{ getTaxiInfo(turno.taxi) }}</div>
+        <div class="shift-times">
+          <span class="time-badge">
+            <mat-icon>play_arrow</mat-icon>
+            <strong>Start:</strong> {{ formatDate(turno.start) }}
+          </span>
+          <span class="time-badge">
+            <mat-icon>stop</mat-icon>
+            <strong>End:</strong> {{ formatDate(turno.end) }}
+          </span>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
 
-  <ng-template #noTurnos>
-    <h3>Não há turnos registados.</h3>
-  </ng-template>
-  
+<ng-template #noTurnos>
+  <div class="empty-state">
+    <mat-icon>event_busy</mat-icon>
+    <p>No shifts registered.</p>
+  </div>
+</ng-template>

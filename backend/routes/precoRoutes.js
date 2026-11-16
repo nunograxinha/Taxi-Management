@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const precoController = require('../controllers/precoController');
+const { requireRole } = require('../middleware/authMiddleware');
 
 router.get('/', precoController.get_preco);
-router.put('/:id', precoController.put_preco);
+router.put('/:id', requireRole('manager'), precoController.put_preco);
 
 module.exports = router;

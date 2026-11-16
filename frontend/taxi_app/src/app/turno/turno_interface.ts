@@ -3,8 +3,8 @@ import { Taxi } from "../taxis/taxi_interface";
 
 export interface Turno {
     _id?: string;
-    motorista: string;
+    driver: string;
     taxi: string;
-    start: string; // usar ISO strings
+    start: string; // ISO string
     end: string;
   }

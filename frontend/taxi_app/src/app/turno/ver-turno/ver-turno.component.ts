@@ -23,6 +23,7 @@ export class VerTurnoComponent implements OnInit, OnDestroy {
   turnoAtual: Turno | undefined;
   viagensDoTurnoAtual: Viagem[] = [];
   semTurnos: boolean = false;
+  loading: boolean = true;
   private subscription?: Subscription;
 
   constructor(
@@ -47,9 +48,11 @@ export class VerTurnoComponent implements OnInit, OnDestroy {
         
             this.turnoAtual = this.getTurnoAtual();
             this.atualizarViagensDoTurnoAtual();
+            this.loading = false;
             console.log(this.turnoAtual);
           },
           error: (err) => {
+            this.loading = false;
             console.error('Erro ao buscar turnos:', err);
           }
         });
@@ -72,7 +75,7 @@ export class VerTurnoComponent implements OnInit, OnDestroy {
   private atualizarViagensDoTurnoAtual() {
   if (this.turnoAtual) {
     this.viagensDoTurnoAtual = this.viagens.filter(
-      v => v.turno === this.turnoAtual!._id
+      v => v.shift === this.turnoAtual!._id
     );
   } else {
     this.viagensDoTurnoAtual = [];
@@ -108,17 +111,17 @@ getTaxiInfo(taxiId: string): string {
   if (this.taxiInfoMap.has(taxiId)) {
     return this.taxiInfoMap.get(taxiId)!;
   } else {
-    this.taxiInfoMap.set(taxiId, 'A carregar...');
+    this.taxiInfoMap.set(taxiId, 'Loading...');
     this.taxiService.getTaxiById(taxiId).subscribe({
       next: (taxi) => {
-        const info = taxi ? taxi.licensePlate : 'Taxi não encontrado';
+        const info = taxi ? taxi.licensePlate : 'Taxi not found';
         this.taxiInfoMap.set(taxiId, info);
       },
       error: () => {
-        this.taxiInfoMap.set(taxiId, 'Taxi não encontrado');
+        this.taxiInfoMap.set(taxiId, 'Taxi not found');
       }
     });
-    return 'A carregar...';
+    return 'Loading...';
   }
 }
 

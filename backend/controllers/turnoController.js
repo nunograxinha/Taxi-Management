@@ -1,17 +1,17 @@
 const turnoService = require('../services/turnoService');
 const mongoose = require('mongoose');
 
-// GET turno/
+// GET /shift
 exports.get_turnos = async (req, res) => {
   try {
-    const turnos = await turnoService.getTurnos();
-    res.status(200).json(turnos);
+    const shifts = await turnoService.getTurnos();
+    res.status(200).json(shifts);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// GET turno/get/:id
+// GET /shift/:id
 exports.get_turno_by_id = async (req, res) => {
   const { id } = req.params;
 
@@ -20,63 +20,63 @@ exports.get_turno_by_id = async (req, res) => {
   }
 
   try {
-    const turno = await turnoService.getTurnoById(id);
-    if (!turno) {
-      return res.status(404).json({ error: `Turno with ID ${id} not found` });
+    const shift = await turnoService.getTurnoById(id);
+    if (!shift) {
+      return res.status(404).json({ error: `Shift with ID ${id} not found` });
     }
-    res.status(200).json(turno);
+    res.status(200).json(shift);
   } catch (error) {
-    console.log("TURNOCONTROLLER")
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// POST turno/create
+// POST /shift
 exports.post_turno = async (req, res) => {
-  console.log("TurnoController, Rq.body:", req.body)
   try {
-    const { motorista, taxi, start, end } = req.body;
-    const turno = await turnoService.createTurno(motorista, taxi?._id || taxi, start, end);
-    res.status(201).json(turno);
+    const driverNif = req.body.driver || req.body.motorista;
+    const { taxi, start, end } = req.body;
+    const shift = await turnoService.createTurno(driverNif, taxi?._id || taxi, start, end);
+    res.status(201).json(shift);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// PUT turno/update/:id
+// PUT /shift/:id
 exports.update_turno = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
   try {
-    const updatedTurno = await turnoService.updateTurnoById(id, updateData);
-    if (!updatedTurno) return res.status(404).json({ error: `Turno with ID ${id} not found` });
-    res.status(200).json(updatedTurno);
+    const updatedShift = await turnoService.updateTurnoById(id, updateData);
+    if (!updatedShift) return res.status(404).json({ error: `Shift with ID ${id} not found` });
+    res.status(200).json(updatedShift);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// DELETE turno/delete/:id
+// DELETE /shift/:id
 exports.delete_turno = async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedTurno = await turnoService.deleteTurnoById(id);
-    if (!deletedTurno) return res.status(404).json({ error: `Turno with ID ${id} not found` });
-    res.status(200).json({ message: `Turno with ID ${id} deleted successfully`, deletedTurno });
+    const deletedShift = await turnoService.deleteTurnoById(id);
+    if (!deletedShift) return res.status(404).json({ error: `Shift with ID ${id} not found` });
+    res.status(200).json({ message: `Shift with ID ${id} deleted successfully`, deletedShift });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
 exports.get_turnos_in_time_frame = async (req, res) => {
-  const { motoristaNIF, start, end } = req.query;
-  if (!motoristaNIF || !start || !end) {
-    return res.status(400).json({ error: 'motoristaNIF, start, and end are required.' });
+  const driverNIF = req.query.driverNIF || req.query.motoristaNIF;
+  const { start, end } = req.query;
+  if (!driverNIF || !start || !end) {
+    return res.status(400).json({ error: 'driverNIF, start, and end are required.' });
   }
 
-  if (motoristaNIF === "null" || motoristaNIF === null) {
-    return res.status(400).json({ error: 'motoristaNIF must be a valid ID.' });
+  if (driverNIF === "null" || driverNIF === null) {
+    return res.status(400).json({ error: 'driverNIF must be a valid ID.' });
   }
 
   try {
@@ -87,8 +87,8 @@ exports.get_turnos_in_time_frame = async (req, res) => {
       return res.status(400).json({ error: 'start and end must be valid dates.' });
     }
 
-    const turnos = await turnoService.getTurnosInTimeframe(motoristaNIF, startTime, endTime);
-    res.status(200).json(turnos);
+    const shifts = await turnoService.getTurnosInTimeframe(driverNIF, startTime, endTime);
+    res.status(200).json(shifts);
   } catch (error) { 
     console.error(error);
     res.status(500).json({ error: 'Error fetching shifts in timeframe' });
@@ -97,12 +97,12 @@ exports.get_turnos_in_time_frame = async (req, res) => {
 
 exports.get_turnos_by_motorista = async (req, res) => {
   try {
-    const { motoristaNIF } = req.params;
-    console.log("motoristaNIF", motoristaNIF);
-    const turnos = await turnoService.getTurnosByMotoristaNIF(motoristaNIF);
-    console.log("shifts", turnos);
+    const driverNIF = req.params.driverNIF || req.params.motoristaNIF;
+    console.log("driverNIF", driverNIF);
+    const shifts = await turnoService.getTurnosByMotoristaNIF(driverNIF);
+    console.log("shifts", shifts);
 
-    res.status(200).json(turnos || []);
+    res.status(200).json(shifts || []);
   } catch (error) {
     console.error("Error fetching shifts by driver NIF:", error);
     res.status(500).json({ error: 'Error fetching driver shifts.' });

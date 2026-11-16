@@ -5,8 +5,8 @@ module.exports = {
 
   getpedidos: async () => {
     try {
-        const pedidos = await PedidoViagem.find().populate('cliente');
-        return pedidos;
+        const requests = await PedidoViagem.find().populate('client');
+        return requests;
     } catch (error) {
         console.error('Error fetching ride requests:', error);
         throw new Error('Error fetching ride requests');
@@ -15,11 +15,11 @@ module.exports = {
 
   deletePedido: async (id) => {
     try {
-        const deletedPedido = await PedidoViagem.findByIdAndDelete(id);
-        if (!deletedPedido) {
+        const deletedRequest = await PedidoViagem.findByIdAndDelete(id);
+        if (!deletedRequest) {
             throw new Error('Ride request not found');
         }
-        return deletedPedido;
+        return deletedRequest;
     } catch (error) {
         console.error('Error deleting ride request:', error);
         throw new Error('Error deleting ride request');
@@ -28,11 +28,11 @@ module.exports = {
 
     getPedido: async (id) => {
       try {
-          const pedido = await PedidoViagem.findById(id).populate('cliente');
-          if (!pedido) {
+          const request = await PedidoViagem.findById(id).populate('client');
+          if (!request) {
             throw new Error('Ride request not found');
           }
-          return pedido;
+          return request;
       } catch (error) {
           console.error('Error fetching ride request by ID:', error);
           throw new Error('Error fetching ride request by ID');
@@ -41,16 +41,21 @@ module.exports = {
 
     postPedido: async (body) => {
       try {
-        const cliente = await clienteService.getClienteBy_id(body.cliente);
-        if (!cliente) {
+        const payload = {
+          ...body,
+          client: body.client || body.cliente
+        };
+        const client = await clienteService.getClienteBy_id(payload.client);
+        if (!client) {
           throw new Error('Client not found');
         }
-        const pedido = new PedidoViagem(body);
-        const savedpedido = await pedido.save();
-        return savedpedido;
+        const request = new PedidoViagem(payload);
+        const savedRequest = await request.save();
+        return savedRequest;
       } catch (error) {
         console.error('Error creating ride request:', error);
-        throw new Error('Error creating ride request');      }
+        throw new Error('Error creating ride request');
+      }
     },
     
 };

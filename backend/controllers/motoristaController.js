@@ -1,24 +1,24 @@
 const motoristaService = require('../services/motoristaService');
 
-// GET motorista/
+// GET /driver
 exports.get_motoristas = async (req, res) => { 
   try {
-    const motoristas = await motoristaService.getMotoristas();
-    res.status(200).json(motoristas);
+    const drivers = await motoristaService.getMotoristas();
+    res.status(200).json(drivers);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// GET motorista/get/:nif
+// GET /driver/:nif
 exports.get_motorista_by_nif = async (req, res) => {
   const { nif } = req.params;
   try {
-    const motorista = await motoristaService.getMotoristaByNIF(nif);
-    if (!motorista) {
-      return res.status(404).json({ error: `Motorista with NIF ${nif} not found` });
+    const driver = await motoristaService.getMotoristaByNIF(nif);
+    if (!driver) {
+      return res.status(404).json({ error: `Driver with NIF ${nif} not found` });
     }
-    res.status(200).json(motorista);
+    res.status(200).json(driver);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
@@ -27,58 +27,58 @@ exports.get_motorista_by_nif = async (req, res) => {
 exports.get_motorista_by_id = async (req, res) => {
   const { id } = req.params;
   try {
-    const motorista = await motoristaService.getMotoristaById(id);
-    if (!motorista) {
-      return res.status(404).json({ error: `Motorista with NIF ${id} not found` });
+    const driver = await motoristaService.getMotoristaById(id);
+    if (!driver) {
+      return res.status(404).json({ error: `Driver with ID ${id} not found` });
     }
-    res.status(200).json(motorista);
+    res.status(200).json(driver);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// POST motorista/create
+// POST /driver
 exports.post_motorista = async (req, res) => {
   try {
-    const motorista = await motoristaService.createMotorista(req.body);
-    res.status(201).json(motorista);
+    const driver = await motoristaService.createMotorista(req.body);
+    res.status(201).json(driver);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// PUT motorista/update/:nif
+// PUT /driver/:nif
 exports.update_motorista = async (req, res) => {
   const { nif } = req.params;
   const { name, gender, birthYear, address, drivingLicenseNumber} = req.body;
   
   try {
-    const updatedMotorista = await motoristaService.updateMotoristaByNIF(nif, { name, gender, birthYear, address, drivingLicenseNumber});
-    if (!updatedMotorista) {
-      return res.status(404).json({ error: `Motorista with NIF ${nif} not found` });
+    const updatedDriver = await motoristaService.updateMotoristaByNIF(nif, { name, gender, birthYear, address, drivingLicenseNumber});
+    if (!updatedDriver) {
+      return res.status(404).json({ error: `Driver with NIF ${nif} not found` });
     }
-    if (typeof updatedMotorista === 'string') {
-      return res.status(400).json({ error: updatedMotorista });
+    if (typeof updatedDriver === 'string') {
+      return res.status(400).json({ error: updatedDriver });
     }
-    res.status(200).json(updatedMotorista);
+    res.status(200).json(updatedDriver);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// DELETE motorista/delete/:nif
+// DELETE /driver/:nif
 exports.delete_motorista = async (req, res) => {
   const { nif } = req.params;
   try {
-    const deletedMotorista = await motoristaService.deleteMotoristaByNIF(nif);
-    if (typeof deletedMotorista === 'string') {
-      // Caso de erro: motorista tem turno associado
-      return res.status(400).json({ error: deletedMotorista });
+    const deletedDriver = await motoristaService.deleteMotoristaByNIF(nif);
+    if (typeof deletedDriver === 'string') {
+      // Error case: driver has an associated shift
+      return res.status(400).json({ error: deletedDriver });
     }
-    if (!deletedMotorista) {
-      return res.status(404).json({ error: `Motorista with NIF ${nif} not found` });
+    if (!deletedDriver) {
+      return res.status(404).json({ error: `Driver with NIF ${nif} not found` });
     }
-    res.status(200).json({ message: `Motorista with NIF ${nif} deleted successfully`, deletedMotorista });
+    res.status(200).json({ message: `Driver with NIF ${nif} deleted successfully`, deletedDriver });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }

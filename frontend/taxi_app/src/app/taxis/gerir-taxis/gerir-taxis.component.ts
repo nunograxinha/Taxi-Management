@@ -8,7 +8,7 @@ import { Component } from '@angular/core';
 export class GerirTaxisComponent {
   refreshTrigger: number = 0;
 
-  atualizarLista() {
+  refreshList() {
     this.refreshTrigger++;
   }
 

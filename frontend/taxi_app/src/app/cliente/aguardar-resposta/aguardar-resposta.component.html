@@ -1,35 +1,93 @@
-<!-- Navigation Bar -->
-<div class="navbar">
-  <p class="navbar-title">Aguardando Motorista</p>
-</div>
-
-<div class="container">
-  <div *ngIf="loading" class="loading">
-    <p>A carregar o pedido...</p>
-  </div>
-    
-  <div *ngIf="erro" class="erro">
-    <p>{{ erro }}</p>
-  </div>
-    
-  <div *ngIf="!loading && !erro" class="pedido">
-    <h2>Pedido de Viagem</h2>
-
-    <div *ngIf="pedido">
-      <h3>Aguarde a resposta do motorista...</h3>
-      <p>O seu pedido foi enviado e estamos à procura de um motorista disponível.</p>
-      <div class="pedido-details">
-        <p><strong>Número de Passageiros:</strong> {{ pedido.numberOfPeople }}</p>
-        <p><strong>Nível de Conforto:</strong> {{ pedido.confort }}</p>
-        <p><strong>Coordenadas de Partida:</strong> {{ pedido.entryAddress }}</p>
-        <p><strong>Coordenadas de Destino:</strong> {{ pedido.exitAddress }}</p>
-      </div>
-      <button class="cancelar-button" (click)="cancelarPedido()"><mat-icon>close</mat-icon> Cancelar Pedido</button>
-    
-      <!-- Se o pedido for nulo ou indefinido -->
-    <div *ngIf="!pedido">
-      <p>Pedido não encontrado.</p>
+<div class="waiting-page">
+  <div class="navbar">
+    <div class="navbar-brand">
+      <mat-icon>hourglass_top</mat-icon>
+      <span class="navbar-title">Waiting for Driver</span>
     </div>
   </div>
+
+  <div class="container">
+    <div *ngIf="loading" class="state-card">
+      <div class="badge-icon">
+        <mat-icon>hourglass_top</mat-icon>
+      </div>
+      <h2>Loading ride request...</h2>
+      <p class="subtitle">Please wait a moment.</p>
+    </div>
+
+    <div *ngIf="erro" class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ erro }}</p>
+    </div>
+
+    <div *ngIf="!loading && !erro">
+      <div *ngIf="pedido" class="pedido-card">
+        <div class="header-section">
+          <div class="badge-icon pulse">
+            <mat-icon>local_taxi</mat-icon>
+          </div>
+          <div>
+            <span class="status-pill">Searching for Driver</span>
+            <h2>Waiting for driver's response...</h2>
+            <p class="subtitle">Your ride request has been sent and we are looking for an available driver.</p>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-tile">
+            <div class="tile-icon">
+              <mat-icon>group</mat-icon>
+            </div>
+            <div>
+              <span class="tile-label">Passengers</span>
+              <span class="tile-value">{{ pedido.numberOfPeople }}</span>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="tile-icon">
+              <mat-icon>star</mat-icon>
+            </div>
+            <div>
+              <span class="tile-label">Comfort Level</span>
+              <span class="tile-value">{{ pedido.confort }}</span>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="tile-icon pickup">
+              <mat-icon>my_location</mat-icon>
+            </div>
+            <div class="tile-content">
+              <span class="tile-label">Pickup</span>
+              <span class="tile-value">{{ pickupAddress || 'Loading address...' }}</span>
+            </div>
+          </div>
+
+          <div class="detail-tile">
+            <div class="tile-icon dropoff">
+              <mat-icon>place</mat-icon>
+            </div>
+            <div class="tile-content">
+              <span class="tile-label">Destination</span>
+              <span class="tile-value">{{ destinationAddress || 'Loading address...' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="cancelar-button" (click)="cancelarPedido()">
+          <mat-icon>close</mat-icon>
+          <span>Cancel Request</span>
+        </button>
+      </div>
+
+      <div *ngIf="!pedido" class="state-card">
+        <div class="badge-icon">
+          <mat-icon>search_off</mat-icon>
+        </div>
+        <h2>Ride request not found</h2>
+        <p class="subtitle">This ride request may have been cancelled or expired.</p>
+      </div>
+    </div>
   </div>
-  
+</div>

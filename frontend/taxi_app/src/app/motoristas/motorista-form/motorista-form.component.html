@@ -46,7 +46,7 @@
     <label for="drivingLicenseNumber">Driving License Number:</label>
     <input id="drivingLicenseNumber" formControlName="drivingLicenseNumber">
     <div *ngIf="motoristaForm.get('drivingLicenseNumber')?.invalid && motoristaForm.get('drivingLicenseNumber')?.touched">
-      <small class="error">Invalid driving license number.</small>
+      <small class="error">Invalid driving license number. Enter digits only.</small>
     </div>
   </div>
 

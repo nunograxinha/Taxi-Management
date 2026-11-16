@@ -9,8 +9,8 @@ router.get('/:id', turnoController.get_turno_by_id);
 router.post('/', turnoController.post_turno);
 router.put('/:id', turnoController.update_turno);
 router.delete('/:id', turnoController.delete_turno);
-router.get('/driver/:motoristaNIF', turnoController.get_turnos_by_motorista);
-router.get('/motorista/:motoristaNIF', turnoController.get_turnos_by_motorista);
+router.get('/driver/:driverNIF', turnoController.get_turnos_by_motorista);
+router.get('/motorista/:driverNIF', turnoController.get_turnos_by_motorista);
 router.get('/taxi/:licensePlate', turnoController.get_turnos_by_taxi);
 
 module.exports = router;

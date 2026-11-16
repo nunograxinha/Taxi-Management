@@ -6,7 +6,7 @@ require('./turno');
 require('./cliente');
 
 const viagemSchema = new mongoose.Schema({
-  turno: { type: mongoose.Schema.Types.ObjectId, ref: 'Turno', required: true },
+  shift: { type: mongoose.Schema.Types.ObjectId, ref: 'Shift', required: true },
   numberOfPeople: { type: Number, required: true },
   distanceKm: { type: Number, required: true, min: 0 },
   entryTime: { type: Date, required: true },
@@ -23,23 +23,23 @@ const viagemSchema = new mongoose.Schema({
   entryAddress: { type: String, required: true },
   exitAddress: { type: String, required: true },
   sequenceNumber: { type: Number, min: 1 },
-  motorista: { type: mongoose.Schema.Types.ObjectId, ref: 'Motorista', required: true },
-  cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'Cliente', required: true },
-  preco: { type: Number, required: true, min: 0 },
+  driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', required: true },
+  client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+  price: { type: Number, required: true, min: 0 },
 }, { timestamps: true });
 
-viagemSchema.index({ turno: 1, sequenceNumber: 1 }, { unique: true });
+viagemSchema.index({ shift: 1, sequenceNumber: 1 }, { unique: true });
 
-// Auto-increment sequenceNumber per turno
+// Auto-increment sequenceNumber per shift
 viagemSchema.pre('save', async function (next) {
   if (this.isNew) {
-    const Viagem = mongoose.model('Viagem');
-    const lastViagem = await Viagem.findOne({ turno: this.turno }).sort({ sequenceNumber: -1 });
-    this.sequenceNumber = lastViagem && lastViagem.sequenceNumber ? lastViagem.sequenceNumber + 1 : 1;
+    const Trip = mongoose.model('Trip');
+    const lastTrip = await Trip.findOne({ shift: this.shift }).sort({ sequenceNumber: -1 });
+    this.sequenceNumber = lastTrip && lastTrip.sequenceNumber ? lastTrip.sequenceNumber + 1 : 1;
   }
   next();
 });
 
-const Viagem = mongoose.model('Viagem', viagemSchema);
+const Viagem = mongoose.model('Trip', viagemSchema);
 
-module.exports = { Viagem };
+module.exports = { Viagem, Trip: Viagem };

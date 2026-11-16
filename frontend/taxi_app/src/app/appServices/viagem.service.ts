@@ -48,9 +48,9 @@ export class ViagemService {
   }
 
   // Accept a ride request
-  aceitarPedido(viagemId: string, motoristaId: string): Observable<Viagem> {
+  aceitarPedido(viagemId: string, driverId: string): Observable<Viagem> {
     const url = `${this.url}/${viagemId}`;
-    const body = { motorista: motoristaId };
+    const body = { driver: driverId };
     
     return this.http.put<Viagem>(url, body).pipe(
       catchError(this.handleError<Viagem>('aceitarPedido'))

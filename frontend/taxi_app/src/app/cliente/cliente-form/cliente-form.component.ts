@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ClienteService } from '../../appServices/cliente.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../appServices/auth.service';
 import { Cliente } from '../cliente_interface';
 
 @Component({
@@ -9,48 +10,86 @@ import { Cliente } from '../cliente_interface';
   styleUrls: ['./cliente-form.component.css']
 })
 export class ClienteFormComponent {
-  clienteForm: FormGroup;
-  errorMessage: string = ''; 
+  mode: 'login' | 'register' = 'login';
+  loginForm: FormGroup;
+  registerForm: FormGroup;
+  errorMessage: string = '';
+  isSubmitting = false;
   @Output() clienteCriado = new EventEmitter<Cliente>();
 
   constructor(
-    private fb:FormBuilder,
-    private clienteService: ClienteService  
-    ) {
-    this.clienteForm = this.fb.group({
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private snackBar: MatSnackBar
+  ) {
+    this.loginForm = this.fb.group({
+      NIF: ['', [Validators.required, this.nifValidator]],
+      password: ['', [Validators.required]]
+    });
+
+    this.registerForm = this.fb.group({
       NIF: ['', [Validators.required, this.nifValidator]],
       name: ['', Validators.required],
-      gender: ['', Validators.required]
+      gender: ['', Validators.required],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  switchMode(mode: 'login' | 'register'): void {
+    this.mode = mode;
+    this.errorMessage = '';
   }
 
   nifValidator(control: AbstractControl): { [key: string]: boolean } | null {
     const nifPattern = /^\d{9}$/;
     if (control.value && !nifPattern.test(control.value)) {
-      return { 'invalidNIF': true };
+      return { invalidNIF: true };
     }
     return null;
   }
 
- onSubmit() {
-  this.errorMessage = '';
-    if (this.clienteForm.valid) {
-      const clienteData: Cliente = this.clienteForm.value;
-      this.clienteService.registarCliente(clienteData).subscribe({
-        next: (novoCliente) => {
-          this.clienteCriado.emit(novoCliente);
-          this.clienteForm.reset();
-          alert("Cliente criado com sucesso!");
+  onSubmit(): void {
+    this.errorMessage = '';
+    if (this.mode === 'login') {
+      if (this.loginForm.invalid) {
+        this.loginForm.markAllAsTouched();
+        return;
+      }
+      const { NIF, password } = this.loginForm.value;
+      this.isSubmitting = true;
+      this.authService.loginAsClient(NIF.trim(), password).subscribe({
+        next: (res) => {
+          this.isSubmitting = false;
+          if (res.client) {
+            this.clienteCriado.emit(res.client);
+            this.snackBar.open('Signed in successfully!', 'Close', { duration: 3000 });
+          }
         },
-        error: (error) => {
-          console.error("Erro ao criar cliente:", error);
-          this.errorMessage = "Erro ao criar cliente. Tente novamente."; 
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = err?.error?.error || 'Invalid NIF or password.';
         }
       });
     } else {
-      Object.keys(this.clienteForm.controls).forEach(key => {
-        const control = this.clienteForm.get(key);
-        control?.markAsTouched();
-      });    }
+      if (this.registerForm.invalid) {
+        this.registerForm.markAllAsTouched();
+        return;
+      }
+      this.isSubmitting = true;
+      this.authService.registerClient(this.registerForm.value).subscribe({
+        next: (res) => {
+          this.isSubmitting = false;
+          if (res.client) {
+            this.clienteCriado.emit(res.client);
+            this.registerForm.reset();
+            this.snackBar.open('Account created successfully!', 'Close', { duration: 3500 });
+          }
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = err?.error?.error || 'Error creating account. Please try again.';
+        }
+      });
+    }
   }
 }

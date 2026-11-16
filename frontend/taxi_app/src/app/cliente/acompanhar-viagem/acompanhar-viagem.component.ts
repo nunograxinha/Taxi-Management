@@ -1,5 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
+import { SocketService } from '../../appServices/socket.service';
 import { PedidoViagem } from '../pedidoViagem_interface';
 import { ActivatedRoute } from '@angular/router';
 import { GeolocationService } from '../../appServices/geolocation.service';
@@ -15,7 +17,7 @@ import { Router } from '@angular/router';
 export class AcompanharViagemComponent implements OnInit, OnDestroy {
   status: 'aguardando' | 'emCurso' | 'finalizada' = 'aguardando';
   pedido: PedidoViagem | null = null;
-  polling: any;
+  pedidoId: string = '';
   preco: number = 0;
   partidaNome: string = '';
   destinoNome: string = '';
@@ -28,10 +30,12 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
   horaChegada: Date = new Date();
   private ultimoEntryAddress: string = '';
   private ultimoExitAddress: string = '';
+  private subscriptions = new Subscription();
 
 
   constructor(
     private pedidoViagemService: PedidoViagemService,
+    private socketService: SocketService,
     private route: ActivatedRoute,
     private geolocationService: GeolocationService,
     private motoristaService: MotoristaService,
@@ -42,51 +46,65 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
   ngOnInit() {
     const pedidoId = this.route.snapshot.paramMap.get('pedidoId');
     if (!pedidoId) {
-      console.error('Pedido ID não fornecido');
+      console.error('Ride request ID not provided');
       return;
     }
+    this.pedidoId = pedidoId;
+    this.socketService.joinPedido(pedidoId);
 
-    this.polling = setInterval(() => {
-      this.pedidoViagemService.getPedidoById(pedidoId).subscribe(res => {
-        this.pedido = res;
+    this.pedidoViagemService.getPedidoById(pedidoId).subscribe(res => {
+      if (res) {
+        this.processarEstadoPedido(res);
+      }
+    });
 
-        if (res.motoristaId && !this.motoristaNome) {
-          this.motoristaService.getMotoristaPorId(res.motoristaId).subscribe(motorista => {
-            this.motoristaNome = motorista.name;
-          });
+    this.subscriptions.add(
+      this.socketService.onEvent<PedidoViagem>('pedido:updated').subscribe((pedidoAtualizado) => {
+        if (pedidoAtualizado) {
+          this.processarEstadoPedido(pedidoAtualizado);
         }
-        if (res.taxi && !this.taxiMatricula) {
-          this.taxiService.getTaxiById(res.taxi).subscribe(taxi => {
-            this.taxiMatricula = taxi.licensePlate;
-            this.taxiMarca = taxi.brand;
-            this.taxiModelo = taxi.model;
-          });
-        }
-        if (res.distanceKmToMotorista) {
-          this.tempoMotorista = res.distanceKmToMotorista;
-        }
-        this.atualizarNomesLocalidades(res);
-        if(!res.startTime) {
-          this.status = 'aguardando';
-        } else if(res.startTime && !res.endTime) {
-          this.status = 'emCurso';
-          this.horaPartida = res.startTime;
-        } else if (res.endTime) {
-          this.status = 'finalizada';
-          this.horaChegada = res.endTime;
-          if (res.price !== undefined && res.price !== null) {
-            this.preco = res.price;
-            clearInterval(this.polling);
-          } 
-        }
+      })
+    );
+  }
+
+  private processarEstadoPedido(res: PedidoViagem) {
+    this.pedido = res;
+
+    if (res.driverId && !this.motoristaNome) {
+      this.motoristaService.getMotoristaPorId(res.driverId).subscribe(motorista => {
+        this.motoristaNome = motorista.name;
       });
-    }, 3000);
+    }
+    if (res.taxi && !this.taxiMatricula) {
+      this.taxiService.getTaxiById(res.taxi).subscribe(taxi => {
+        this.taxiMatricula = taxi.licensePlate;
+        this.taxiMarca = taxi.brand;
+        this.taxiModelo = taxi.model;
+      });
+    }
+    if (res.distanceKmToDriver) {
+      this.tempoMotorista = res.distanceKmToDriver;
+    }
+    this.atualizarNomesLocalidades(res);
+    if (!res.startTime) {
+      this.status = 'aguardando';
+    } else if (res.startTime && !res.endTime) {
+      this.status = 'emCurso';
+      this.horaPartida = res.startTime;
+    } else if (res.endTime) {
+      this.status = 'finalizada';
+      this.horaChegada = res.endTime;
+      if (res.price !== undefined && res.price !== null) {
+        this.preco = res.price;
+      }
+    }
   }
 
   ngOnDestroy() {
-    if (this.polling) {
-    clearInterval(this.polling);
+    if (this.pedidoId) {
+      this.socketService.leavePedido(this.pedidoId);
     }
+    this.subscriptions.unsubscribe();
   }
 
   async atualizarNomesLocalidades(pedido: PedidoViagem) {
@@ -102,12 +120,25 @@ export class AcompanharViagemComponent implements OnInit, OnDestroy {
     }
   }
 
+  cancelarViagem() {
+    if (!this.pedidoId) return;
+    if (!window.confirm('Are you sure you want to cancel this ride?')) return;
+    this.pedidoViagemService.deletePedido(this.pedidoId).subscribe({
+      next: () => {
+        localStorage.removeItem('pedidoId');
+        this.router.navigate(['/cliente']);
+      },
+      error: (err) => {
+        console.error('Error cancelling ride:', err);
+      }
+    });
+  }
 
   getDuracaoViagemMinutos(): number | null {
     if (!this.pedido?.startTime || !this.pedido?.endTime) return null;
     const inicio = new Date(this.pedido.startTime).getTime();
     const fim = new Date(this.pedido.endTime).getTime();
-    return Math.floor((fim - inicio) / 60000); // minutos
+    return Math.floor((fim - inicio) / 60000); // minutes
   }
 
   voltarClientePage() {

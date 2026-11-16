@@ -8,7 +8,11 @@
       <a mat-list-item [routerLink]="['/motorista', motorista?.NIF, 'pedidos-pendentes']" (click)="sidenav.close()">
         <mat-icon>notifications</mat-icon>
         <span>Pending Requests</span>
-        </a>
+      </a>
+      <a mat-list-item (click)="sidenav.close(); openPasswordModal()">
+        <mat-icon>lock</mat-icon>
+        <span>Change Password</span>
+      </a>
     </mat-nav-list>
   </mat-sidenav>
 
@@ -18,16 +22,78 @@
         <mat-icon>menu</mat-icon>
       </button>
 
-      <span class="toolbar-title">Hello {{ motorista?.name }}</span>
+      <span class="toolbar-title">Hello, {{ motorista?.name }}</span>
 
-      <button class="logout-btn" routerLink="/motorista">
+      <button mat-icon-button class="logout-btn" routerLink="/motorista" title="Sign Out">
         <mat-icon>logout</mat-icon>
       </button>
     </mat-toolbar>
 
     <div class="main-content">
       <app-ver-turno></app-ver-turno>
+      <div class="back-actions">
+        <button type="button" class="back-btn" routerLink="/motorista">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Back</span>
+        </button>
+        <button type="button" class="back-btn" (click)="openPasswordModal()">
+          <mat-icon>lock</mat-icon>
+          <span>Change Password</span>
+        </button>
+      </div>
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<div class="modal-backdrop" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+  <div class="password-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <mat-icon>lock</mat-icon>
+      </div>
+      <div>
+        <h3>Change Password</h3>
+        <p>Update the password for your driver account.</p>
+      </div>
+    </div>
+
+    <form (ngSubmit)="submitPasswordChange()" class="modal-form">
+      <label for="currentPassword">Current Password</label>
+      <input
+        id="currentPassword"
+        type="password"
+        name="currentPassword"
+        [(ngModel)]="currentPassword"
+        placeholder="Enter current password..."
+        required>
+
+      <label for="newPassword">New Password</label>
+      <input
+        id="newPassword"
+        type="password"
+        name="newPassword"
+        [(ngModel)]="newPassword"
+        placeholder="At least 6 characters..."
+        required>
+
+      <label for="confirmPassword">Confirm New Password</label>
+      <input
+        id="confirmPassword"
+        type="password"
+        name="confirmPassword"
+        [(ngModel)]="confirmPassword"
+        placeholder="Repeat new password..."
+        required>
+
+      <div *ngIf="passwordError" class="modal-error">{{ passwordError }}</div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="closePasswordModal()">Cancel</button>
+        <button type="submit" class="btn-submit" [disabled]="isUpdatingPassword">
+          {{ isUpdatingPassword ? 'Saving...' : 'Save Password' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
   

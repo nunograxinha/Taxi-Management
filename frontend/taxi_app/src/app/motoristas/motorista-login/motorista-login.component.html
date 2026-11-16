@@ -1,54 +1,101 @@
 <div class="motorista-page">
     <div class="navbar">
-        <h2 class="navbar-title">Sign In</h2>
+        <div class="navbar-brand">
+            <mat-icon>local_taxi</mat-icon>
+            <h2 class="navbar-title">Driver Sign In</h2>
+        </div>
     </div>
+
     <div class="container">
         <div class="content">
-            <p>Available driver profiles are listed below. Select one:</p>
-            <form class="motoristaLoginForm" [formGroup]="motoristaLoginForm" (ngSubmit)="onSubmit()">
-                <label for="nif">Filter by NIF:</label>
-                <input id = "NIF" formControlName = "NIF" type="text"> 
-                <div  *ngIf="motoristaLoginForm.get('NIF')?.invalid && motoristaLoginForm.get('NIF')?.touched">
-                    <small class="error" *ngIf="motoristaLoginForm.get('NIF')?.hasError('invalidFormat')">Invalid NIF. Enter digits only (no spaces, letters, or symbols).</small>   
-                    <small class="error" *ngIf="motoristaLoginForm.get('NIF')?.hasError('invalidLength')">Invalid NIF. Must be 9 digits.</small>      
-                    <small class="error" *ngIf="motoristaLoginForm.get('NIF')?.hasError('notPositive')">Invalid NIF. Cannot be negative.</small>         
+            <div class="header-section">
+                <div class="header-icon">
+                    <mat-icon>badge</mat-icon>
                 </div>
-            <div class="btn-container">
-                <button type="button" (click)="limpar()" [disabled]="!motoristaLoginForm.get('NIF')?.value || !motoristaLoginForm.get('NIF')?.touched">
-                    Clear
-                </button>  
-                <button type="submit" [disabled]="motoristaLoginForm.invalid || todosMotoristas.length <= 0">Search</button>
-            </div>  
-        </form>
-        <div class="motoristas-container" *ngIf="!pesquisado">
-            <ul *ngIf="todosMotoristas.length > 0; else noMotoristas">
-                <li *ngFor="let motorista of motoristasFiltrados">
-                    <a [routerLink]="['/motorista', motorista.NIF]">
-                        <strong>{{ motorista.name }} - NIF:</strong>
-                        <span> {{ motorista.NIF }} - updated on {{ motorista.updatedAt | date:'dd/MM/yyyy - HH:mm' }} </span>
-                    </a>
-                </li>
-            </ul> 
-            <ng-template #noMotoristas>
-                <p>No drivers registered.</p>
-            </ng-template>
+                <div>
+                    <h3 class="header-title">Driver Authentication</h3>
+                    <p class="subtitle">Select a profile below or enter your NIF and password to sign in.</p>
+                </div>
+            </div>
+
+            <form class="motoristaLoginForm" [formGroup]="driverLoginForm" (ngSubmit)="onSubmit()">
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label for="NIF">Driver NIF</label>
+                        <div class="input-wrapper">
+                            <mat-icon class="input-icon">badge</mat-icon>
+                            <input id="NIF" formControlName="NIF" type="text" placeholder="Enter 9-digit NIF...">
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="driverPassword">Password</label>
+                        <div class="input-wrapper">
+                            <mat-icon class="input-icon">lock</mat-icon>
+                            <input id="driverPassword" formControlName="password" type="password" placeholder="Enter your password...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="error-list" *ngIf="driverLoginForm.get('NIF')?.invalid && driverLoginForm.get('NIF')?.touched">
+                    <small class="error" *ngIf="driverLoginForm.get('NIF')?.hasError('required')">NIF is required.</small>
+                    <small class="error" *ngIf="driverLoginForm.get('NIF')?.hasError('invalidFormat')">Invalid NIF. Enter digits only (no spaces, letters, or symbols).</small>
+                    <small class="error" *ngIf="driverLoginForm.get('NIF')?.hasError('invalidLength')">Invalid NIF. Must be 9 digits.</small>
+                    <small class="error" *ngIf="driverLoginForm.get('NIF')?.hasError('notPositive')">Invalid NIF. Cannot be negative.</small>
+                </div>
+
+                <div class="error-list" *ngIf="driverLoginForm.get('password')?.invalid && driverLoginForm.get('password')?.touched">
+                    <small class="error">Password is required.</small>
+                </div>
+
+                <div class="error-list" *ngIf="loginError">
+                    <small class="error">{{ loginError }}</small>
+                </div>
+
+                <div class="btn-container form-actions">
+                    <button type="button" class="btn-clear" (click)="clearSearch()" [disabled]="!driverLoginForm.get('NIF')?.value && !driverLoginForm.get('password')?.value">
+                        <mat-icon>close</mat-icon>
+                        <span>Clear</span>
+                    </button>
+                    <button type="submit" class="btn-search" [disabled]="driverLoginForm.invalid || isSubmitting">
+                        <mat-icon>login</mat-icon>
+                        <span>{{ isSubmitting ? 'Signing in...' : 'Sign In' }}</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="motoristas-container">
+                <ul *ngIf="filteredDrivers.length > 0; else emptyState">
+                    <li *ngFor="let driver of filteredDrivers"
+                        [class.selected-driver]="driverLoginForm.get('NIF')?.value === driver.NIF"
+                        (click)="selectDriver(driver)">
+                        <div class="driver-avatar">
+                            <mat-icon>person</mat-icon>
+                        </div>
+                        <div class="driver-info">
+                            <div class="driver-name">{{ driver.name }}</div>
+                            <div class="driver-meta">
+                                <span class="nif-badge">NIF: {{ driver.NIF }}</span>
+                                <span class="updated-at">Updated {{ driver.updatedAt | date:'dd/MM/yyyy - HH:mm' }}</span>
+                            </div>
+                        </div>
+                        <mat-icon class="driver-arrow">arrow_forward</mat-icon>
+                    </li>
+                </ul>
+                <ng-template #emptyState>
+                    <div class="empty-state">
+                        <mat-icon>person_off</mat-icon>
+                        <p>{{ allDrivers.length === 0 ? 'No drivers registered.' : 'No drivers found with the entered NIF.' }}</p>
+                    </div>
+                </ng-template>
+            </div>
         </div>
-        <div class="motoristas-container" *ngIf="pesquisado">
-            <ul *ngIf="motoristasFiltrados.length > 0; else noNIF">
-                <li *ngFor="let motorista of motoristasFiltrados">
-                    <a [routerLink]="['/motorista', motorista.NIF]">
-                        <strong>{{ motorista.name }}</strong>
-                        <span>NIF: {{ motorista.NIF }} - added on {{ motorista.createdAt | date:'short' }} </span>
-                    </a>
-                </li>
-            </ul>  
-            <ng-template #noNIF>
-                <p>No drivers found with the entered NIF.</p>
-            </ng-template>
+
+        <div class="btn-sair">
+            <button type="button" routerLink="/">
+                <mat-icon>arrow_back</mat-icon>
+                <span>Exit</span>
+            </button>
         </div>
     </div>
-    <div class="btn-sair">
-        <button routerLink="/">Exit</button>
-    </div>
-    </div>
-    
+</div>

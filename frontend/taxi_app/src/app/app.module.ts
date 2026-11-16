@@ -2,7 +2,8 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthInterceptor } from './appServices/auth.interceptor';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatInputModule } from '@angular/material/input';
@@ -14,6 +15,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 
 import { MotoristaFormComponent } from './motoristas/motorista-form/motorista-form.component';
@@ -47,6 +49,7 @@ import { RelatoriosPageComponent } from './relatorios/relatorios-page/relatorios
 import { TotalViagensComponent } from './relatorios/total-viagens/total-viagens.component';
 import { TotalHorasComponent } from './relatorios/total-horas/total-horas.component';
 import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
+import { ReportBreakdownComponent } from './relatorios/report-breakdown/report-breakdown.component';
 
 @NgModule({
   declarations: [
@@ -81,6 +84,7 @@ import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
     TotalViagensComponent,
     TotalHorasComponent,
     TotalKmsComponent,
+    ReportBreakdownComponent,
   ],
   imports: [
     BrowserModule,
@@ -97,9 +101,16 @@ import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
     MatToolbarModule,
     MatSelectModule,
     MatSidenavModule,
-    MatListModule
+    MatListModule,
+    MatSnackBarModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

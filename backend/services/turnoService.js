@@ -22,16 +22,15 @@ module.exports = {
 
       createTurno: async (nif, taxi, start, end) => {
         try {
-            const motorista = await getMotoristaByNIF(nif);
-            if (motorista) {
-              const turno = new Turno({
-                motorista: motorista._id, 
+            const driver = await getMotoristaByNIF(nif);
+            if (driver) {
+              const shift = new Turno({
+                driver: driver._id, 
                 taxi: taxi,           
                 start: new Date(start), 
                 end: new Date(end)      
               });
-              console.log("turno:",turno);
-              return await turno.save();
+              return await shift.save();
           }
           return null; 
         } catch (error) {
@@ -58,19 +57,18 @@ module.exports = {
 
   getTurnosInTimeframe: async (nif, startTime, endTime) => {
     try {
-      const motorista = await getMotoristaByNIF(nif);
-      if (!motorista) {
+      const driver = await getMotoristaByNIF(nif);
+      if (!driver) {
         return [];
       }
 
-      console.log('Found Motorista:', motorista); 
       return await Turno.find({
-        motorista: motorista._id,
+        driver: driver._id,
         start: { $lt: endTime },
         end: { $gt: startTime }
       });
     } catch (error) {
-      console.error('Error fetching turnos:', error);
+      console.error('Error fetching shifts:', error);
       throw error;
     }
   },
@@ -82,24 +80,24 @@ module.exports = {
         end: { $gt: startTime }
       });
     } catch (error) {
-      console.error('Error fetching all turnos in timeframe:', error);
+      console.error('Error fetching all shifts in timeframe:', error);
       throw error;
     }
   },
 
   getTurnosByMotoristaNIF: async (nif) => {
     try {
-      const motorista = await getMotoristaByNIF(nif);
+      const driver = await getMotoristaByNIF(nif);
 
-      if (!motorista) {
+      if (!driver) {
         throw new Error('Driver not found.');
       }
 
       return await Turno.find({
-        motorista: motorista._id
+        driver: driver._id
       });
     } catch (error) {
-      console.error('Error fetching turnos:', error);
+      console.error('Error fetching shifts:', error);
       throw error; 
     }
   },

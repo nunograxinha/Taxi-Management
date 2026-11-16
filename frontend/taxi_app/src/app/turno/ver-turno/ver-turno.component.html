@@ -1,34 +1,64 @@
-<div *ngIf="semTurnos">
-    <h1> Sem turnos registados</h1>
-    <button routerLink="turnos">Registar</button>
+<ng-container *ngIf="!loading">
+<div class="shift-card empty-state" *ngIf="semTurnos">
+  <div class="icon-circle">
+    <mat-icon>event_busy</mat-icon>
+  </div>
+  <h1>No shifts registered</h1>
+  <p class="subtitle">You don't have any shifts scheduled yet. Register a shift with an available taxi to start accepting ride requests.</p>
+  <button class="primary-btn" routerLink="turnos">Register a Shift</button>
 </div>
-<div *ngIf="turnoAtual && !semTurnos">
-    <h1>Turno atual</h1>
-    <hr>
-    <div class="detalhes-turno">
-        <p><strong>Início:</strong> {{ formatDate(turnoAtual.start) }}</p>
-        <p><strong>Fim:</strong> {{ formatDate(turnoAtual.end) }}</p>
-        <p><strong>Táxi:</strong> {{ getTaxiInfo(turnoAtual.taxi) }}</p>
+
+<div class="shift-card" *ngIf="turnoAtual && !semTurnos">
+  <div class="card-header">
+    <div>
+      <span class="status-badge">Active Shift</span>
+      <h1>Current Shift</h1>
     </div>
-    <div class="painel-controlo">
-        <div *ngIf="viagensDoTurnoAtual.length > 0">
-            <h2>Viagens deste turno</h2>
-            <ul>
-                <li *ngFor="let viagem of viagensDoTurnoAtual">
-                    <strong>Início:</strong> {{ formatDate(viagem.entryTime) }} 
-                    <strong>Fim:</strong> {{ formatDate(viagem.exitTime) }} 
-                    <strong>Preço:</strong> {{ viagem.preco | currency:'EUR':'symbol':'1.2-2' }}
-                </li>
-            </ul>
-            <button routerLink="pedidos-pendentes">Procurar viagens</button>
-        </div>
-        <div *ngIf="viagensDoTurnoAtual.length <= 0">
-            <h2>Nenhuma viagem encontrada</h2>
-            <button routerLink="pedidos-pendentes">Procurar viagens</button>
-        </div>
+    <div class="header-actions">
+      <button class="secondary-btn" routerLink="turnos">Manage Shifts</button>
+      <button class="primary-btn" routerLink="pedidos-pendentes">Find Rides</button>
     </div>
+  </div>
+
+  <div class="detalhes-turno">
+    <div class="info-item">
+      <span class="info-label">Start Time</span>
+      <span class="info-value">{{ formatDate(turnoAtual.start) }}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">End Time</span>
+      <span class="info-value">{{ formatDate(turnoAtual.end) }}</span>
+    </div>
+    <div class="info-item">
+      <span class="info-label">Assigned Taxi</span>
+      <span class="info-value">{{ getTaxiInfo(turnoAtual.taxi) }}</span>
+    </div>
+  </div>
+
+  <div class="painel-controlo">
+    <div *ngIf="viagensDoTurnoAtual.length > 0">
+      <h2>Completed Trips in This Shift</h2>
+      <ul>
+        <li *ngFor="let viagem of viagensDoTurnoAtual">
+          <div>
+            <strong>{{ formatDate(viagem.entryTime) }} → {{ formatDate(viagem.exitTime) }}</strong>
+          </div>
+          <span class="trip-price">{{ viagem.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </li>
+      </ul>
+    </div>
+    <div class="no-trips" *ngIf="viagensDoTurnoAtual.length <= 0">
+      <p>No trips completed during this shift yet.</p>
+    </div>
+  </div>
 </div>
-<div *ngIf="!turnoAtual && !semTurnos">
-    <h1> Sem turnos em vigor neste momento</h1>
-    <button routerLink="turnos">Registar</button>
+
+<div class="shift-card empty-state" *ngIf="!turnoAtual && !semTurnos">
+  <div class="icon-circle">
+    <mat-icon>schedule</mat-icon>
+  </div>
+  <h1>No active shift at the moment</h1>
+  <p class="subtitle">You have registered shifts, but none is active right now. Manage your shifts or schedule a new one below.</p>
+  <button class="primary-btn" routerLink="turnos">Manage Shifts</button>
 </div>
+</ng-container>

@@ -86,16 +86,16 @@ input[readonly] {
     }
   
     h3 {
-      font-size: 18px; /* Reduz o tamanho da fonte do título */
+      font-size: 18px; /* Reduce heading font size */
     }
   }
   
-  #mensagemSucesso{
+  #successMessage {
     text-align: center;
     color: green;
-}
+  }
 
-#mensagemErro{
-  text-align: center;
-  color: rgb(128, 0, 0);
-}
+  #errorMessage {
+    text-align: center;
+    color: rgb(128, 0, 0);
+  }

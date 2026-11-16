@@ -1,4 +1,5 @@
 const { Motorista } = require('../models/motorista');
+const { hashPassword } = require('../utils/password');
 
 module.exports = {
 
@@ -13,9 +14,16 @@ module.exports = {
   
   createMotorista: async (body) => {
     try {
-      const motorista = new Motorista(body);
+      const data = { ...body };
+      const plainPassword = data.password || 'driver123';
+      delete data.password;
+      data.passwordHash = hashPassword(plainPassword);
+
+      const motorista = new Motorista(data);
       const savedmotorista = await motorista.save();
-      return savedmotorista;
+      const result = savedmotorista.toObject();
+      delete result.passwordHash;
+      return result;
     } catch (error) {
       throw error;
     }

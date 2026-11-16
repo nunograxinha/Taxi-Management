@@ -1,5 +1,6 @@
 import { AfterViewChecked, Component, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
@@ -17,7 +18,7 @@ import { Router } from '@angular/router';
 })
 export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestroy {
   form: FormGroup;
-  confortOptions = ['Basico', 'Luxuoso'];
+  confortOptions = ['Basic', 'Luxury'];
   address: string | null = null;
   useGeolocation: boolean = false;
   codigosPostais: any[] = [];
@@ -40,7 +41,8 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     private fb: FormBuilder,
     private pedidoViagemService: PedidoViagemService,
     private geolocationService: GeolocationService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     this.form = this.fb.group({
       entryAddress: ['', Validators.required],
@@ -91,17 +93,17 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
 
               L.marker([lat,lon])
                 .addTo(this.map)
-                .bindPopup('<b>Você está aqui</b>')
+                .bindPopup('<b>You are here</b>')
                 .openPopup();
             } else {
-              console.error('Erro: Coordenadas não encontradas');
+              console.error('Error: Coordinates not found');
             }
           },
           (err) => {
-            console.error('Erro ao obter a posição:', err);
+            console.error('Error obtaining position:', err);
           });
       } else {
-        console.error('Geolocalização não disponível');
+        console.error('Geolocation not available');
       }
   }
 
@@ -118,7 +120,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       this.mapExit.on('click', (e: L.LeafletMouseEvent) => {
         const latLng = e.latlng;
         this.form.patchValue({ exitAddress: `${latLng.lat},${latLng.lng}` });
-        console.log('Coordenadas selecionadas:', latLng.lat, latLng.lng);
+        console.log('Selected coordinates:', latLng.lat, latLng.lng);
   
         if (marker) {
           this?.mapExit?.removeLayer(marker);
@@ -126,7 +128,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
   
         marker = L.marker([latLng.lat, latLng.lng])
           .addTo(this.mapExit as L.Map)
-          .bindPopup('Destino selecionado')
+          .bindPopup('Selected destination')
           .openPopup();
       });
 
@@ -233,40 +235,40 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     }
 
     try {
-      //verificar cliente
+      // verify client
       if (!this.clienteData) {
-        alert("Cliente não selecionado.");
+        this.snackBar.open('Client not selected.', 'Close', { duration: 3500 });
         return;
       }
 
-      //coords destino
+      // destination coords
       if (!this.useExitGeolocation && !this.addressVerified) {
-        alert("Por favor, verifique o endereço de destino antes de continuar.");
+        this.snackBar.open('Please verify the destination address before continuing.', 'Close', { duration: 4000 });
         return;
       }
 
-      //coords partida
+      // pickup coords
       if(!this.useGeolocation) {
         if(!this.cidade || !this.rua) {
-          alert('Por favor preencha o endereço de partida com um código postal correto.');
+          this.snackBar.open('Please fill in the pickup address with a valid postal code.', 'Close', { duration: 4000 });
           return;
         }
         const coords = await this.geolocationService.getCoordinatesFromAddress(this.cidade, this.rua);
         if (!coords) {
-          alert('Não foi possível obter coordenadas para o endereço de partida.');
+          this.snackBar.open('Could not get coordinates for the pickup address.', 'Close', { duration: 4000 });
           return;
         }
         this.form.patchValue({ entryAddress: `${coords.latitude},${coords.longitude}`})
       }
 
       if (!this.form.value.entryAddress|| !this.form.value.exitAddress) {
-        alert('Endereço de partida ou de destino inválido.');
+        this.snackBar.open('Invalid pickup or destination address.', 'Close', { duration: 4000 });
         return;
       }
       
-      //criar pedido
+      // create ride request
       const pedidoData: PedidoViagem= {
-        cliente: this.clienteData._id || '',
+        client: this.clienteData._id || '',
         entryAddress: this.form.value.entryAddress,
         exitAddress: this.form.value.exitAddress,
         confort: this.form.value.confort,
@@ -274,23 +276,14 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       };
           const response = await firstValueFrom(this.pedidoViagemService.createPedido(pedidoData));
           if (response) {
-            alert("Pedido criado com sucesso!");
-            console.log(`Redirecionando para /cliente/aguardar-resposta/${response._id}`);
-            // this.pedidoViagemService.requestMotorista(response._id!).subscribe({
-            //   next: (res) => {
-            //     console.log(res)
-            //     console.log("accepted")
-            //   },
-            //   error: (err) => {
-            //     console.error('Error getting current position:', err);
-            //   }
-            // });
+            this.snackBar.open('Ride request created successfully!', 'Close', { duration: 3500 });
+            console.log(`Redirecting to /cliente/aguardar-resposta/${response._id}`);
             this.router.navigate([`/cliente/aguardar-resposta/${response._id}`]);
           } else {
-            console.error("Erro: Resposta vazia do servidor");
-            alert("Erro ao criar pedido. Tente novamente.");
-          }    } catch (error) {      console.error("Erro ao submeter pedido:", error);
-      alert("Ocorreu um erro ao criar o pedido. Verifique os dados e tente novamente.");
+            console.error("Error: Empty response from server");
+            this.snackBar.open('Error creating ride request. Please try again.', 'Close', { duration: 4000 });
+          }    } catch (error) {      console.error("Error submitting ride request:", error);
+      this.snackBar.open('An error occurred while creating the ride request. Please check your details and try again.', 'Close', { duration: 4000 });
     }
 
   }
@@ -300,10 +293,10 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       header: true,
       complete: (result: Papa.ParseResult<any>) => {
         this.codigosPostais = result.data;
-        console.log('Códigos postais carregados', this.codigosPostais);
+        console.log('Postal codes loaded', this.codigosPostais);
       },
       error: (error) => {
-        console.error('Erro ao carregar o CSV: ', error);
+        console.error('Error loading CSV: ', error);
       }
     });
   }
@@ -314,8 +307,8 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       const [numCp, extCp] = codigoPostal.split('-'); 
       const codigoPostalData = this.codigosPostais.find(item => item.num_cod_postal === numCp && item.ext_cod_postal === extCp);
       if (codigoPostalData) {
-        const cidade = codigoPostalData.nome_localidade; // Nome da cidade (localidade)
-        const rua = `${codigoPostalData.tipo_arteria} ${codigoPostalData.nome_arteria}, ${codigoPostalData.local_arteria}`; // Nome da rua e detalhes de localização
+        const cidade = codigoPostalData.nome_localidade;
+        const rua = `${codigoPostalData.tipo_arteria} ${codigoPostalData.nome_arteria}, ${codigoPostalData.local_arteria}`;
         this.cidade = cidade;
         this.rua = rua;
   
@@ -324,16 +317,16 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
           if (coordsResponse && coordsResponse.latitude && coordsResponse.longitude) {
             this.form.patchValue({ entryAddress: `${coordsResponse.latitude},${coordsResponse.longitude}` });
           } else {
-            alert('Não foi possível obter coordenadas para este código postal.');
+            this.snackBar.open('Could not get coordinates for this postal code.', 'Close', { duration: 4000 });
           }        
         } catch (error) {
-          console.error('Erro ao obter coordenadas:', error);
-          alert('Erro ao tentar obter coordenadas. Tente novamente.');
+          console.error('Error getting coordinates:', error);
+          this.snackBar.open('Error trying to get coordinates. Please try again.', 'Close', { duration: 4000 });
           this.form.patchValue({ entryAddress: '' });
         }
       } else {
         this.form.patchValue({ entryAddress: '' });
-        alert('Código postal não encontrado.');
+        this.snackBar.open('Postal code not found.', 'Close', { duration: 3500 });
       }
     } else {
       this.form.patchValue({ entryAddress: '' });
@@ -343,7 +336,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     Object.keys(this.form.controls).forEach((control) => {
       const field = this.form.get(control);
       if (field?.invalid) {
-        console.log(`Campo ${control} é inválido`);
+        console.log(`Field ${control} is invalid`);
       }
     });
   }
@@ -354,7 +347,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     this.form.patchValue({ exitAddress: '' });
 
     if (!cidade || !rua) {
-      alert('Por favor, preencha o endereço de destino com uma cidade e uma rua.');
+      this.snackBar.open('Please fill in the destination address with a city and street.', 'Close', { duration: 4000 });
       return;
     }
 
@@ -365,7 +358,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       if (coords) {
         this.form.patchValue({ exitAddress: `${coords.latitude},${coords.longitude}` });
         this.addressVerified = true;
-        this.addressMessage =  `Endereço de destino verificado: ${cidade}, ${rua}`;
+        this.addressMessage =  `Destination address verified: ${cidade}, ${rua}`;
 
         setTimeout(() => {
           console.log('Attempting to show mini map');
@@ -382,13 +375,13 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
         
       } else {
         this.addressVerified = false;
-        this.addressMessage = 'Não foi possível obter coordenadas para este endereço.';
+        this.addressMessage = 'Could not obtain coordinates for this address.';
       }
     } catch (error) {
       this.loading = false;
-      console.error('Erro ao verificar endereço:', error);
+      console.error('Error verifying address:', error);
       this.addressVerified = false;
-      this.addressMessage = 'Erro ao verificar endereço. Tente novamente.';
+      this.addressMessage = 'Error verifying address. Please try again.';
     }
   }
 
@@ -405,11 +398,11 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }).addTo(this.miniMap);
-      L.marker([parseFloat(lat), parseFloat(lon)]).addTo(this.miniMap).bindPopup('Destino selecionado').openPopup();
+      L.marker([parseFloat(lat), parseFloat(lon)]).addTo(this.miniMap).bindPopup('Selected destination').openPopup();
       this.miniMap.invalidateSize();
       console.log('Mini map initialized');
     } else {
-      console.error('Elemento miniMap não encontrado');
+      console.error('miniMap element not found');
     }
 }
 
@@ -422,7 +415,7 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
           this.miniMap?.removeLayer(layer);
         }
       });
-      L.marker([parseFloat(lat), parseFloat(lon)]).addTo(this.miniMap).bindPopup('Destino selecionado').openPopup();
+      L.marker([parseFloat(lat), parseFloat(lon)]).addTo(this.miniMap).bindPopup('Selected destination').openPopup();
       this.miniMap.invalidateSize();
       console.log('Mini map updated');
     } else {

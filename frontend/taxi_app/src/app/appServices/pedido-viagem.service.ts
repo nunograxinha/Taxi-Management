@@ -23,7 +23,7 @@ export class PedidoViagemService {
   getPedidosPendentes(): Observable<PedidoViagem[]> {
     return this.getPedidos().pipe(
       // Filter out ride requests that already have a driver assigned
-      map(pedidos => pedidos.filter(pedido => !pedido.motoristaId)),
+      map(pedidos => pedidos.filter(pedido => !pedido.driverId)),
       catchError(this.handleError)
     );
   }
@@ -102,15 +102,15 @@ export class PedidoViagemService {
 
   acceptMotorista(
     idPedido: string,
-    motoristaId: string,
+    driverId: string,
     taxiId: string,
-    distanceKmToMotorista: number,
+    distanceKmToDriver: number,
   ): Observable<any> {    
     return this.http.patch<any>(`${this.apiUrl}/${idPedido}/acceptDriver`, {
-      motoristaId: motoristaId,
+      driverId,
       taxi: taxiId,
-      distanceKmToMotorista: distanceKmToMotorista,
-      accepted: false,
+      distanceKmToDriver,
+      clientAccepted: false,
     }).pipe(
       catchError(this.handleError)
     );
@@ -118,14 +118,14 @@ export class PedidoViagemService {
 
   acceptClient(idPedido: string) {
     return this.http.patch<any>(`${this.apiUrl}/${idPedido}/acceptClient`, { 
-      clienteAceitou: true 
+      clientAccepted: true 
     }).pipe(
       catchError(this.handleError)
     );
   }
 
-  rejectMotorista(id: string, motoristaId?: string): Observable<any> {
-  return this.http.patch<any>(`${this.apiUrl}/${id}/reject`, { motoristaId })
+  rejectMotorista(id: string, driverId?: string): Observable<any> {
+  return this.http.patch<any>(`${this.apiUrl}/${id}/reject`, { driverId })
     .pipe(
       catchError(this.handleError)
     );

@@ -26,13 +26,12 @@ export class TotalViagensComponent {
     });
   }
 
-  getNomeMotorista(id: string): string | "Erro ao carregar nome"{
+  getNomeMotorista(id: string): string {
     const motorista = this.relatorioState.getMotorista(id);
-    console.log(motorista); //
     if(motorista != undefined){
       return motorista.name;
     } else {
-      return "Erro ao carregar nome";
+      return "Error loading name";
     }
   }
 

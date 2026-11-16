@@ -36,11 +36,11 @@ export class TurnoListComponent {
               }
             });
           },
-          error: (err) => console.error('Erro ao buscar táxis:', err),
+          error: (err) => console.error('Error fetching taxis:', err),
         });
       },
       error: (err: any) => {
-        console.error('Erro ao buscar turnos:', err);
+        console.error('Error fetching shifts:', err);
 
       }
     
@@ -48,7 +48,7 @@ export class TurnoListComponent {
   }
 
   getTaxiInfo(taxiId: string): string {
-    return this.taxiMap.get(taxiId) || 'Táxi não encontrado';
+    return this.taxiMap.get(taxiId) || 'Taxi not found';
   }
 
   formatDate(date: string | Date): string {

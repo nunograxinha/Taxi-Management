@@ -7,7 +7,7 @@ module.exports = {
 
     getViagems: async () => {
         try {
-            return await Viagem.find().populate('motorista').populate('turno');
+            return await Viagem.find().populate('driver').populate('shift');
         } catch (error) {
         throw error;
         }
@@ -15,7 +15,7 @@ module.exports = {
     
     getViagemById: async (id) => {
         try {
-            return await Viagem.findById(id).populate('motorista').populate('turno');
+            return await Viagem.findById(id).populate('driver').populate('shift');
         } catch (error) {
         throw error;
         }
@@ -23,19 +23,26 @@ module.exports = {
     
     createViagem: async (body) => {
         try {
-            const motorista = await Motorista.findById(body.motorista);
-            if (!motorista) {
-                throw new Error('Motorista not found');
+            const payload = {
+                ...body,
+                driver: body.driver || body.motorista,
+                shift: body.shift || body.turno,
+                client: body.client || body.cliente,
+                price: body.price !== undefined ? body.price : body.preco
+            };
+            const driver = await Motorista.findById(payload.driver);
+            if (!driver) {
+                throw new Error('Driver not found');
             }
-            const turno = await Turno.findById(body.turno);
-            if (!turno) {
-                throw new Error('Turno not found');
+            const shift = await Turno.findById(payload.shift);
+            if (!shift) {
+                throw new Error('Shift not found');
             }
-            const cliente = await Cliente.findById(body.cliente);
-            if (!cliente) throw new Error('Cliente not found');
+            const client = await Cliente.findById(payload.client);
+            if (!client) throw new Error('Client not found');
 
-            const viagem = new Viagem(body);
-            return await viagem.save();
+            const trip = new Viagem(payload);
+            return await trip.save();
         } catch (error) {
             throw error;
         }
@@ -43,31 +50,34 @@ module.exports = {
     
     updateViagemById: async (id, updateData) => {
         try {
-            const viagem = await Viagem.findById(id);
-            if (!viagem) {
+            const trip = await Viagem.findById(id);
+            if (!trip) {
                 throw new Error('Trip not found');
             }
             
-            if (updateData.motorista) {
-                const motorista = await Motorista.findById(updateData.motorista);
-                if (!motorista) {
+            const driverId = updateData.driver || updateData.motorista;
+            if (driverId) {
+                const driver = await Motorista.findById(driverId);
+                if (!driver) {
                     throw new Error('Driver not found');
                 }
             }
 
-            if (updateData.turno) {
-                const turno = await Turno.findById(updateData.turno);
-                if (!turno) {
+            const shiftId = updateData.shift || updateData.turno;
+            if (shiftId) {
+                const shift = await Turno.findById(shiftId);
+                if (!shift) {
                     throw new Error('Shift not found');
                 }
             }
 
-            if (updateData.cliente) {
-                const cliente = await Cliente.findById(updateData.cliente);
-                if (!cliente) throw new Error('Client not found');
+            const clientId = updateData.client || updateData.cliente;
+            if (clientId) {
+                const client = await Cliente.findById(clientId);
+                if (!client) throw new Error('Client not found');
             }
             
-            return await Viagem.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true }).populate('motorista').populate('turno').exec();
+            return await Viagem.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true }).populate('driver').populate('shift').exec();
         } catch (error) {
             throw error;
         }
@@ -75,17 +85,17 @@ module.exports = {
     
     deleteViagemById: async (id) => {
         try {
-            const viagem = await Viagem.findByIdAndDelete(id);
-            if (!viagem) {
+            const trip = await Viagem.findByIdAndDelete(id);
+            if (!trip) {
                 throw new Error('Trip not found');
             }
-            return viagem;
+            return trip;
         } catch (error) {
             throw error;
         }
     },
     
-    getViagensByMotorista: async (motoristaId) => {
-        return Viagem.find({ motorista: motoristaId });
+    getViagensByMotorista: async (driverId) => {
+        return Viagem.find({ driver: driverId });
     },
 }

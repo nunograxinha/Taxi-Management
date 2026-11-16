@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../appServices/auth.service';
 import { MotoristaService } from '../../appServices/motorista.service';
 import { Motorista } from '../motorista_interface';
 
@@ -12,10 +14,18 @@ export class MotoristaPageComponent implements OnInit {
   nifMotorista!: string;
   motorista?: Motorista;
 
+  showPasswordModal = false;
+  currentPassword = '';
+  newPassword = '';
+  confirmPassword = '';
+  passwordError = '';
+  isUpdatingPassword = false;
+
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
-    private readonly motoristaService: MotoristaService
+    private readonly motoristaService: MotoristaService,
+    private readonly authService: AuthService,
+    private readonly snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -31,5 +41,46 @@ export class MotoristaPageComponent implements OnInit {
       }
     });
   }
-}
 
+  openPasswordModal(): void {
+    this.showPasswordModal = true;
+    this.currentPassword = '';
+    this.newPassword = '';
+    this.confirmPassword = '';
+    this.passwordError = '';
+  }
+
+  closePasswordModal(): void {
+    this.showPasswordModal = false;
+    this.passwordError = '';
+  }
+
+  submitPasswordChange(): void {
+    this.passwordError = '';
+    if (!this.currentPassword || !this.newPassword || !this.confirmPassword) {
+      this.passwordError = 'All fields are required.';
+      return;
+    }
+    if (this.newPassword.length < 6) {
+      this.passwordError = 'New password must be at least 6 characters.';
+      return;
+    }
+    if (this.newPassword !== this.confirmPassword) {
+      this.passwordError = 'New passwords do not match.';
+      return;
+    }
+
+    this.isUpdatingPassword = true;
+    this.authService.changeDriverPassword(this.currentPassword, this.newPassword).subscribe({
+      next: () => {
+        this.isUpdatingPassword = false;
+        this.showPasswordModal = false;
+        this.snackBar.open('Password updated successfully!', 'Close', { duration: 3500 });
+      },
+      error: (err) => {
+        this.isUpdatingPassword = false;
+        this.passwordError = err?.error?.error || 'Error updating password.';
+      }
+    });
+  }
+}

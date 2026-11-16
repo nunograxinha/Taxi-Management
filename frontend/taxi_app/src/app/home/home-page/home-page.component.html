@@ -1,12 +1,74 @@
-<body>
-  <mat-card class="home-card">
-    <mat-card-content>
-      <h1>Welcome to the Taxi App! Who are you?</h1>
-      <div class="botao-container">
-        <button mat-raised-button color="primary" routerLink="gestor">I am a Manager</button>
-        <button mat-raised-button color="primary" routerLink="motorista">I am a Driver</button>
-        <button mat-raised-button color="primary" routerLink="cliente">I am a Client</button>
+<div class="landing-page">
+  <div class="hero-section">
+    <div class="brand-badge">
+      <mat-icon>local_taxi</mat-icon>
+      <span>TAXI FLEET PLATFORM</span>
+    </div>
+    <h1>Welcome to the Taxi App!</h1>
+    <p class="hero-subtitle">Choose your portal below to manage the fleet, drive a shift, or book a ride.</p>
+  </div>
+
+  <div class="role-grid">
+    <div class="role-card" (click)="openManagerLogin()">
+      <div class="role-icon">
+        <mat-icon>admin_panel_settings</mat-icon>
       </div>
-    </mat-card-content>
-  </mat-card>
-</body>
+      <h2>Manager</h2>
+      <p>Manage taxis, drivers, per-minute pricing, fare simulations, and daily reports.</p>
+      <span class="role-action">Open Manager Portal →</span>
+    </div>
+
+    <div class="role-card" routerLink="motorista">
+      <div class="role-icon">
+        <mat-icon>directions_car</mat-icon>
+      </div>
+      <h2>Driver</h2>
+      <p>Sign in with your NIF and password, schedule shifts, and accept ride requests.</p>
+      <span class="role-action">Open Driver Portal →</span>
+    </div>
+
+    <div class="role-card" (click)="enterAsClient()">
+      <div class="role-icon">
+        <mat-icon>person_pin_circle</mat-icon>
+      </div>
+      <h2>Client</h2>
+      <p>Sign in or create an account, choose pickup &amp; destination, and track your ride.</p>
+      <span class="role-action">Book a Ride →</span>
+    </div>
+  </div>
+
+  <div class="manager-modal-backdrop" *ngIf="showManagerLogin" (click)="closeManagerLogin()">
+    <div class="manager-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <mat-icon>lock</mat-icon>
+        </div>
+        <div>
+          <h3>Manager Sign In</h3>
+          <p>Enter the administrator password to access the Manager Portal.</p>
+        </div>
+      </div>
+
+      <form (ngSubmit)="enterAsManager()" class="modal-form">
+        <label for="managerPassword">Password</label>
+        <input
+          id="managerPassword"
+          type="password"
+          name="managerPassword"
+          [(ngModel)]="managerPassword"
+          placeholder="Enter manager password..."
+          autocomplete="current-password"
+          required>
+
+        <div *ngIf="managerError" class="modal-error">{{ managerError }}</div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="closeManagerLogin()">Cancel</button>
+          <button type="submit" class="btn-submit" [disabled]="!managerPassword.trim() || isSubmitting">
+            {{ isSubmitting ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

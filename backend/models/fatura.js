@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const faturaSchema = new mongoose.Schema({
-  Viagem: { type: mongoose.Schema.Types.ObjectId, ref: 'Viagem', required: true },
+  trip: { type: mongoose.Schema.Types.ObjectId, ref: 'Trip', required: true },
   date: { type: Date, required: true },
   clientNIF: {
     type: String,
@@ -15,6 +15,6 @@ const faturaSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-const Fatura = mongoose.model('Fatura', faturaSchema);
+const Fatura = mongoose.model('Invoice', faturaSchema);
 
-module.exports = { Fatura };
+module.exports = { Fatura, Invoice: Fatura };

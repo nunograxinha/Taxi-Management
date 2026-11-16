@@ -1,20 +1,88 @@
 <!-- Navigation Bar -->
 <div class="navbar">
-    <p class="navbar-title">Formulário de Pedido de Viagem</p>
-    <button class="home-button" routerLink="/">
-      <mat-icon>home</mat-icon>
-      Voltar para o Início
-    </button>
+  <p class="navbar-title">Client Portal</p>
+  <button class="home-button" routerLink="/">
+    <mat-icon>home</mat-icon>
+    Back to Home
+  </button>
+</div>
+
+<div class="cliente-page-container">
+  <div *ngIf="!clienteSelecionado" class="cliente-form-container">
+    <app-cliente-form (clienteCriado)="onClienteCriado($event)"></app-cliente-form>
   </div>
-  
-  <div class="cliente-page-container">
-    <div class="cliente-form-container">
-      <app-cliente-form (clienteCriado)="onClienteCriado($event)"></app-cliente-form>
+
+  <div *ngIf="clienteSelecionado" class="pedido-form-container">
+    <div class="signed-in-banner">
+      <div class="signed-in-info">
+        <mat-icon>person</mat-icon>
+        <div>
+          <strong>{{ clienteSelecionado.name }}</strong>
+          <span>NIF: {{ clienteSelecionado.NIF }}</span>
+        </div>
+      </div>
+      <button type="button" class="switch-client-btn" (click)="trocarCliente()">
+        <mat-icon>logout</mat-icon>
+        <span>Switch Client</span>
+      </button>
     </div>
-    
-    <div *ngIf="clienteSelecionado" class="pedido-form-container">
-      <div class="section-divider"></div>
+
+    <div class="client-tabs">
+      <button
+        type="button"
+        class="client-tab-btn"
+        [class.active]="activeTab === 'request'"
+        (click)="setTab('request')"
+      >
+        <mat-icon>local_taxi</mat-icon>
+        Request a Ride
+      </button>
+      <button
+        type="button"
+        class="client-tab-btn"
+        [class.active]="activeTab === 'history'"
+        (click)="setTab('history')"
+      >
+        <mat-icon>history</mat-icon>
+        Trip History
+      </button>
+    </div>
+
+    <div *ngIf="activeTab === 'request'">
       <app-pedido-viagem [clienteData]="clienteSelecionado"></app-pedido-viagem>
     </div>
+
+    <div *ngIf="activeTab === 'history'" class="history-card">
+      <div class="history-header">
+        <h2>My Completed Trips</h2>
+        <button type="button" class="refresh-btn" (click)="loadTripHistory()">
+          <mat-icon>refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+
+      <div *ngIf="isLoadingHistory" class="history-state">Loading trip history...</div>
+      <div *ngIf="!isLoadingHistory && historyError" class="history-state error">{{ historyError }}</div>
+      <div *ngIf="!isLoadingHistory && !historyError && tripHistory.length === 0" class="history-state">
+        You have no completed trips yet.
+      </div>
+
+      <div class="history-list" *ngIf="!isLoadingHistory && !historyError && tripHistory.length > 0">
+        <div class="history-item" *ngFor="let trip of tripHistory">
+          <div class="history-route">
+            <mat-icon class="route-pin">route</mat-icon>
+            <span>{{ formatAddress(trip.entryAddress) }} → {{ formatAddress(trip.exitAddress) }}</span>
+          </div>
+          <div class="history-meta">
+            <span>
+              {{ trip.entryTime | date:'dd/MM/yyyy HH:mm' }} →
+              {{ isSameDay(trip.entryTime, trip.exitTime) ? (trip.exitTime | date:'HH:mm') : (trip.exitTime | date:'dd/MM/yyyy HH:mm') }}
+            </span>
+            <span>{{ trip.distanceKm.toFixed(2) }} Km · {{ trip.numberOfPeople }} passenger(s)</span>
+          </div>
+          <div class="history-price">€{{ trip.price.toFixed(2) }}</div>
+        </div>
+      </div>
+    </div>
   </div>
-  
+</div>

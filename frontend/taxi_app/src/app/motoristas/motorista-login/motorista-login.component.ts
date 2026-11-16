@@ -1,94 +1,105 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../appServices/auth.service';
 import { MotoristaService } from '../../appServices/motorista.service';
 import { Motorista } from '../motorista_interface';
-import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-motorista-login',
   templateUrl: './motorista-login.component.html',
   styleUrls: ['./motorista-login.component.css']
 })
-export class MotoristaLoginComponent {
-  todosMotoristas: Motorista[] = [];
-  motoristasFiltrados: Motorista[] = [];
-  motoristaLoginForm: FormGroup;
-  pesquisado = false;
-  
-  constructor(private readonly fb: FormBuilder, private readonly motoristaService: MotoristaService) {
-    this.motoristaLoginForm = this.fb.group({
-          NIF: [{ value: '', disabled: true}, [Validators.required, this.nifValidator]],
-        });
+export class MotoristaLoginComponent implements OnInit {
+  allDrivers: Motorista[] = [];
+  filteredDrivers: Motorista[] = [];
+  driverLoginForm: FormGroup;
+  loginError = '';
+  isSubmitting = false;
+
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly motoristaService: MotoristaService,
+    private readonly authService: AuthService,
+    private readonly router: Router
+  ) {
+    this.driverLoginForm = this.fb.group({
+      NIF: ['', [Validators.required, this.nifValidator]],
+      password: ['', [Validators.required]]
+    });
   }
-  
+
   ngOnInit(): void {
-    this.carregarMotoristas();
-    console.log(this.todosMotoristas);
-    console.log(this.motoristasFiltrados);
+    this.loadDrivers();
+    this.driverLoginForm.get('NIF')?.valueChanges.subscribe((val: string) => {
+      const term = (val || '').trim();
+      this.filteredDrivers = term
+        ? this.allDrivers.filter(d => d.NIF.includes(term))
+        : this.allDrivers;
+    });
   }
 
-  onSubmit() {
-    this.pesquisado = true;
+  selectDriver(driver: Motorista): void {
+    this.driverLoginForm.patchValue({ NIF: driver.NIF });
+    this.driverLoginForm.get('NIF')?.markAsTouched();
+    this.loginError = '';
+    const pwdInput = document.getElementById('driverPassword') as HTMLInputElement | null;
+    pwdInput?.focus();
+  }
 
-    if (this.motoristaLoginForm.valid) {
-      const formData = this.motoristaLoginForm.getRawValue();
-
-      const nifInserido = formData.NIF.trim();
-
-      // Filtrar os motoristas com o NIF correspondente
-      this.motoristasFiltrados = this.todosMotoristas.filter(motorista => motorista.NIF === nifInserido);
+  onSubmit(): void {
+    if (this.driverLoginForm.invalid || this.isSubmitting) {
+      this.driverLoginForm.markAllAsTouched();
+      return;
     }
 
-  }
+    const { NIF, password } = this.driverLoginForm.getRawValue();
+    this.isSubmitting = true;
+    this.loginError = '';
 
-  private carregarMotoristas(): void {
-    this.motoristaService.obterMotoristas().subscribe({
-      next: (data: Motorista[]) => {
-        this.todosMotoristas = this.motoristaService.sortMotoristasByUpdatedAt(data);
-        this.motoristasFiltrados = this.todosMotoristas;
-
-        // Ativar o campo NIF se houver motoristas
-        if (this.todosMotoristas.length > 0) {
-          this.motoristaLoginForm.get('NIF')?.enable();
-        }
+    this.authService.loginAsDriver(NIF.trim(), password).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.router.navigate(['/motorista', NIF.trim()]);
       },
-      error: (err: any) => {
-        console.error('Error loading drivers:', err);
+      error: (err) => {
+        this.isSubmitting = false;
+        this.loginError = err?.error?.error || 'Invalid NIF or password.';
       }
     });
-  } 
-
-  nifValidator(control: AbstractControl): ValidationErrors | null {
-      const value = control.value;
-  
-      if (!value) return null;
-  
-      const trimmed = value.toString().trim();
-  
-      // Deve conter apenas dígitos (sem espaços, letras ou símbolos)
-      if (!/^\d+$/.test(trimmed)) {
-        return { invalidFormat: true };
-      }
-  
-      // Não tem exatamente 9 dígitos
-      if (trimmed.length !== 9) {
-        return { invalidLength: true };
-      }
-  
-      const num = Number(trimmed);
-  
-      // Número negativo ou zero
-      if (num < 0) {
-        return { notPositive: true };
-      }
-  
-      return null;
   }
 
-  limpar(){
-    this.motoristaLoginForm.reset();
-    this.carregarMotoristas();
-    this.pesquisado = false;
+  clearSearch(): void {
+    this.driverLoginForm.reset({ NIF: '', password: '' });
+    this.filteredDrivers = this.allDrivers;
+    this.loginError = '';
+  }
+
+  private loadDrivers(): void {
+    this.motoristaService.obterMotoristas().subscribe({
+      next: (drivers) => {
+        this.allDrivers = drivers.sort((a, b) =>
+          new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
+        );
+        this.filteredDrivers = this.allDrivers;
+      },
+      error: (error) => {
+        console.error('Error fetching drivers:', error);
+      }
+    });
+  }
+
+  private nifValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) return null;
+
+    if (value < 0) return { notPositive: true };
+
+    const onlyDigits = /^\d+$/;
+    if (!onlyDigits.test(value)) return { invalidFormat: true };
+
+    if (String(value).length !== 9) return { invalidLength: true };
+
+    return null;
   }
 }
-

@@ -1,59 +1,138 @@
-<!-- Navigation Bar -->
-<div class="navbar">
-  <p class="navbar-title">Confirmar Viagem</p>
-</div>
+<div class="confirm-page">
+  <div class="navbar">
+    <div class="navbar-brand">
+      <mat-icon>local_taxi</mat-icon>
+      <span class="navbar-title">Confirm Trip</span>
+    </div>
+  </div>
 
-<div class="container">
-  <div class="confirmation-screen">
-      <h2>Detalhes da Viagem</h2>
-      
-      <div *ngIf="loading" class="loading">
-        <p>Carregando detalhes da viagem...</p>
+  <div class="container">
+    <div *ngIf="loading" class="state-card">
+      <div class="header-icon">
+        <mat-icon>hourglass_top</mat-icon>
       </div>
-      
-      <div *ngIf="erro" class="error">
-        <p>{{ erro }}</p>
-        <div class="action-buttons">
-          <button (click)="recusarMotorista()">Cancelar Viagem</button>
-        </div> 
-      </div>
-      
-      <div *ngIf="!loading && !erro && pedido" class="viagem-details">
-        <!-- Detalhes do Motorista -->
-        <div *ngIf="motorista">
-          <h3>Motorista</h3>
-          <p><strong>Nome:</strong> {{ motorista.name }}</p>
-          <p><strong>Distância do Motorista a si:</strong> {{ pedido.distanceKmToMotorista }} km</p>
-          <p><strong>Tempo estimado de chegada do Motorista:</strong> {{ (pedido.distanceKmToMotorista ?? 0) * 4 }} minutos</p>
-      </div>
-        
-        <!-- Detalhes do Taxi -->
-        <div *ngIf="taxi"> 
-          <h3>Táxi</h3>
-          <p><strong>Matrícula:</strong> {{ taxi.licensePlate }}</p>
-          <p><strong>Marca:</strong> {{ taxi.brand }}</p>
-          <p><strong>Modelo:</strong> {{ taxi.model }}</p>
-          <p><strong>Nível de Conforto:</strong> {{ taxi.confort }}</p>
+      <h2>Loading trip details...</h2>
+      <p class="subtitle">Please wait while we fetch driver and fare details.</p>
+    </div>
+
+    <div *ngIf="erro" class="error-card">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ erro }}</p>
+      <button type="button" class="reject-btn" (click)="recusarMotorista()">
+        <mat-icon>close</mat-icon>
+        <span>Cancel Trip</span>
+      </button>
+    </div>
+
+    <div *ngIf="!loading && !erro && pedido" class="confirmation-screen">
+      <div class="header-section">
+        <div class="header-icon">
+          <mat-icon>directions_car</mat-icon>
         </div>
-        
-        <!-- Detalhes da Viagem -->
-        <h3>Informações da Viagem Solicitada</h3>
-        <p><strong>Número de Passageiros:</strong> {{ pedido.numberOfPeople }}</p>
-        <p><strong>Local de Partida:</strong> {{ entryCidadeRua }}: ({{ pedido.entryAddress }})</p>
-        <p><strong>Local de Destino:</strong> {{ exitCidadeRua }}: ({{ pedido.exitAddress }})</p>
-        
-        <!-- Estimates -->
-        <h3>Estimativas</h3>
-        <p ><strong>Tempo Estimado da viagem:</strong> {{ tempoEstimadoMin }} minutos</p>
-        <p><strong>Custo Estimado:</strong> {{ custoEstimado }} €</p>
-        <p *ngIf="showNightWarning" class="night-warning">
-          Nota: Entre as 21h e as 6h pode ser aplicada uma taxa noturna de {{ (nightSurcharge) }}% ao preço apresentado.
-        </p>
-       
-        <div class="action-buttons">
-          <button (click)="aceitarMotorista()">Aceitar Viagem</button>
-          <button (click)="recusarMotorista()">Recusar Viagem</button>
-        </div>    
+        <div>
+          <span class="status-pill">Driver Found</span>
+          <h2>Trip Details</h2>
+          <p class="subtitle">Review the driver, vehicle, route, and estimated fare before confirming.</p>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="info-card" *ngIf="motorista">
+          <div class="card-title-row">
+            <mat-icon>person</mat-icon>
+            <h3>Driver</h3>
+          </div>
+          <div class="kv-list">
+            <div class="kv-row">
+              <span class="kv-label">Name</span>
+              <span class="kv-value">{{ motorista.name }}</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">Distance to you</span>
+              <span class="kv-value">{{ pedido.distanceKmToDriver | number:'1.1-1' }} km</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">Estimated arrival</span>
+              <span class="kv-value">{{ (pedido.distanceKmToDriver ?? 0) * 4 | number:'1.0-0' }} min</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card" *ngIf="taxi">
+          <div class="card-title-row">
+            <mat-icon>local_taxi</mat-icon>
+            <h3>Taxi</h3>
+          </div>
+          <div class="kv-list">
+            <div class="kv-row">
+              <span class="kv-label">Vehicle</span>
+              <span class="kv-value">{{ taxi.brand }} {{ taxi.model }}</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">License Plate</span>
+              <span class="plate-badge">{{ taxi.licensePlate }}</span>
+            </div>
+            <div class="kv-row">
+              <span class="kv-label">Comfort Level</span>
+              <span class="comfort-badge">{{ taxi.confort }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="route-card">
+        <div class="route-header">
+          <h3>Route &amp; Passengers</h3>
+          <span class="passengers-chip">
+            <mat-icon>group</mat-icon>
+            {{ pedido.numberOfPeople }} {{ pedido.numberOfPeople === 1 ? 'passenger' : 'passengers' }}
+          </span>
+        </div>
+
+        <div class="route-rows">
+          <div class="route-row">
+            <mat-icon class="loc-icon pickup">my_location</mat-icon>
+            <div>
+              <span class="kv-label">Pickup Location</span>
+              <span class="kv-value">{{ entryCidadeRua || pedido.entryAddress }}</span>
+            </div>
+          </div>
+          <div class="route-row">
+            <mat-icon class="loc-icon dropoff">place</mat-icon>
+            <div>
+              <span class="kv-label">Destination Location</span>
+              <span class="kv-value">{{ exitCidadeRua || pedido.exitAddress }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="estimates-grid">
+        <div class="estimate-tile">
+          <span class="kv-label">Estimated Trip Time</span>
+          <span class="estimate-value">{{ tempoEstimadoMin }} min</span>
+        </div>
+        <div class="estimate-tile highlight">
+          <span class="kv-label">Estimated Cost</span>
+          <span class="estimate-value">{{ custoEstimado | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="showNightWarning" class="night-warning">
+        <mat-icon>nights_stay</mat-icon>
+        <span>Between 21:00 and 06:00 a night surcharge of {{ nightSurcharge }}% may apply to the displayed price.</span>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="reject-btn" (click)="recusarMotorista()">
+          <mat-icon>close</mat-icon>
+          <span>Reject Trip</span>
+        </button>
+        <button type="button" class="accept-btn" (click)="aceitarMotorista()">
+          <mat-icon>check_circle</mat-icon>
+          <span>Accept Trip</span>
+        </button>
       </div>
     </div>
-  
+  </div>
+</div>

@@ -15,9 +15,9 @@ export class TurnoService {
     return this.http.get<Turno[]>(`${this.API_URL}`);
   }
 
-  getTurnosInTimeFrame(motoristaNIF: string, start: string, end: string): Observable<Turno[]> {
+  getTurnosInTimeFrame(driverNIF: string, start: string, end: string): Observable<Turno[]> {
     const params = new HttpParams()
-      .set('motoristaNIF', motoristaNIF)
+      .set('driverNIF', driverNIF)
       .set('start', start)
       .set('end', end);
   
@@ -41,8 +41,8 @@ export class TurnoService {
     return this.http.put<Turno>(`${this.API_URL}/${id}`, turno);
   }
 
-  getTurnosByMotoristaNIF(motoristaNIF: string): Observable<Turno[]> {
-    return this.http.get<Turno[]>(`${this.API_URL}/driver/${motoristaNIF}`);
+  getTurnosByMotoristaNIF(driverNIF: string): Observable<Turno[]> {
+    return this.http.get<Turno[]>(`${this.API_URL}/driver/${driverNIF}`);
   }
 
   getTurnosByTaxiPlate(plate: string): Observable<Turno[]> {

@@ -26,13 +26,12 @@ viagensPorMotorista: { motoristaId: string; viagens: Viagem[] }[] = [];
     });
   }
 
-  getNomeMotorista(id: string): string | "Erro ao carregar nome"{
+  getNomeMotorista(id: string): string {
     const motorista = this.relatorioState.getMotorista(id);
-    console.log(motorista); //
     if(motorista != undefined){
       return motorista.name;
     } else {
-      return "Erro ao carregar nome";
+      return "Error loading name";
     }
   }
 
@@ -45,12 +44,12 @@ viagensPorMotorista: { motoristaId: string; viagens: Viagem[] }[] = [];
     const dia = d.getDate();
     const ano = d.getFullYear();
     const meses = [
-      "janeiro", "fevereiro", "março", "abril", "maio", "junho",
-      "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
     ];
     const mes = meses[d.getMonth()];
 
-    return `${dia} de ${mes}, ${ano}`;
+    return `${mes} ${dia}, ${ano}`;
 }
 
 

@@ -1,43 +1,16 @@
-<mat-sidenav-container class="sidenav-container" *ngIf="showNavbar">
-  <mat-sidenav #sidenav mode="over" (closedStart)="onClose()" disableClose="false">
-    <mat-nav-list>
-      <a mat-list-item routerLink="/gestor/gerir-taxis" (click)="sidenav.close()">
-        <mat-icon>local_taxi</mat-icon>
-        <span>Manage Taxis</span>
-      </a>
-      <a mat-list-item routerLink="/gestor/gerir-motoristas" (click)="sidenav.close()">
-        <mat-icon>person</mat-icon>
-        <span>Manage Drivers</span>
-      </a>
-      <a mat-list-item routerLink="/gestor/gerir-precos" (click)="sidenav.close()">
-        <mat-icon>euro_symbol</mat-icon>
-        <span>Manage Prices per Minute</span>
-      </a>
-      <a mat-list-item routerLink="/gestor/relatorios" (click)="sidenav.close()">
-        <mat-icon>bar_chart</mat-icon>
-        <span>View Reports</span>
-      </a>
-    </mat-nav-list>
-  </mat-sidenav>
+<div class="manager-shell" *ngIf="showNavbar">
+  <mat-toolbar style="background-color: #FFEB3B; color: #212121;">
+    <span class="toolbar-title" routerLink="/gestor">Taxi App Manager</span>
 
-  <mat-sidenav-content>
-    <mat-toolbar style="background-color: #FFEB3B; color: #212121;">
-      <button mat-icon-button (click)="sidenav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span>Taxi App Manager</span>
+    <button mat-icon-button class="home-btn" routerLink="/gestor" title="Manager Dashboard">
+      <mat-icon>home</mat-icon>
+    </button>
+  </mat-toolbar>
 
-      <button class="home-btn" routerLink="/gestor">
-        <mat-icon>home</mat-icon>
-      </button>
-      
-    </mat-toolbar>
-
-    <div class="main-content">
-      <router-outlet></router-outlet>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>
 
 <!-- Show content without navbar when on "/" -->
 <div *ngIf="!showNavbar">

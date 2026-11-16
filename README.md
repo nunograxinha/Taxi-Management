@@ -31,9 +31,9 @@ The platform is divided into three user roles:
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Frontend** | Angular 16, TypeScript, RxJS, Angular Material, Leaflet (OpenStreetMap & Nominatim API), PapaParse |
-| **Backend** | Node.js, Express 5, Mongoose (MongoDB), CORS, Dotenv |
-| **Database** | MongoDB (Local or MongoDB Atlas) |
+| **Frontend** | Angular 16, TypeScript, RxJS, Angular Material (`MatSnackBar`), Socket.IO Client, Leaflet (OpenStreetMap & Nominatim API), PapaParse |
+| **Backend** | Node.js, Express 5, Socket.IO, Mongoose (MongoDB), JWT (HS256), CORS, Dotenv |
+| **Database & DevOps** | MongoDB (Local / MongoDB Atlas), Docker & Docker Compose |
 
 ---
 
@@ -41,18 +41,22 @@ The platform is divided into three user roles:
 
 ```text
 psi-2425-main/
+├── docker-compose.yml    # Full-stack orchestration (MongoDB + Backend + Frontend)
 ├── backend/
-│   ├── controllers/      # REST API request handlers
+│   ├── controllers/      # REST API & Auth request handlers
+│   ├── middleware/       # JWT authentication & role-based access control
 │   ├── models/           # Mongoose schemas & validations (Taxi, Motorista, Turno, Viagem, etc.)
 │   ├── routes/           # Express route definitions
 │   ├── services/         # Data access layer & business logic
+│   ├── utils/            # HS256 JWT signing & verification utilities
+│   ├── socket.js         # Socket.IO server & real-time room management
 │   ├── .env.example      # Environment variables template
-│   └── server.js         # Express server entry point
+│   └── server.js         # Express + HTTP/Socket.IO server entry point
 └── frontend/
     └── taxi_app/
         └── src/
             ├── app/
-            │   ├── appServices/   # Angular services (HttpClient, Geolocation, State)
+            │   ├── appServices/   # Angular services (HttpClient, Socket.IO, Auth, Guards, Interceptor)
             │   ├── cliente/       # Customer workflow components
             │   ├── gestor/        # Manager dashboard
             │   ├── gerir-precos/  # Pricing management & fare simulator
@@ -67,11 +71,23 @@ psi-2425-main/
 
 ## Getting Started
 
-### Prerequisites
+### Option A: Quick Start with Docker (Recommended)
+Run the entire stack (**MongoDB + Backend + Frontend**) with a single command:
+```bash
+docker compose up --build
+```
+- **Frontend:** `http://localhost:4200`
+- **Backend API:** `http://localhost:3073`
+
+---
+
+### Option B: Manual Setup
+
+#### Prerequisites
 - **Node.js** (v18 or higher) and **npm**
 - **MongoDB** (local instance or MongoDB Atlas cluster)
 
-### 1. Backend Setup
+#### 1. Backend Setup
 ```bash
 cd backend
 npm install
@@ -79,7 +95,7 @@ npm install
 
 Create a `.env` file inside the `backend/` folder (you can copy `.env.example`):
 ```env
-MONGODB_URI=mongodb://localhost:27017/taxi_app
+MONGO_URI=mongodb://127.0.0.1:27017/psi
 PORT=3073
 ```
 
@@ -87,9 +103,9 @@ Start the backend server:
 ```bash
 npm start
 ```
-> The API will be running at `http://localhost:3073` and will automatically seed the default pricing configuration on startup.
+> The API will be running at `http://localhost:3073` and will automatically seed the default pricing configuration, initial drivers, and taxis on startup.
 
-### 2. Frontend Setup
+#### 2. Frontend Setup
 In a new terminal:
 ```bash
 cd frontend/taxi_app
@@ -104,16 +120,16 @@ npm start
 
 | Resource | Method | Endpoint | Description |
 | :--- | :--- | :--- | :--- |
-| **Drivers** | `GET / POST` | `/motorista` | List all drivers or register a new driver |
-| | `GET / PUT / DELETE` | `/motorista/:nif` | Get, update, or delete a driver by NIF |
+| **Drivers** | `GET / POST` | `/driver` | List all drivers or register a new driver |
+| | `GET / PUT / DELETE` | `/driver/:nif` | Get, update, or delete a driver by NIF |
 | **Taxis** | `GET / POST` | `/taxi` | List all taxis or register a new taxi |
 | | `GET / PUT / DELETE` | `/taxi/:plate` | Get, update, or delete a taxi by license plate |
-| **Shifts** | `GET / POST` | `/turno` | List all shifts or create a new shift |
-| | `GET` | `/turno/intervalo` | Check driver shifts within a time range (`motoristaNIF`, `start`, `end`) |
-| | `GET` | `/turno/motorista/:motoristaNIF` | List shifts for a specific driver |
-| **Pricing** | `GET / PUT` | `/preco` / `/preco/:id` | Get or update per-minute rates and night surcharge |
-| **Ride Requests** | `GET / POST` | `/pedidoViagem` | List pending ride requests or create a new request |
-| | `PATCH` | `/pedidoViagem/:id/acceptMotorista` | Driver accepts a ride request |
-| | `PATCH` | `/pedidoViagem/:id/acceptClient` | Customer confirms the assigned driver |
-| | `PATCH` | `/pedidoViagem/:id/reject` | Customer rejects the assigned driver |
-| **Trips** | `GET / POST` | `/viagem` | List completed trips or record a finished trip |
+| **Shifts** | `GET / POST` | `/shift` | List all shifts or create a new shift |
+| | `GET` | `/shift/interval` | Check driver shifts within a time range (`motoristaNIF`, `start`, `end`) |
+| | `GET` | `/shift/driver/:motoristaNIF` | List shifts for a specific driver |
+| **Pricing** | `GET / PUT` | `/price` / `/price/:id` | Get or update per-minute rates and night surcharge |
+| **Ride Requests** | `GET / POST` | `/rideRequest` | List pending ride requests or create a new request |
+| | `PATCH` | `/rideRequest/:id/acceptDriver` | Driver accepts a ride request |
+| | `PATCH` | `/rideRequest/:id/acceptClient` | Customer confirms the assigned driver |
+| | `PATCH` | `/rideRequest/:id/reject` | Customer rejects the assigned driver |
+| **Trips** | `GET / POST` | `/trip` | List completed trips or record a finished trip |

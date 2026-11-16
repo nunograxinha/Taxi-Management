@@ -23,27 +23,28 @@ import { RelatoriosPageComponent } from './relatorios/relatorios-page/relatorios
 import { TotalHorasComponent } from './relatorios/total-horas/total-horas.component';
 import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
 import { TotalViagensComponent } from './relatorios/total-viagens/total-viagens.component';
+import { managerGuard, driverGuard } from './appServices/auth.guard';
 
 const routes: Routes = [
   { path: '', component: HomePageComponent },
-  { path: 'gestor', component: GestorPageComponent },
-  { path: 'gestor/gerir-taxis', component: GerirTaxisComponent },
-  { path: 'gestor/gerir-motoristas', component: GerirMotoristasComponent },
-  { path: 'gestor/gerir-precos', component: GerirPrecosComponent },
-  { path: 'gestor/gerir-precos/simulacao', component: SimularPrecoComponent },
-  { path: 'gestor/editar-motorista/:nif', component: EditarMotoristaComponent },
-  { path: 'gestor/editar-taxi/:licensePlate', component: EditarTaxiComponent },
-  { path: 'gestor/relatorios', component: RelatoriosPageComponent },
-  { path: 'gestor/relatorios/total-viagens', component: TotalViagensComponent },
-  { path: 'gestor/relatorios/total-horas', component: TotalHorasComponent },
-  { path: 'gestor/relatorios/total-kms', component: TotalKmsComponent },
+  { path: 'gestor', component: GestorPageComponent, canActivate: [managerGuard] },
+  { path: 'gestor/gerir-taxis', component: GerirTaxisComponent, canActivate: [managerGuard] },
+  { path: 'gestor/gerir-motoristas', component: GerirMotoristasComponent, canActivate: [managerGuard] },
+  { path: 'gestor/gerir-precos', component: GerirPrecosComponent, canActivate: [managerGuard] },
+  { path: 'gestor/gerir-precos/simulacao', component: SimularPrecoComponent, canActivate: [managerGuard] },
+  { path: 'gestor/editar-motorista/:nif', component: EditarMotoristaComponent, canActivate: [managerGuard] },
+  { path: 'gestor/editar-taxi/:licensePlate', component: EditarTaxiComponent, canActivate: [managerGuard] },
+  { path: 'gestor/relatorios', component: RelatoriosPageComponent, canActivate: [managerGuard] },
+  { path: 'gestor/relatorios/total-viagens', component: TotalViagensComponent, canActivate: [managerGuard] },
+  { path: 'gestor/relatorios/total-horas', component: TotalHorasComponent, canActivate: [managerGuard] },
+  { path: 'gestor/relatorios/total-kms', component: TotalKmsComponent, canActivate: [managerGuard] },
 
   { path: 'motorista', component: MotoristaLoginComponent },
-  { path: 'motorista/:nif', component: MotoristaPageComponent },
-  { path: 'motorista/:nif/pedidos-pendentes', component: PedidosPendentesComponent },
-  { path: 'motorista/:nif/turnos', component: GerirTurnoComponent },
-  { path: 'motorista/:nif/turnos/registar-turno', component: TurnoFormComponent },
-  { path: 'motorista/pedido-aceito/:pedidoId', component: PedidoAceitoComponent },
+  { path: 'motorista/:nif', component: MotoristaPageComponent, canActivate: [driverGuard] },
+  { path: 'motorista/:nif/pedidos-pendentes', component: PedidosPendentesComponent, canActivate: [driverGuard] },
+  { path: 'motorista/:nif/turnos', component: GerirTurnoComponent, canActivate: [driverGuard] },
+  { path: 'motorista/:nif/turnos/registar-turno', component: TurnoFormComponent, canActivate: [driverGuard] },
+  { path: 'motorista/pedido-aceito/:pedidoId', component: PedidoAceitoComponent, canActivate: [driverGuard] },
 
   { path: 'cliente', component: ClientePageComponent },
   { path: 'cliente/aguardar-resposta/:pedidoId', component: AguardarRespostaComponent },

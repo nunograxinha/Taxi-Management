@@ -1,4 +1,5 @@
-const { Cliente } = require('../models/cliente')
+const { Cliente } = require('../models/cliente');
+const { hashPassword } = require('../utils/password');
 
 module.exports = {
 
@@ -23,9 +24,17 @@ module.exports = {
         return existingCliente;
       }
   
-      const cliente = new Cliente(body);
+      const data = { ...body };
+      if (data.password) {
+        data.passwordHash = hashPassword(data.password);
+        delete data.password;
+      }
+
+      const cliente = new Cliente(data);
       const savedCliente = await cliente.save();
-      return savedCliente;
+      const result = savedCliente.toObject();
+      delete result.passwordHash;
+      return result;
     } catch (error) {
       throw error;
     }

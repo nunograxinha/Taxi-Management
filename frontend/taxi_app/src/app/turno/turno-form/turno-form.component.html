@@ -1,36 +1,36 @@
 <div class="navbar">
-  <span class="navbar-title">Registe o seu turno</span>
+  <span class="navbar-title">Register your shift</span>
 </div>
 <div class="pagina-form">
-  <h1>Registo do turno:</h1>
+  <h1>Shift Registration:</h1>
 
 <form [formGroup]="turnoForm" (ngSubmit)="onSubmit()">
     <div>
-      <label for="inicio">Início do Turno:</label>
+      <label for="inicio">Shift Start:</label>
       <input id="inicio" type="datetime-local" formControlName="inicio" />
       <div *ngIf="turnoForm.get('inicio')?.touched && turnoForm.get('inicio')?.invalid">
-        <small class="error" *ngIf="turnoForm.get('inicio')?.errors?.['required']">O início é obrigatório.</small>
+        <small class="error" *ngIf="turnoForm.get('inicio')?.errors?.['required']">Start time is required.</small>
       </div>
     </div>
   
     <div>
-      <label for="fim">Fim do Turno:</label>
+      <label for="fim">Shift End:</label>
       <input id="fim" type="datetime-local" formControlName="fim" />
       <div *ngIf="turnoForm.get('fim')?.touched && turnoForm.get('fim')?.invalid">
-        <small class="error" *ngIf="turnoForm.get('fim')?.errors?.['required']">O fim é obrigatório.</small>
+        <small class="error" *ngIf="turnoForm.get('fim')?.errors?.['required']">End time is required.</small>
       </div>
     </div>
   
     <div *ngIf="turnoForm.errors && (turnoForm.get('inicio')?.touched || turnoForm.get('fim')?.touched)">
-      <small class="error" *ngIf="turnoForm.errors['fimAntesInicio']">O fim deve ser depois do início.</small>
-      <small class="error" *ngIf="turnoForm.errors['turnoMuitoLongo']">O turno não pode exceder 8 horas.</small>
-      <small class="error" *ngIf="turnoForm.errors['inicioFuturo']">O início do turno deve ser depois da hora atual.</small>
+      <small class="error" *ngIf="turnoForm.errors['fimAntesInicio']">End time must be after start time.</small>
+      <small class="error" *ngIf="turnoForm.errors['turnoMuitoLongo']">Shift cannot exceed 8 hours.</small>
+      <small class="error" *ngIf="turnoForm.errors['inicioFuturo']">Shift start must be after the current time.</small>
     </div>
   
     <div *ngIf="taxisDisponiveis.length > 0">
-      <label for="taxi">Selecionar Táxi Disponível:</label>
+      <label for="taxi">Select Available Taxi:</label>
       <select id="taxi" formControlName="taxi">
-        <option value="" disabled>Escolha um táxi</option>
+        <option value="" disabled>Choose a taxi</option>
         <option *ngFor="let taxi of taxisDisponiveis" [ngValue]="taxi">
           {{ taxi.brand }} {{ taxi.model }} ({{ taxi.confort }})
         </option>
@@ -38,11 +38,11 @@
     </div>
 
     <div *ngIf="turnoForm.get('inicio')?.valid && turnoForm.get('fim')?.valid && !turnoForm.errors && taxisDisponiveis.length <= 0">
-      <small class="info">Nenhum táxi disponível neste horário.</small>
+      <small class="info">No taxis available during this timeframe.</small>
     </div>
   
-    <button type="submit" [disabled]="turnoForm.invalid">Registar</button>
+    <button type="submit" [disabled]="turnoForm.invalid">Register</button>
   </form>
 
-  <button class="voltar" [routerLink]="['/motorista', motoristaNif, 'turnos']">Voltar</button>
+  <button class="voltar" [routerLink]="['/motorista', motoristaNif, 'turnos']">Back</button>
 </div>

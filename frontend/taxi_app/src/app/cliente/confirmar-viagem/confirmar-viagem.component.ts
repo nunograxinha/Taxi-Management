@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
 import { PedidoViagemService } from '../../appServices/pedido-viagem.service';
 import { PedidoViagem } from '../pedidoViagem_interface';
@@ -37,12 +38,13 @@ export class ConfirmarViagemComponent implements OnInit {
     private motoristaService: MotoristaService,
     private geolocationService: GeolocationService,
     private precoService: PrecoService,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit() {
     const pedidoId = this.route.snapshot.paramMap.get('pedidoId');
     if (!pedidoId) {
-      this.erro = 'ID do pedido inválido';
+      this.erro = 'Invalid ride request ID';
       this.loading = false;
       return;
     }
@@ -51,37 +53,37 @@ export class ConfirmarViagemComponent implements OnInit {
 
   async carregarDados(pedidoId: string) {
     try {
-      // Carregar dados do pedido
+      // Load ride request data
       const pedidoResponse = await firstValueFrom(this.pedidoViagemService.getPedidoById(pedidoId));
       if (!pedidoResponse) {
-        throw new Error('Pedido não encontrado');
+        throw new Error('Ride request not found');
       }
       this.pedido = pedidoResponse;
       
-      if (!this.pedido.motoristaId) {
-        throw new Error('Este pedido não tem um motorista associado');
+      if (!this.pedido.driverId) {
+        throw new Error('This ride request does not have an assigned driver');
       }
       
       if (!this.pedido.taxi) {
-        throw new Error('Este pedido não tem um táxi associado');
+        throw new Error('This ride request does not have an assigned taxi');
       }
       
-      // Carregar dados do motorista
-      const motoristaResponse = await firstValueFrom(this.motoristaService.getMotoristaPorId(this.pedido.motoristaId));
+      // Load driver data
+      const motoristaResponse = await firstValueFrom(this.motoristaService.getMotoristaPorId(this.pedido.driverId));
       if (!motoristaResponse) {
-        throw new Error('Motorista não encontrado');
+        throw new Error('Driver not found');
       }
       this.motorista = motoristaResponse;
 
-      // Carregar dados do táxi
+      // Load taxi data
       const taxiResponse = await firstValueFrom(this.taxiService.getTaxiById(this.pedido.taxi));
       if (!taxiResponse) {
-        throw new Error('Táxi não encontrado');
+        throw new Error('Taxi not found');
       }
       this.taxi = taxiResponse;
 
       
-      // Obter geolocalização do cliente em string
+      // Get client geolocation in string
       const [lat, lng] = this.pedido.entryAddress.split(',').map(Number);
       this.entryCidadeRua = await this.geolocationService.getAddressFromCoordinates(lat.toString(), lng.toString());
       
@@ -90,7 +92,7 @@ export class ConfirmarViagemComponent implements OnInit {
 
       const preco = await firstValueFrom(this.precoService.getPreco());
       if (!preco) {
-        throw new Error('Preço não encontrado');
+        throw new Error('Price not found');
       }
       this.nightSurcharge = preco.nightTimeSurcharge;
       const distancia = this.pedidoViagemService.calcularDistancia(
@@ -99,8 +101,8 @@ export class ConfirmarViagemComponent implements OnInit {
         Number(this.pedido.exitAddress.split(',')[0]),
         Number(this.pedido.exitAddress.split(',')[1])
       );
-      this.tempoEstimadoMin = Math.ceil(distancia * 4); // Aproximado 4 minutos por km
-      if (taxiResponse.confort === 'Basico') {
+      this.tempoEstimadoMin = Math.ceil(distancia * 4); // Approx 4 minutes per km
+      if (taxiResponse.confort === 'Basic') {
         this.custoEstimado = Math.round(preco.pricePerMinuteConfort * this.tempoEstimadoMin * 100) / 100;
       } else {
         this.custoEstimado = Math.round(preco.pricePerMinuteLuxury * this.tempoEstimadoMin * 100) / 100;
@@ -108,49 +110,49 @@ export class ConfirmarViagemComponent implements OnInit {
 
       this.loading = false;
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      this.erro = error instanceof Error ? error.message : 'Erro ao carregar dados da viagem';
+      console.error('Error loading data:', error);
+      this.erro = error instanceof Error ? error.message : 'Error loading trip data';
       this.loading = false;
     }
   }  
 
   async aceitarMotorista() {
     if (!this.pedido){
-      console.error('Pedido não encontrado');
+      console.error('Ride request not found');
       return;
     }
     try {
       this.pedidoViagemService.acceptClient(this.pedido._id!).subscribe({
         next: (res) => {
-          alert('Pedido confirmado com sucesso!');
+          this.snackBar.open('Ride request confirmed successfully!', 'Close', { duration: 3500 });
           console.log("response:", res);
           localStorage.setItem('pedidoId', this.pedido!._id!);
           this.router.navigate(['cliente/acompanhar-viagem', this.pedido!._id!]);
         },
         error: (err) => {
-          console.error('Erro ao aceitar motorista:', err);
-          this.erro = 'Erro ao aceitar motorista';
+          console.error('Error accepting driver:', err);
+          this.erro = 'Error accepting driver';
         }
       });
     } catch (error) {
-      console.error('Erro ao aceitar motorista:', error);
-      this.erro = 'Erro ao aceitar motorista';
+      console.error('Error accepting driver:', error);
+      this.erro = 'Error accepting driver';
       }
   }
 
   async recusarMotorista() {
     const pedidoId = this.pedido?._id ?? this.route.snapshot.paramMap.get('pedidoId');
     if (!pedidoId) {
-      this.erro = 'Não foi possível identificar o pedido.';
+      this.erro = 'Could not identify the ride request.';
       return;
     }
 
     try {
-      await firstValueFrom(this.pedidoViagemService.rejectMotorista(pedidoId, this.pedido?.motoristaId));
+      await firstValueFrom(this.pedidoViagemService.rejectMotorista(pedidoId, this.pedido?.driverId));
       this.router.navigate(['/cliente/aguardar-resposta', pedidoId]);
     } catch (error) {
-      console.error('Erro ao cancelar viagem:', error);
-      this.erro = 'Erro ao cancelar viagem. Tente novamente.';
+      console.error('Error rejecting driver:', error);
+      this.erro = 'Error rejecting driver. Please try again.';
     }
   }
 

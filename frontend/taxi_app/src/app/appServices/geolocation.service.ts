@@ -5,8 +5,31 @@ import { from, map, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class GeolocationService {
+  private readonly addressCache = new Map<string, Promise<string>>();
 
   constructor() { }
+
+  isCoordinateString(value: string | undefined | null): boolean {
+    if (!value) return false;
+    return /^\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*$/.test(value);
+  }
+
+  resolveDisplayAddress(rawAddress: string): Promise<string> {
+    if (!rawAddress || !this.isCoordinateString(rawAddress)) {
+      return Promise.resolve(rawAddress || '');
+    }
+
+    const normalized = rawAddress.trim();
+    const cached = this.addressCache.get(normalized);
+    if (cached) {
+      return cached;
+    }
+
+    const [lat, lon] = normalized.split(',').map(part => part.trim());
+    const promise = this.getAddressFromCoordinates(lat, lon).catch(() => normalized);
+    this.addressCache.set(normalized, promise);
+    return promise;
+  }
 
   getCurrentPosition(): Observable<{ latitude: string, longitude: string }> {
     return from(

@@ -11,7 +11,7 @@ exports.get_taxis = async (req, res) => {
     }
 };
 
-// GET taxi/turno 
+// GET /taxi/shift
 exports.get_taxis_available_turno = async (req, res) => {
     const { start, end } = req.query;
     if (!start || !end) {
@@ -97,7 +97,7 @@ exports.delete_taxi = async (req, res) => {
   try {
       const deletedTaxi = await taxiService.deleteTaxiByLicensePlate(plate);
       if (typeof deletedTaxi === 'string') {
-          // Caso de erro: taxi tem turno associado
+          // Error case: taxi has an associated shift
           return res.status(400).json({ error: deletedTaxi });
       }
       if (!deletedTaxi) {

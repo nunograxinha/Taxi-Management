@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TurnoService } from '../../appServices/turno.service';
 import { TaxiService } from '../../appServices/taxi.service';
 import { ActivatedRoute } from '@angular/router';
@@ -22,7 +23,8 @@ export class TurnoFormComponent implements OnInit {
     private turnoService: TurnoService,
     private taxiService: TaxiService,
     private route: ActivatedRoute,
-    private router: Router  // Injetando o Router aqui
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -102,16 +104,16 @@ export class TurnoFormComponent implements OnInit {
           },
           error: (err) => {
             if (err.status === 404) {
-              // Sem turnos → todos os táxis estão disponíveis
+              // No shifts -> all taxis are available
               this.taxisDisponiveis = todosTaxis;
             } else {
-              console.error('Erro ao carregar turnos:', err);
+              console.error('Error loading shifts:', err);
             }
           }
         });
       },
       error: (err: any) => {
-        console.error('Erro ao carregar táxis disponíveis:', err);
+        console.error('Error loading available taxis:', err);
       }
     });
   }
@@ -127,18 +129,18 @@ export class TurnoFormComponent implements OnInit {
       .subscribe({
         next: (existeIntersecao: any) => {
           if (existeIntersecao && existeIntersecao.length > 0) {
-            alert('Já existe um turno neste horário.');
+            this.snackBar.open('A shift already exists during this timeframe.', 'Close', { duration: 4000 });
           } else {
             this.registarTurno(inicio, fim, taxiId);
           }
         },
         error: (err: any) => {
           if (err.status === 404) {
-            // Sem interseções → pode criar o turno
+            // No intersections -> can create shift
             this.registarTurno(inicio, fim, taxiId);
           } else {
-            console.error('Erro ao verificar interseções:', err);
-            alert('Erro ao verificar conflitos de turno.');
+            console.error('Error checking intersections:', err);
+            this.snackBar.open('Error checking shift conflicts.', 'Close', { duration: 4000 });
           }
         }
       });
@@ -146,7 +148,7 @@ export class TurnoFormComponent implements OnInit {
 
   private registarTurno(inicio: Date, fim: Date, taxiId: string): void {
     const novoTurno = {
-      motorista: this.motoristaNif,
+      driver: this.motoristaNif,
       taxi: taxiId,
       start: inicio.toISOString(),
       end: fim.toISOString(),
@@ -154,16 +156,16 @@ export class TurnoFormComponent implements OnInit {
   
     this.turnoService.createTurno(novoTurno).subscribe({
       next: () => {
-        alert('Turno registado com sucesso!');
+        this.snackBar.open('Shift registered successfully!', 'Close', { duration: 3500 });
         this.turnoForm.reset();
         this.taxisDisponiveis = [];
         
-        // Redireciona para a página de turnos
+        // Redirect to shifts page
         this.router.navigate(['/motorista', this.motoristaNif, 'turnos']);
       },
       error: (err) => {
-        console.error('Erro ao registar turno:', err);
-        alert('Erro ao registar turno.');
+        console.error('Error registering shift:', err);
+        this.snackBar.open('Error registering shift.', 'Close', { duration: 4000 });
       },
     });
   }

@@ -21,11 +21,12 @@ const motoristaSchema = new mongoose.Schema({
         postalCode: { type: String },
         city: { type: String },
     },
-    drivingLicenseNumber: { type: String, required: true, unique: true },
+    drivingLicenseNumber: { type: String, required: true, unique: true, match: [/^\d+$/, 'Driving license number must contain digits only'] },
+    passwordHash: { type: String, select: false },
 }, { timestamps: true });
 
 motoristaSchema.index({ createdAt: -1 });
 
-const Motorista = mongoose.model('Motorista', motoristaSchema);
+const Motorista = mongoose.model('Driver', motoristaSchema);
 
-module.exports = { Motorista };
+module.exports = { Motorista, Driver: Motorista };

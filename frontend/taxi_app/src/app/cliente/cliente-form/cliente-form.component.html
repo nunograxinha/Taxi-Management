@@ -1,50 +1,115 @@
-<form [formGroup]="clienteForm" (ngSubmit)="onSubmit()">
-    <h3>Dados do Cliente</h3>
+<div class="auth-card">
+  <div class="mode-tabs">
+    <button type="button" class="tab-btn" [class.active]="mode === 'login'" (click)="switchMode('login')">
+      Sign In
+    </button>
+    <button type="button" class="tab-btn" [class.active]="mode === 'register'" (click)="switchMode('register')">
+      Create Account
+    </button>
+  </div>
 
-    <!-- NIF -->
+  <!-- Sign In Form -->
+  <form *ngIf="mode === 'login'" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <h3>Client Sign In</h3>
+
     <div>
-        <label for="NIF">NIF do Cliente:</label>
-        <input
-            type="text"
-            id="NIF"
-            formControlName="NIF"
-            placeholder="Coloque seu NIF"
-            [class.invalid]="clienteForm.get('NIF')?.invalid && clienteForm.get('NIF')?.touched"
-        />
-        <div *ngIf="clienteForm.get('NIF')?.invalid && clienteForm.get('NIF')?.touched">
-            <small class="error" *ngIf="clienteForm.get('NIF')?.hasError('required')">NIF é obrigatório.</small>
-            <small class="error" *ngIf="clienteForm.get('NIF')?.hasError('invalidNIF')">O NIF deve ter exatamente 9 dígitos.</small>        
-        </div>
+      <label for="loginNIF">Client NIF:</label>
+      <input
+        type="text"
+        id="loginNIF"
+        formControlName="NIF"
+        placeholder="Enter your 9-digit NIF"
+        [class.invalid]="loginForm.get('NIF')?.invalid && loginForm.get('NIF')?.touched"
+      />
+      <div *ngIf="loginForm.get('NIF')?.invalid && loginForm.get('NIF')?.touched">
+        <small class="error" *ngIf="loginForm.get('NIF')?.hasError('required')">NIF is required.</small>
+        <small class="error" *ngIf="loginForm.get('NIF')?.hasError('invalidNIF')">NIF must have exactly 9 digits.</small>
+      </div>
     </div>
 
-    <!-- Nome -->
     <div>
-        <label for="name">Nome do Cliente:</label>
-        <input 
-            type="text" 
-            id="name" 
-            formControlName="name" 
-            placeholder="Coloque seu Nome" 
-            [class.invalid]="clienteForm.get('name')?.invalid && clienteForm.get('name')?.touched"
-
-            />
-        <div *ngIf="clienteForm.get('name')?.invalid && clienteForm.get('name')?.touched">
-        <small class="error">Nome é obrigatório.</small>
-        </div>
+      <label for="loginPassword">Password:</label>
+      <input
+        type="password"
+        id="loginPassword"
+        formControlName="password"
+        placeholder="Enter your password"
+        [class.invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+      />
+      <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        <small class="error">Password is required.</small>
+      </div>
     </div>
 
-    <!-- Género -->
-    <div>
-        <label for="gender">Género do Cliente:</label>
-        <select id="gender" formControlName="gender" [class.invalid]="clienteForm.get('gender')?.invalid && clienteForm.get('gender')?.touched">
-            <option value="" disabled hidden>Seleciona o género</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Feminino">Feminino</option>
-        </select>
-        <div *ngIf="clienteForm.get('gender')?.invalid && clienteForm.get('gender')?.touched">
-        <small class="error">Género é obrigatório.</small>
-        </div>
-    </div>
     <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
-    <button type="submit" [disabled]="clienteForm.invalid">Submeter Cliente</button>
-</form>
+    <button type="submit" [disabled]="loginForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Signing in...' : 'Sign In' }}
+    </button>
+  </form>
+
+  <!-- Create Account Form -->
+  <form *ngIf="mode === 'register'" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <h3>Create Client Account</h3>
+
+    <div>
+      <label for="regNIF">Client NIF:</label>
+      <input
+        type="text"
+        id="regNIF"
+        formControlName="NIF"
+        placeholder="Enter your 9-digit NIF"
+        [class.invalid]="registerForm.get('NIF')?.invalid && registerForm.get('NIF')?.touched"
+      />
+      <div *ngIf="registerForm.get('NIF')?.invalid && registerForm.get('NIF')?.touched">
+        <small class="error" *ngIf="registerForm.get('NIF')?.hasError('required')">NIF is required.</small>
+        <small class="error" *ngIf="registerForm.get('NIF')?.hasError('invalidNIF')">NIF must have exactly 9 digits.</small>
+      </div>
+    </div>
+
+    <div>
+      <label for="regName">Client Name:</label>
+      <input
+        type="text"
+        id="regName"
+        formControlName="name"
+        placeholder="Enter your Name"
+        [class.invalid]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+      />
+      <div *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+        <small class="error">Name is required.</small>
+      </div>
+    </div>
+
+    <div>
+      <label for="regGender">Client Gender:</label>
+      <select id="regGender" formControlName="gender" [class.invalid]="registerForm.get('gender')?.invalid && registerForm.get('gender')?.touched">
+        <option value="" disabled hidden>Select gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+      <div *ngIf="registerForm.get('gender')?.invalid && registerForm.get('gender')?.touched">
+        <small class="error">Gender is required.</small>
+      </div>
+    </div>
+
+    <div>
+      <label for="regPassword">Password:</label>
+      <input
+        type="password"
+        id="regPassword"
+        formControlName="password"
+        placeholder="At least 6 characters"
+        [class.invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+      />
+      <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+        <small class="error" *ngIf="registerForm.get('password')?.hasError('required')">Password is required.</small>
+        <small class="error" *ngIf="registerForm.get('password')?.hasError('minlength')">Password must be at least 6 characters.</small>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    <button type="submit" [disabled]="registerForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Creating account...' : 'Create Account' }}
+    </button>
+  </form>
+</div>

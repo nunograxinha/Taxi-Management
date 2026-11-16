@@ -30,20 +30,20 @@ export class MotoristaFormComponent implements OnInit, OnChanges{
   
     const trimmed = value.toString().trim();
   
-    // Verifica se é um número com 4 dígitos
+    // Check if it is a 4-digit number
     if (!/^\d{4}$/.test(trimmed)) {
-      return { invalidYearFormat: true }; // ← nome agora corresponde ao template
+      return { invalidYearFormat: true }; // matches template error key
     }
   
     const year = Number(trimmed);
     const currentYear = new Date().getFullYear();
   
-    // Ano futuro
+    // Future year
     if (year > currentYear) {
       return { futureYear: true };
     }
   
-    // Menor de idade
+    // Underage
     if ((currentYear - year) < 18) {
       return { minor: true };
     }
@@ -60,19 +60,19 @@ export class MotoristaFormComponent implements OnInit, OnChanges{
 
     const trimmed = value.toString().trim();
 
-    // Deve conter apenas dígitos (sem espaços, letras ou símbolos)
+    // Must contain digits only (no spaces, letters, or symbols)
     if (!/^\d+$/.test(trimmed)) {
       return { invalidFormat: true };
     }
 
-    // Não tem exatamente 9 dígitos
+    // Must be exactly 9 digits
     if (trimmed.length !== 9) {
       return { invalidLength: true };
     }
 
     const num = Number(trimmed);
 
-    // Número negativo ou zero
+    // Negative or zero
     if (num < 0) {
       return { notPositive: true };
     }
@@ -105,7 +105,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
       gender: ['', Validators.required], // RIA 11
       drivingLicenseNumber: ['', [Validators.required,Validators.pattern(/^\d+$/)]], // RIA 12
       postalCode: ['', Validators.required],
-      city: [''], // preenchido automaticamente
+      city: [''], // filled automatically
       street: ['', Validators.required], 
       doorNumber: ['', [Validators.required,this.doorNumberValidator]]
     });
@@ -113,7 +113,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['motoristaParaEditar'] && this.motoristaParaEditar) {
-      // Preenche o formulário com os dados do motorista a editar
+      // Populate the form with the driver data to edit
       this.motoristaForm.patchValue({
         name: this.motoristaParaEditar.name,
         birthYear: this.motoristaParaEditar.birthYear,
@@ -208,18 +208,18 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
     }
 }
 
-  // Verificar e preencher automaticamente a localidade com base no código postal
+  // Verify and auto-fill the city based on the postal code
   onCodigoPostalChange() {
     const cp = this.motoristaForm.get('postalCode')?.value;
     if (cp && /^\d{4}-\d{3}$/.test(cp)) { 
-      const [numCp, extCp] = cp.split('-'); // Divide o código postal em duas partes
+      const [numCp, extCp] = cp.split('-'); // Split postal code into two parts
 
-      // Procurar pelo código postal completo
+      // Search for the full postal code
       const codigoPostalData = this.codigosPostais.find(item => item.num_cod_postal === numCp && item.ext_cod_postal === extCp);
 
-      if (codigoPostalData) { // Se encontrar, preenche a localidade
+      if (codigoPostalData) { // If found, fill in the city
         this.motoristaForm.get('city')?.setValue(codigoPostalData.nome_localidade);
-      } else { // Se não encontrar, limpa o campo
+      } else { // Otherwise, clear the field
         this.motoristaForm.get('city')?.setValue('');
       }
     }
