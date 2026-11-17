@@ -7,19 +7,19 @@ const { initSocket } = require('./socket');
 
 dotenv.config();
 
-const faturaRoutes = require('./routes/faturaRoutes');
-const motoristaRoutes = require('./routes/motoristaRoutes');
+const faturaRoutes = require('./routes/invoiceRoutes');
+const motoristaRoutes = require('./routes/driverRoutes');
 const taxiRoutes = require('./routes/taxiRoutes');
-const turnoRoutes = require('./routes/turnoRoutes');
-const viagemRoutes = require('./routes/viagemRoutes');
-const precoRoutes = require('./routes/precoRoutes');
-const pedidoViagensRoutes = require('./routes/pedidoViagemRoutes');
-const clienteRoutes = require('./routes/clienteRoutes');
+const turnoRoutes = require('./routes/shiftRoutes');
+const viagemRoutes = require('./routes/tripRoutes');
+const precoRoutes = require('./routes/priceRoutes');
+const pedidoViagensRoutes = require('./routes/rideRequestRoutes');
+const clienteRoutes = require('./routes/clientRoutes');
 const initRoutes = require('./routes/initRoutes');
 const authRoutes = require('./routes/authRoutes');
 
 
-const precoService = require('./services/precoService');
+const precoService = require('./services/priceService');
 const initController = require('./controllers/initController');
 
 let cors = require('cors');
@@ -49,20 +49,34 @@ async function main() {
 app.use('/', initRoutes);
 app.use('/auth', authRoutes);
 app.use('/invoice', faturaRoutes);
-app.use('/fatura', faturaRoutes);
+app.use('/invoice', faturaRoutes);
 app.use('/driver', motoristaRoutes);
-app.use('/motorista', motoristaRoutes);
+app.use('/driver', motoristaRoutes);
 app.use('/taxi', taxiRoutes);
 app.use('/shift', turnoRoutes);
-app.use('/turno', turnoRoutes);
+app.use('/shift', turnoRoutes);
 app.use('/trip', viagemRoutes);
-app.use('/viagem', viagemRoutes);
+app.use('/trip', viagemRoutes);
 app.use('/price', precoRoutes);
-app.use('/preco', precoRoutes);
+app.use('/price', precoRoutes);
 app.use('/rideRequest', pedidoViagensRoutes);
-app.use('/pedidoViagem', pedidoViagensRoutes);
+app.use('/rideRequest', pedidoViagensRoutes);
 app.use('/client', clienteRoutes);
-app.use('/cliente', clienteRoutes);
+app.use('/client', clienteRoutes);
+
+// Unified /api prefix for reverse-proxy / HTTPS tunnel setups
+const apiRouter = express.Router();
+apiRouter.use('/', initRoutes);
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/invoice', faturaRoutes);
+apiRouter.use('/driver', motoristaRoutes);
+apiRouter.use('/taxi', taxiRoutes);
+apiRouter.use('/shift', turnoRoutes);
+apiRouter.use('/trip', viagemRoutes);
+apiRouter.use('/price', precoRoutes);
+apiRouter.use('/rideRequest', pedidoViagensRoutes);
+apiRouter.use('/client', clienteRoutes);
+app.use('/api', apiRouter);
 
 // Start the server (HTTP + Socket.IO)
 server.listen(PORT, () => {

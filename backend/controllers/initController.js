@@ -1,8 +1,8 @@
-const { Motorista } = require('../models/motorista');
+const { Motorista } = require('../models/driver');
 const { Taxi } = require('../models/taxi');
-const { Cliente } = require('../models/cliente');
-const { PedidoViagem } = require('../models/pedidoViagem');
-const { Fatura } = require('../models/fatura');
+const { Cliente } = require('../models/client');
+const { PedidoViagem } = require('../models/rideRequest');
+const { Fatura } = require('../models/invoice');
 const { hashPassword } = require('../utils/password');
 
 const defaultDrivers = [

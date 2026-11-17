@@ -1,0 +1,75 @@
+<div class="relatorios-page">
+  <div class="reports-header">
+    <h1>{{ headingText }}</h1>
+    <div class="date-controls">
+      <div class="date-field">
+        <label for="report-start-date" class="date-label">From:</label>
+        <input
+          id="report-start-date"
+          type="date"
+          class="date-input"
+          [value]="startDate"
+          [max]="todayDate"
+          (change)="onStartDateChange($event)"
+        />
+      </div>
+      <div class="date-field">
+        <label for="report-end-date" class="date-label">To:</label>
+        <input
+          id="report-end-date"
+          type="date"
+          class="date-input"
+          [value]="endDate"
+          [min]="startDate"
+          [max]="todayDate"
+          (change)="onEndDateChange($event)"
+        />
+      </div>
+      <div class="preset-buttons">
+        <button
+          *ngIf="!isToday()"
+          type="button"
+          class="today-btn"
+          (click)="selectToday()"
+        >
+          Today
+        </button>
+        <button type="button" class="preset-btn" (click)="selectLast7Days()">
+          Last 7 days
+        </button>
+        <button type="button" class="preset-btn" (click)="selectThisMonth()">
+          This month
+        </button>
+      </div>
+    </div>
+  </div>
+  <hr>
+
+  <div *ngIf="viagens.length > 0; else semViagens">
+    <div class="content">
+      <div class="card" routerLink="total-trips">
+        <h2>Total trips</h2>
+        <div class="card-number">{{ viagens.length }}</div>
+      </div>
+
+      <div class="card" routerLink="total-hours">
+        <h2>Total hours <br><div class="second-line">(in completed trips)</div></h2>
+        <div class="card-number">{{ formatTotalHoras() }}</div>
+      </div>
+
+      <div class="card" routerLink="total-kms">
+        <h2>Total kilometers <br><div class="second-line">(in completed trips)</div></h2>
+        <div class="card-number">{{ calcularTotalKm() }} Km</div>
+      </div>
+
+      <div class="card" routerLink="total-revenue">
+        <h2>Total revenue <br><div class="second-line">(in completed trips)</div></h2>
+        <div class="card-number">€{{ calcularTotalEuros().toFixed(2) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #semViagens>
+    <p class="sem-viagens-msg">{{ emptyMessage }}</p>
+  </ng-template>
+</div>

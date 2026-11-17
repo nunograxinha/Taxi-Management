@@ -1,0 +1,30 @@
+<div class="shifts-page">
+  <div class="container">
+    <div class="gestor">
+      <div class="header-section">
+        <div class="header-icon">
+          <mat-icon>event_note</mat-icon>
+        </div>
+        <div>
+          <h3 class="header-title">
+            {{ motorista?.name ? motorista?.name + "'s Shifts" : 'Registered Shifts' }}
+          </h3>
+          <p class="subtitle">Review your scheduled shifts or register a new one.</p>
+        </div>
+      </div>
+
+      <app-turno-list class="turno-list"></app-turno-list>
+
+      <div class="btns">
+        <button type="button" class="btn-secondary" [routerLink]="['/driver', motorista?.NIF]">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Back</span>
+        </button>
+        <button type="button" class="btn-primary" routerLink="register-shift">
+          <mat-icon>add</mat-icon>
+          <span>Register a new Shift</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

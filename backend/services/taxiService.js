@@ -51,7 +51,7 @@ module.exports = {
 
     deleteTaxiByLicensePlate: async (plate) => {
         try {
-            const turnoService = require('./turnoService'); 
+            const turnoService = require('./shiftService'); 
             const turno = await turnoService.getTurnosByTaxiPlate(plate);
             if (Array.isArray(turno) && turno.length > 0) {
                 return "Shift associated with Taxi, cannot delete Taxi";

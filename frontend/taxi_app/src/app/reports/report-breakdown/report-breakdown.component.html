@@ -1,0 +1,325 @@
+<div class="breakdown-page">
+  <div class="top-bar">
+    <button type="button" class="back-btn" routerLink="/manager/reports">
+      <span class="material-icons">arrow_back</span>
+      Back to Reports
+    </button>
+    <div class="period-pill">
+      <span class="material-icons">date_range</span>
+      {{ periodLabel }}
+    </div>
+  </div>
+
+  <div class="title-row">
+    <div>
+      <h1>{{ pageTitle }}</h1>
+      <p class="subtitle">
+        Sorted in descending order. Select any subtotal to inspect trips, or click any driver, taxi, or trip for full details.
+      </p>
+    </div>
+    <div class="total-badge">
+      <span class="total-label">Total</span>
+      <span class="total-value">{{ totalSummaryLabel }}</span>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <button
+      *ngIf="metric === 'revenue'"
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'client'"
+      (click)="setTab('client')"
+    >
+      <span class="material-icons">groups</span>
+      By Client ({{ clientGroups.length }})
+    </button>
+    <button
+      *ngIf="metric !== 'revenue'"
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'driver'"
+      (click)="setTab('driver')"
+    >
+      <span class="material-icons">person</span>
+      By Driver ({{ driverGroups.length }})
+    </button>
+    <button
+      *ngIf="metric !== 'revenue'"
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'taxi'"
+      (click)="setTab('taxi')"
+    >
+      <span class="material-icons">local_taxi</span>
+      By Taxi ({{ taxiGroups.length }})
+    </button>
+  </div>
+
+  <div *ngIf="currentGroups.length === 0" class="empty-state">
+    No completed trips found in the selected period.
+  </div>
+
+  <div class="groups-list" *ngIf="currentGroups.length > 0">
+    <div
+      class="subtotal-card"
+      *ngFor="let group of currentGroups"
+      [class.expanded]="expandedGroupId === group.id"
+    >
+      <div class="subtotal-header" (click)="toggleGroup(group.id)">
+        <div class="subtotal-left">
+          <span class="material-icons expand-icon">
+            {{ expandedGroupId === group.id ? 'expand_more' : 'chevron_right' }}
+          </span>
+          <div>
+            <div class="group-title-line">
+              <span class="group-title">{{ group.label }}</span>
+              <button
+                *ngIf="group.driver || group.taxi || group.client"
+                type="button"
+                class="info-chip"
+                (click)="openGroupDetails($event, group)"
+                title="View details"
+              >
+                <span class="material-icons">info_outline</span>
+                Details
+              </button>
+            </div>
+            <div class="group-sublabel" *ngIf="group.sublabel">{{ group.sublabel }}</div>
+          </div>
+        </div>
+
+        <div class="subtotal-right">
+          <span class="trip-count-pill">
+            {{ group.viagens.length }} {{ group.viagens.length === 1 ? 'trip' : 'trips' }}
+          </span>
+          <span class="subtotal-value">{{ formatSubtotal(group.subtotalValue) }}</span>
+        </div>
+      </div>
+
+      <div class="trips-drawer" *ngIf="expandedGroupId === group.id">
+        <div
+          class="trip-row"
+          *ngFor="let trip of group.viagens"
+          (click)="openTripModal(trip)"
+        >
+          <div class="trip-main">
+            <div class="trip-route">
+              <span class="material-icons route-icon">route</span>
+              <span>{{ formatAddress(trip.entryAddress) }} → {{ formatAddress(trip.exitAddress) }}</span>
+            </div>
+            <div class="trip-meta">
+              <span>{{ formatTripTimeRange(trip.entryTime, trip.exitTime) }}</span>
+              <span *ngIf="(activeTab === 'taxi' || activeTab === 'client') && getDriverForTrip(trip) as drv">
+                · Driver:
+                <button
+                  type="button"
+                  class="inline-link"
+                  (click)="$event.stopPropagation(); openDriverModal(drv)"
+                >
+                  {{ drv.name }}
+                </button>
+              </span>
+              <span *ngIf="(activeTab === 'driver' || activeTab === 'client') && getTaxiForTrip(trip) as tx">
+                · Taxi:
+                <button
+                  type="button"
+                  class="inline-link"
+                  (click)="$event.stopPropagation(); openTaxiModal(tx)"
+                >
+                  {{ tx.licensePlate }}
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <div class="trip-right">
+            <span class="trip-metric-badge">{{ formatTripMetric(trip) }}</span>
+            <span class="material-icons arrow-detail">open_in_new</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trip Details Modal -->
+<div class="modal-backdrop" *ngIf="selectedTrip" (click)="closeModals()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Trip Details</h2>
+      <button type="button" class="close-btn" (click)="closeModals()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="detail-item">
+        <span class="detail-label">Start Time</span>
+        <span class="detail-value">{{ formatDateTime(selectedTrip.entryTime) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">End Time</span>
+        <span class="detail-value">{{ formatDateTime(selectedTrip.exitTime) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Duration</span>
+        <span class="detail-value">{{ getTripDuration(selectedTrip) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Distance</span>
+        <span class="detail-value">{{ selectedTrip.distanceKm.toFixed(2) }} Km</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Price</span>
+        <span class="detail-value">€{{ selectedTrip.price.toFixed(2) }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Passengers</span>
+        <span class="detail-value">{{ selectedTrip.numberOfPeople }}</span>
+      </div>
+      <div class="detail-item full-width">
+        <span class="detail-label">Pickup Address</span>
+        <span class="detail-value">{{ formatAddress(selectedTrip.entryAddress) }}</span>
+      </div>
+      <div class="detail-item full-width">
+        <span class="detail-label">Destination Address</span>
+        <span class="detail-value">{{ formatAddress(selectedTrip.exitAddress) }}</span>
+      </div>
+    </div>
+
+    <div class="modal-entity-links">
+      <button
+        *ngIf="getDriverForTrip(selectedTrip) as drv"
+        type="button"
+        class="entity-btn"
+        (click)="openDriverModal(drv)"
+      >
+        <span class="material-icons">person</span>
+        Driver: {{ drv.name }}
+      </button>
+      <button
+        *ngIf="getTaxiForTrip(selectedTrip) as tx"
+        type="button"
+        class="entity-btn"
+        (click)="openTaxiModal(tx)"
+      >
+        <span class="material-icons">local_taxi</span>
+        Taxi: {{ tx.licensePlate }}
+      </button>
+      <button
+        *ngIf="getClientForTrip(selectedTrip) as cli"
+        type="button"
+        class="entity-btn"
+        (click)="openClientModal(cli)"
+      >
+        <span class="material-icons">badge</span>
+        Client: {{ cli.name }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Client Details Modal -->
+<div class="modal-backdrop" *ngIf="selectedClient" (click)="closeModals()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Client Details</h2>
+      <button type="button" class="close-btn" (click)="closeModals()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="detail-item full-width">
+        <span class="detail-label">Name</span>
+        <span class="detail-value">{{ selectedClient.name }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">NIF</span>
+        <span class="detail-value">{{ selectedClient.NIF }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Gender</span>
+        <span class="detail-value">{{ selectedClient.gender }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Driver Details Modal -->
+<div class="modal-backdrop" *ngIf="selectedDriver" (click)="closeModals()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Driver Details</h2>
+      <button type="button" class="close-btn" (click)="closeModals()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="detail-item">
+        <span class="detail-label">Name</span>
+        <span class="detail-value">{{ selectedDriver.name }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">NIF</span>
+        <span class="detail-value">{{ selectedDriver.NIF }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Gender</span>
+        <span class="detail-value">{{ selectedDriver.gender }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Birth Year</span>
+        <span class="detail-value">{{ selectedDriver.birthYear }}</span>
+      </div>
+      <div class="detail-item full-width">
+        <span class="detail-label">Driving License Number</span>
+        <span class="detail-value">{{ selectedDriver.drivingLicenseNumber }}</span>
+      </div>
+      <div class="detail-item full-width" *ngIf="selectedDriver.address">
+        <span class="detail-label">Address</span>
+        <span class="detail-value">
+          {{ selectedDriver.address.street }}, {{ selectedDriver.address.doorNumber }} ·
+          {{ selectedDriver.address.postalCode }} {{ selectedDriver.address.city }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Taxi Details Modal -->
+<div class="modal-backdrop" *ngIf="selectedTaxi" (click)="closeModals()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Taxi Details</h2>
+      <button type="button" class="close-btn" (click)="closeModals()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="detail-item">
+        <span class="detail-label">License Plate</span>
+        <span class="detail-value">{{ selectedTaxi.licensePlate }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Comfort Level</span>
+        <span class="detail-value">{{ selectedTaxi.confort }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Brand</span>
+        <span class="detail-value">{{ selectedTaxi.brand }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Model</span>
+        <span class="detail-value">{{ selectedTaxi.model }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Purchase Year</span>
+        <span class="detail-value">{{ selectedTaxi.purchaseYear }}</span>
+      </div>
+    </div>
+  </div>
+</div>

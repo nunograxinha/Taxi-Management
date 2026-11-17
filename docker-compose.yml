@@ -33,7 +33,7 @@ services:
       dockerfile: Dockerfile
     container_name: taxi-fleet-frontend
     restart: unless-stopped
-    command: ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000"]
+    command: ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000", "--proxy-config", "proxy.conf.json", "--disable-host-check"]
     ports:
       - "4200:4200"
     volumes:

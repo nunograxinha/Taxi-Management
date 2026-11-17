@@ -9,7 +9,7 @@
   </div>
 
   <div class="role-grid">
-    <div class="role-card" (click)="openManagerLogin()">
+    <div class="role-card role-manager" (click)="openManagerLogin()">
       <div class="role-icon">
         <mat-icon>admin_panel_settings</mat-icon>
       </div>
@@ -18,7 +18,7 @@
       <span class="role-action">Open Manager Portal →</span>
     </div>
 
-    <div class="role-card" routerLink="motorista">
+    <div class="role-card role-driver" routerLink="/driver">
       <div class="role-icon">
         <mat-icon>directions_car</mat-icon>
       </div>
@@ -27,7 +27,7 @@
       <span class="role-action">Open Driver Portal →</span>
     </div>
 
-    <div class="role-card" (click)="enterAsClient()">
+    <div class="role-card role-client" (click)="enterAsClient()">
       <div class="role-icon">
         <mat-icon>person_pin_circle</mat-icon>
       </div>

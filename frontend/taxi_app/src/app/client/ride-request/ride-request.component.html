@@ -1,0 +1,136 @@
+<!-- Incluindo o CSS do Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+<!-- Incluindo o JavaScript do Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- Ride Request Form -->
+<form *ngIf="clienteData" [formGroup]="form" (ngSubmit)="submeterPedido()">
+    <h3>Ride Request Details</h3>
+    
+    <!-- Client Pickup Location -->
+    <div>
+        <div class="checkbox-container">
+            <input 
+                type="checkbox" 
+                id="useGeolocation"
+                [checked]="useGeolocation" 
+                (change)="onGeolocationChange($event)" 
+            />
+            <label for="useGeolocation">Use current location?</label>
+        </div>
+
+        <div *ngIf="useGeolocation">
+            <label for="entryAddress">Pickup Address (Obtained automatically): </label>
+            <input
+                type="text"
+                id="entryAddress"
+                formControlName="entryAddress"
+                readonly
+                autocomplete="off"
+            />
+            <p *ngIf="cidade && rua">Location: {{ cidade }}, {{ rua }}</p>
+            <div id="map"></div>
+        </div>
+
+        <div *ngIf="!useGeolocation" class="street-search-wrapper">
+            <label for="pickupStreetInput">Pickup Street Name:</label>
+            <input
+                id="pickupStreetInput"
+                formControlName="pickupStreetInput"
+                placeholder="Type street or locality name (min. 3 letters)..."
+                (input)="onStreetInput($event)"
+                autocomplete="off"
+            />
+            <div class="suggestions-dropdown" *ngIf="streetSuggestions.length > 0">
+                <button
+                    type="button"
+                    class="suggestion-item"
+                    *ngFor="let item of streetSuggestions"
+                    (click)="selectStreetSuggestion(item)"
+                >
+                    <strong>{{ buildStreetLabel(item) }}</strong>
+                    <span>{{ item.nome_localidade }} · {{ getItemPostalCode(item) }}</span>
+                </button>
+            </div>
+            <div *ngIf="cidade && form.get('codigoPostal')?.value" class="auto-filled-grid">
+                <div>
+                    <label for="city">City:</label>
+                    <input id="city" [value]="cidade" readonly placeholder="Filled automatically">
+                </div>
+                <div>
+                    <label for="codigoPostal">Postal Code:</label>
+                    <input id="codigoPostal" formControlName="codigoPostal" readonly placeholder="Filled automatically">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Destination Location -->
+    <div class="street-search-wrapper">
+        <label for="exitStreetInput">Destination Street (or tap the map):</label>
+        <input
+            id="exitStreetInput"
+            formControlName="exitStreetInput"
+            placeholder="Type street or locality name (min. 3 letters)..."
+            (input)="onExitStreetInput($event)"
+            autocomplete="off"
+        />
+        <div class="suggestions-dropdown" *ngIf="exitStreetSuggestions.length > 0">
+            <button
+                type="button"
+                class="suggestion-item"
+                *ngFor="let item of exitStreetSuggestions"
+                (click)="selectExitStreetSuggestion(item)"
+            >
+                <strong>{{ buildStreetLabel(item) }}</strong>
+                <span>{{ item.nome_localidade }} · {{ getItemPostalCode(item) }}</span>
+            </button>
+        </div>
+        <label for="exitAddress">Destination Address (Selected coordinates): </label>
+        <input
+            type="text"
+            id="exitAddress"
+            formControlName="exitAddress"
+            readonly
+            autocomplete="off"
+        />
+        <div id="mapExit"></div>
+    </div>
+  
+    <!-- Comfort Level -->
+    <div>
+      <label for="confort">Comfort Level:</label>
+      <select id="confort" formControlName="confort">
+        <option value="" disabled hidden>Select Comfort Level</option>
+        <option *ngFor="let option of confortOptions" [value]="option">{{ option }}</option>
+      </select>
+      <div *ngIf="form.get('confort')?.invalid && form.get('confort')?.touched">
+        <small class="error">Comfort Level is required.</small>
+      </div>
+    </div>
+
+    <!-- Number of Passengers -->
+    <div>
+        <label for="numberOfPeople">Number of Passengers for the Trip</label>
+        <input 
+            id="numberOfPeople" 
+            formControlName="numberOfPeople" 
+            type="number"
+            min="1"
+        />
+        <div *ngIf="form.get('numberOfPeople')?.invalid && form.get('numberOfPeople')?.touched">
+            <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['required']">
+                Number of passengers is required.
+            </small>
+            <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['min']">
+                There must be at least 1 passenger.
+            </small>
+        </div>
+    </div> 
+
+    <button type="submit" [disabled]="!form.valid">Submit Request</button>
+</form>

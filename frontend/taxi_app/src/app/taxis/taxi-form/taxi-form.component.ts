@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { TaxiService } from '../../appServices/taxi.service';
-import { Taxi } from '../taxi_interface';
-import { TurnoService } from '../../appServices/turno.service';
+import { Taxi } from '../taxi.interface';
+import { TurnoService } from '../../appServices/shift.service';
 
 @Component({
   selector: 'app-taxi-form',

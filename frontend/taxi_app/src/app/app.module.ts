@@ -18,38 +18,39 @@ import { MatListModule } from '@angular/material/list';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 
-import { MotoristaFormComponent } from './motoristas/motorista-form/motorista-form.component';
-import { MotoristaListComponent } from './motoristas/motorista-list/motorista-list.component';
+import { MotoristaFormComponent } from './drivers/driver-form/driver-form.component';
+import { MotoristaListComponent } from './drivers/driver-list/driver-list.component';
 import { HomePageComponent } from './home/home-page/home-page.component';
-import { GestorPageComponent } from './gestor/gestor-page/gestor-page.component';
-import { MotoristaPageComponent } from './motoristas/motorista-page/motorista-page.component';
-import { ClientePageComponent } from './cliente/cliente-page/cliente-page.component';
-import { VerTaxisComponent } from './taxis/ver-taxis/ver-taxis.component';
-import { GerirTaxisComponent } from './taxis/gerir-taxis/gerir-taxis.component';
-import { GerirMotoristasComponent } from './motoristas/gerir-motoristas/gerir-motoristas.component';
-import { GerirPrecosComponent } from './gerir-precos/gerir-precos.component';
-import { SimularPrecoComponent } from './gerir-precos/simular-preco/simular-preco.component';
+import { GestorPageComponent } from './manager/manager-page/manager-page.component';
+import { MotoristaPageComponent } from './drivers/driver-page/driver-page.component';
+import { ClientePageComponent } from './client/client-page/client-page.component';
+import { VerTaxisComponent } from './taxis/taxi-list/taxi-list.component';
+import { GerirTaxisComponent } from './taxis/manage-taxis/manage-taxis.component';
+import { GerirMotoristasComponent } from './drivers/manage-drivers/manage-drivers.component';
+import { GerirPrecosComponent } from './manage-prices/manage-prices.component';
+import { SimularPrecoComponent } from './manage-prices/simulate-price/simulate-price.component';
 
 import { TaxiFormComponent } from './taxis/taxi-form/taxi-form.component';
-import { MotoristaLoginComponent } from './motoristas/motorista-login/motorista-login.component';
-import { PedidoViagemComponent } from './cliente/pedido-viagem/pedido-viagem.component';
-import { ClienteFormComponent } from './cliente/cliente-form/cliente-form.component';
-import { AguardarRespostaComponent } from './cliente/aguardar-resposta/aguardar-resposta.component';
-import { TurnoFormComponent } from './turno/turno-form/turno-form.component';
-import { ConfirmarViagemComponent } from './cliente/confirmar-viagem/confirmar-viagem.component';
-import { PedidosPendentesComponent } from './motoristas/pedidos-pendentes/pedidos-pendentes.component';
-import { GerirTurnoComponent } from './turno/gerir-turno/gerir-turno.component';
-import { TurnoListComponent } from './turno/turno-list/turno-list.component';
-import { VerTurnoComponent } from './turno/ver-turno/ver-turno.component';
-import { PedidoAceitoComponent } from './motoristas/pedido-aceito/pedido-aceito.component';
-import { AcompanharViagemComponent } from './cliente/acompanhar-viagem/acompanhar-viagem.component';
-import { EditarMotoristaComponent } from './motoristas/editar-motorista/editar-motorista.component';
-import { EditarTaxiComponent } from './taxis/editar-taxi/editar-taxi.component';
-import { RelatoriosPageComponent } from './relatorios/relatorios-page/relatorios-page.component';
-import { TotalViagensComponent } from './relatorios/total-viagens/total-viagens.component';
-import { TotalHorasComponent } from './relatorios/total-horas/total-horas.component';
-import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
-import { ReportBreakdownComponent } from './relatorios/report-breakdown/report-breakdown.component';
+import { MotoristaLoginComponent } from './drivers/driver-login/driver-login.component';
+import { PedidoViagemComponent } from './client/ride-request/ride-request.component';
+import { ClienteFormComponent } from './client/client-form/client-form.component';
+import { AguardarRespostaComponent } from './client/waiting-response/waiting-response.component';
+import { TurnoFormComponent } from './shifts/shift-form/shift-form.component';
+import { ConfirmarViagemComponent } from './client/confirm-trip/confirm-trip.component';
+import { PedidosPendentesComponent } from './drivers/pending-requests/pending-requests.component';
+import { GerirTurnoComponent } from './shifts/manage-shifts/manage-shifts.component';
+import { TurnoListComponent } from './shifts/shift-list/shift-list.component';
+import { VerTurnoComponent } from './shifts/shift-detail/shift-detail.component';
+import { PedidoAceitoComponent } from './drivers/accepted-request/accepted-request.component';
+import { AcompanharViagemComponent } from './client/track-trip/track-trip.component';
+import { EditarMotoristaComponent } from './drivers/edit-driver/edit-driver.component';
+import { EditarTaxiComponent } from './taxis/edit-taxi/edit-taxi.component';
+import { RelatoriosPageComponent } from './reports/reports-page/reports-page.component';
+import { TotalViagensComponent } from './reports/total-trips/total-trips.component';
+import { TotalHorasComponent } from './reports/total-hours/total-hours.component';
+import { TotalKmsComponent } from './reports/total-kms/total-kms.component';
+import { TotalRevenueComponent } from './reports/total-revenue/total-revenue.component';
+import { ReportBreakdownComponent } from './reports/report-breakdown/report-breakdown.component';
 
 @NgModule({
   declarations: [
@@ -84,6 +85,7 @@ import { ReportBreakdownComponent } from './relatorios/report-breakdown/report-b
     TotalViagensComponent,
     TotalHorasComponent,
     TotalKmsComponent,
+    TotalRevenueComponent,
     ReportBreakdownComponent,
   ],
   imports: [

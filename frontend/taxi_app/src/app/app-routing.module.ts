@@ -2,54 +2,66 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { HomePageComponent } from './home/home-page/home-page.component';
-import { GestorPageComponent } from './gestor/gestor-page/gestor-page.component';
-import { MotoristaPageComponent } from './motoristas/motorista-page/motorista-page.component';
-import { GerirTurnoComponent } from './turno/gerir-turno/gerir-turno.component';
-import { ClientePageComponent } from './cliente/cliente-page/cliente-page.component';
-import { GerirTaxisComponent } from './taxis/gerir-taxis/gerir-taxis.component';
-import { GerirMotoristasComponent } from './motoristas/gerir-motoristas/gerir-motoristas.component';
-import { GerirPrecosComponent } from './gerir-precos/gerir-precos.component';
-import { SimularPrecoComponent } from './gerir-precos/simular-preco/simular-preco.component';
-import { MotoristaLoginComponent } from './motoristas/motorista-login/motorista-login.component';
-import { AguardarRespostaComponent } from './cliente/aguardar-resposta/aguardar-resposta.component';
-import { ConfirmarViagemComponent } from './cliente/confirmar-viagem/confirmar-viagem.component';
-import { PedidosPendentesComponent } from './motoristas/pedidos-pendentes/pedidos-pendentes.component';
-import { TurnoFormComponent } from './turno/turno-form/turno-form.component';
-import { PedidoAceitoComponent } from './motoristas/pedido-aceito/pedido-aceito.component';
-import { AcompanharViagemComponent } from './cliente/acompanhar-viagem/acompanhar-viagem.component';
-import { EditarMotoristaComponent } from './motoristas/editar-motorista/editar-motorista.component';
-import { EditarTaxiComponent } from './taxis/editar-taxi/editar-taxi.component';
-import { RelatoriosPageComponent } from './relatorios/relatorios-page/relatorios-page.component';
-import { TotalHorasComponent } from './relatorios/total-horas/total-horas.component';
-import { TotalKmsComponent } from './relatorios/total-kms/total-kms.component';
-import { TotalViagensComponent } from './relatorios/total-viagens/total-viagens.component';
+import { GestorPageComponent } from './manager/manager-page/manager-page.component';
+import { MotoristaPageComponent } from './drivers/driver-page/driver-page.component';
+import { GerirTurnoComponent } from './shifts/manage-shifts/manage-shifts.component';
+import { ClientePageComponent } from './client/client-page/client-page.component';
+import { GerirTaxisComponent } from './taxis/manage-taxis/manage-taxis.component';
+import { GerirMotoristasComponent } from './drivers/manage-drivers/manage-drivers.component';
+import { GerirPrecosComponent } from './manage-prices/manage-prices.component';
+import { SimularPrecoComponent } from './manage-prices/simulate-price/simulate-price.component';
+import { MotoristaLoginComponent } from './drivers/driver-login/driver-login.component';
+import { AguardarRespostaComponent } from './client/waiting-response/waiting-response.component';
+import { ConfirmarViagemComponent } from './client/confirm-trip/confirm-trip.component';
+import { PedidosPendentesComponent } from './drivers/pending-requests/pending-requests.component';
+import { TurnoFormComponent } from './shifts/shift-form/shift-form.component';
+import { PedidoAceitoComponent } from './drivers/accepted-request/accepted-request.component';
+import { AcompanharViagemComponent } from './client/track-trip/track-trip.component';
+import { EditarMotoristaComponent } from './drivers/edit-driver/edit-driver.component';
+import { EditarTaxiComponent } from './taxis/edit-taxi/edit-taxi.component';
+import { RelatoriosPageComponent } from './reports/reports-page/reports-page.component';
+import { TotalHorasComponent } from './reports/total-hours/total-hours.component';
+import { TotalKmsComponent } from './reports/total-kms/total-kms.component';
+import { TotalViagensComponent } from './reports/total-trips/total-trips.component';
+import { TotalRevenueComponent } from './reports/total-revenue/total-revenue.component';
 import { managerGuard, driverGuard } from './appServices/auth.guard';
 
 const routes: Routes = [
   { path: '', component: HomePageComponent },
-  { path: 'gestor', component: GestorPageComponent, canActivate: [managerGuard] },
-  { path: 'gestor/gerir-taxis', component: GerirTaxisComponent, canActivate: [managerGuard] },
-  { path: 'gestor/gerir-motoristas', component: GerirMotoristasComponent, canActivate: [managerGuard] },
-  { path: 'gestor/gerir-precos', component: GerirPrecosComponent, canActivate: [managerGuard] },
-  { path: 'gestor/gerir-precos/simulacao', component: SimularPrecoComponent, canActivate: [managerGuard] },
-  { path: 'gestor/editar-motorista/:nif', component: EditarMotoristaComponent, canActivate: [managerGuard] },
-  { path: 'gestor/editar-taxi/:licensePlate', component: EditarTaxiComponent, canActivate: [managerGuard] },
-  { path: 'gestor/relatorios', component: RelatoriosPageComponent, canActivate: [managerGuard] },
-  { path: 'gestor/relatorios/total-viagens', component: TotalViagensComponent, canActivate: [managerGuard] },
-  { path: 'gestor/relatorios/total-horas', component: TotalHorasComponent, canActivate: [managerGuard] },
-  { path: 'gestor/relatorios/total-kms', component: TotalKmsComponent, canActivate: [managerGuard] },
+  { path: 'manager', component: GestorPageComponent, canActivate: [managerGuard] },
+  { path: 'manager/manage-taxis', component: GerirTaxisComponent, canActivate: [managerGuard] },
+  { path: 'manager/manage-drivers', component: GerirMotoristasComponent, canActivate: [managerGuard] },
+  { path: 'manager/manage-prices', component: GerirPrecosComponent, canActivate: [managerGuard] },
+  { path: 'manager/manage-prices/simulation', component: SimularPrecoComponent, canActivate: [managerGuard] },
+  { path: 'manager/edit-driver/:nif', component: EditarMotoristaComponent, canActivate: [managerGuard] },
+  { path: 'manager/edit-taxi/:licensePlate', component: EditarTaxiComponent, canActivate: [managerGuard] },
+  { path: 'manager/reports', component: RelatoriosPageComponent, canActivate: [managerGuard] },
+  { path: 'manager/reports/total-trips', component: TotalViagensComponent, canActivate: [managerGuard] },
+  { path: 'manager/reports/total-hours', component: TotalHorasComponent, canActivate: [managerGuard] },
+  { path: 'manager/reports/total-kms', component: TotalKmsComponent, canActivate: [managerGuard] },
+  { path: 'manager/reports/total-revenue', component: TotalRevenueComponent, canActivate: [managerGuard] },
 
-  { path: 'motorista', component: MotoristaLoginComponent },
-  { path: 'motorista/:nif', component: MotoristaPageComponent, canActivate: [driverGuard] },
-  { path: 'motorista/:nif/pedidos-pendentes', component: PedidosPendentesComponent, canActivate: [driverGuard] },
-  { path: 'motorista/:nif/turnos', component: GerirTurnoComponent, canActivate: [driverGuard] },
-  { path: 'motorista/:nif/turnos/registar-turno', component: TurnoFormComponent, canActivate: [driverGuard] },
-  { path: 'motorista/pedido-aceito/:pedidoId', component: PedidoAceitoComponent, canActivate: [driverGuard] },
+  { path: 'driver', component: MotoristaLoginComponent },
+  { path: 'driver/accepted-request/:pedidoId', component: PedidoAceitoComponent, canActivate: [driverGuard] },
+  {
+    path: 'driver/:nif',
+    component: MotoristaPageComponent,
+    canActivate: [driverGuard],
+    children: [
+      { path: 'pending-requests', component: PedidosPendentesComponent },
+      { path: 'shifts', component: GerirTurnoComponent },
+      { path: 'shifts/register-shift', component: TurnoFormComponent }
+    ]
+  },
 
-  { path: 'cliente', component: ClientePageComponent },
-  { path: 'cliente/aguardar-resposta/:pedidoId', component: AguardarRespostaComponent },
-  { path: 'cliente/confirmar-viagem/:pedidoId', component: ConfirmarViagemComponent },
-  { path: 'cliente/acompanhar-viagem/:pedidoId', component: AcompanharViagemComponent},
+  { path: 'gestor', redirectTo: 'manager', pathMatch: 'full' },
+  { path: 'motorista', redirectTo: 'driver', pathMatch: 'full' },
+
+  { path: 'client', component: ClientePageComponent },
+  { path: 'client/waiting-response/:pedidoId', component: AguardarRespostaComponent },
+  { path: 'client/confirm-trip/:pedidoId', component: ConfirmarViagemComponent },
+  { path: 'client/track-trip/:pedidoId', component: AcompanharViagemComponent},
+  { path: 'cliente', redirectTo: 'client', pathMatch: 'full' },
 
   { path: '**', redirectTo: '' }
 ];

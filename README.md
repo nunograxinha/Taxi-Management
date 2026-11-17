@@ -9,18 +9,21 @@ A full-stack web application built with the **MEAN stack (MongoDB, Express, Angu
 The platform is divided into three user roles:
 
 ### 1. Manager Portal (`/gestor`)
+
 - **Fleet Management (Taxis):** Register, list (sorted by latest update), edit, and delete taxis with Portuguese license plate validation and protection against deleting or changing comfort levels on taxis with assigned shifts.
 - **Driver Management:** Register, edit, and delete drivers with Tax ID (NIF), driver's license, and minimum age (18+) validation, plus automatic city lookup from Portuguese postal codes (`CSV`).
 - **Pricing Configuration & Simulator:** Configure per-minute rates (Basic and Luxury) and nighttime surcharge (9 PM – 6 AM), including a built-in trip cost simulator.
 - **Daily Reports:** View daily operational metrics and statistics (total trips, hours driven, and kilometers traveled per driver).
 
 ### 2. Driver Portal (`/motorista`)
+
 - **NIF Authentication:** Quick access to the driver dashboard.
 - **Shift Management:** Book shifts (up to 8 hours, preventing overlapping schedules) with automatic filtering of available taxis for the selected time window.
 - **Pending Ride Requests:** Browse customer ride requests matching the active shift's taxi comfort level and fitting within the remaining shift time, sorted by proximity to the customer (Haversine formula).
 - **Ride Execution:** Record trip start and end times with GPS coordinates, automatically calculate the final fare (accounting for daytime/nighttime minutes), and log completed rides to the active shift.
 
 ### 3. Customer Portal (`/cliente`)
+
 - **Ride Booking with Interactive Map:** Select pickup location (via live browser GPS or Postal Code) and destination (by clicking directly on an interactive **Leaflet / OpenStreetMap** map or geocoding a street address).
 - **Driver Confirmation:** Review assigned driver and vehicle details, estimated arrival time, estimated fare, and nighttime surcharge warnings, with the option to accept or reject the driver.
 - **Live Trip Tracking:** Track ride status in real time (*Waiting for driver*, *In progress*, and *Completed* with total duration and final price).
@@ -72,10 +75,13 @@ psi-2425-main/
 ## Getting Started
 
 ### Option A: Quick Start with Docker (Recommended)
+
 Run the entire stack (**MongoDB + Backend + Frontend**) with a single command:
+
 ```bash
 docker compose up --build
 ```
+
 - **Frontend:** `http://localhost:4200`
 - **Backend API:** `http://localhost:3073`
 
@@ -84,34 +90,42 @@ docker compose up --build
 ### Option B: Manual Setup
 
 #### Prerequisites
+
 - **Node.js** (v18 or higher) and **npm**
 - **MongoDB** (local instance or MongoDB Atlas cluster)
 
 #### 1. Backend Setup
+
 ```bash
 cd backend
 npm install
 ```
 
 Create a `.env` file inside the `backend/` folder (you can copy `.env.example`):
+
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/psi
 PORT=3073
 ```
 
 Start the backend server:
+
 ```bash
 npm start
 ```
+
 > The API will be running at `http://localhost:3073` and will automatically seed the default pricing configuration, initial drivers, and taxis on startup.
 
 #### 2. Frontend Setup
+
 In a new terminal:
+
 ```bash
 cd frontend/taxi_app
 npm install
 npm start
 ```
+
 > Open your browser at `http://localhost:4200`.
 
 ---

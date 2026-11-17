@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.showNavbar = event.urlAfterRedirects.startsWith('/gestor');
+        this.showNavbar = event.urlAfterRedirects.startsWith('/manager');
       }
     });
   }

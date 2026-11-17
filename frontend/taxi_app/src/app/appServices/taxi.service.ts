@@ -1,14 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Taxi } from '../taxis/taxi_interface';
+import { Taxi } from '../taxis/taxi.interface';
+import { API_BASE_URL } from './api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TaxiService {
 
-  private baseUrl = 'http://localhost:3073/taxi'; //3073
+  private baseUrl = `${API_BASE_URL}/taxi`; //3073
 
 
   constructor(private http: HttpClient) {}

@@ -39,7 +39,7 @@ export class HomePageComponent {
       next: () => {
         this.isSubmitting = false;
         this.showManagerLogin = false;
-        this.router.navigate(['/gestor']);
+        this.router.navigate(['/manager']);
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -49,6 +49,6 @@ export class HomePageComponent {
   }
 
   enterAsClient(): void {
-    this.router.navigate(['/cliente']);
+    this.router.navigate(['/client']);
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { API_BASE_URL } from './api.config';
 
 export interface AuthResponse {
   token: string;
@@ -12,7 +13,7 @@ export interface AuthResponse {
     _id?: string;
     NIF: string;
     name: string;
-    gender: 'Male' | 'Female';
+    gender: 'Male' | 'Female' | 'Non-binary';
   };
 }
 
@@ -20,7 +21,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:3073/auth';
+  private readonly apiUrl = `${API_BASE_URL}/auth`;
   private readonly TOKEN_KEY = 'taxi_jwt_token';
   private readonly ROLE_KEY = 'taxi_user_role';
   private readonly DRIVER_NIF_KEY = 'taxi_driver_nif';

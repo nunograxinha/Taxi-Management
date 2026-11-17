@@ -1,0 +1,132 @@
+<div class="pedidos-page">
+  <div class="pedidos-container">
+    <div *ngIf="loading" class="state-card loading">
+      <mat-icon>hourglass_top</mat-icon>
+      <h3>Loading pending requests...</h3>
+      <p>Checking for available client rides in your area.</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="status-banner error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <div>
+        <strong>Unable to load requests</strong>
+        <p>{{ errorMessage }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !errorMessage" class="content-stack">
+      <div class="status-banner turno-info" *ngIf="hasActiveShift">
+        <div class="banner-icon success-icon">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <div class="banner-text">
+          <strong>Current shift: Ends in {{ remainingShiftMinutes }} minutes</strong>
+          <p>Only requests that can be completed within your shift are shown.</p>
+        </div>
+      </div>
+
+      <div *ngIf="!hasActiveShift" class="status-banner warning-banner">
+        <div class="banner-icon warning-icon">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
+        <div class="banner-text">
+          <strong>No active shift right now</strong>
+          <p>All pending requests are shown.</p>
+        </div>
+      </div>
+
+      <div *ngIf="isWaitingClient" class="state-card waiting-client">
+        <div class="empty-icon">
+          <mat-icon>hourglass_top</mat-icon>
+        </div>
+        <h3>Waiting for Client Confirmation</h3>
+        <p>You have accepted a ride request. You cannot accept other rides until the client confirms or cancels this request.</p>
+        <button type="button" class="cancel-wait-btn" (click)="cancelPendingAcceptance()">
+          <mat-icon>close</mat-icon>
+          <span>Cancel Offer</span>
+        </button>
+      </div>
+
+      <div *ngIf="!isWaitingClient && pendingRequests.length === 0" class="state-card no-pedidos">
+        <div class="empty-icon">
+          <mat-icon>local_taxi</mat-icon>
+        </div>
+        <h3>No pending taxi requests</h3>
+        <p>There are no matching ride requests at the moment. New requests will appear here automatically.</p>
+      </div>
+
+      <div *ngIf="!isWaitingClient && pendingRequests.length > 0" class="pedidos-list">
+        <div *ngFor="let request of pendingRequests" class="pedido-card">
+          <div class="pedido-header">
+            <div class="pedido-title">
+              <div class="request-icon">
+                <mat-icon>hail</mat-icon>
+              </div>
+              <h3>Request #{{ request._id?.substr(-5) }}</h3>
+            </div>
+            <span class="distance-badge">
+              <mat-icon>near_me</mat-icon>
+              {{ getClientDistance(request._id || '') | number:'1.1-1' }} km away
+            </span>
+          </div>
+
+          <div class="pedido-chips">
+            <span class="meta-chip">
+              <mat-icon>group</mat-icon>
+              {{ request.numberOfPeople }} {{ request.numberOfPeople === 1 ? 'passenger' : 'passengers' }}
+            </span>
+            <span class="meta-chip">
+              <mat-icon>star</mat-icon>
+              {{ request.confort }}
+            </span>
+          </div>
+
+          <div class="location-box">
+            <div class="location-row">
+              <mat-icon class="loc-icon pickup">my_location</mat-icon>
+              <div>
+                <span class="loc-label">Client Location</span>
+                <p class="address">{{ getClientAddress(request._id || '') }}</p>
+                <p class="coordinates">{{ request.entryAddress }}</p>
+              </div>
+            </div>
+            <div class="location-row">
+              <mat-icon class="loc-icon dropoff">place</mat-icon>
+              <div>
+                <span class="loc-label">Destination</span>
+                <p class="address">{{ getDestinationAddress(request._id || '') }}</p>
+                <p class="coordinates">{{ request.exitAddress }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="time-grid">
+            <div class="stat-item">
+              <span class="stat-label">ETA to client</span>
+              <span class="stat-value">{{ getArrivalTime(request._id || '') }} min</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Trip distance</span>
+              <span class="stat-value">{{ getTripDistance(request._id || '') | number:'1.1-1' }} km</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Trip duration</span>
+              <span class="stat-value">{{ getTripTime(request._id || '') }} min</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total time</span>
+              <span class="stat-value">{{ getTotalTime(request._id || '') }} min</span>
+            </div>
+          </div>
+
+          <div class="pedido-actions">
+            <button type="button" (click)="onAcceptRequest(request)" class="accept-btn">
+              <mat-icon>check_circle</mat-icon>
+              <span>Accept Request</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

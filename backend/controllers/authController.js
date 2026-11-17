@@ -1,5 +1,5 @@
-const { Motorista } = require('../models/motorista');
-const { Cliente } = require('../models/cliente');
+const { Motorista } = require('../models/driver');
+const { Cliente } = require('../models/client');
 const { signToken } = require('../utils/jwt');
 const { hashPassword, verifyPassword, safeCompareStrings } = require('../utils/password');
 

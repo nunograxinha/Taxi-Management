@@ -28,5 +28,5 @@ export const driverGuard: CanActivateFn = (route) => {
   }
 
   snackBar.open('Please sign in with your Driver profile first.', 'Close', { duration: 3500 });
-  return router.createUrlTree(['/motorista']);
+  return router.createUrlTree(['/driver']);
 };

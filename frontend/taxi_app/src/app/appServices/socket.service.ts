@@ -7,10 +7,10 @@ import { io, Socket } from 'socket.io-client';
 })
 export class SocketService {
   private socket: Socket;
-  private readonly serverUrl = 'http://localhost:3073';
 
   constructor() {
-    this.socket = io(this.serverUrl, {
+    this.socket = io({
+      path: '/socket.io',
       transports: ['websocket', 'polling']
     });
   }

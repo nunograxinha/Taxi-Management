@@ -1,0 +1,207 @@
+input[readonly] {
+  background-color: #f4f4f4;
+  cursor: not-allowed;
+}
+
+form {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 30px auto;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+label {
+  display: block;
+  margin: 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+  border-color: #FFEB3B; 
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #FFEB3B;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button:hover:enabled {
+  background-color: #FFEB3B;
+  transform: translateY(-1px) scale(1.02);
+}
+
+button:active:enabled {
+  transform: scale(0.98);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.5); 
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+small {
+  display: block;
+  margin-top: 5px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  form {
+    padding: 15px;
+  }
+}
+
+#map, #mapExit {
+  width: 100%;
+  height: 300px;
+  position: relative;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+#miniMap {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.address-message {
+  padding: 8px;
+  margin: 10px 0;
+  border-radius: 4px;
+}
+
+.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.mini-map-container {
+  margin-top: 15px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: auto;
+  margin-right: 10px;
+  margin-bottom: 0;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-secondary:hover:enabled {
+  background-color: #5a6268;
+}
+
+.manual-address {
+  background-color: #f0f0f0;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.street-search-wrapper {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: relative;
+  z-index: 20;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  margin-top: -10px;
+  margin-bottom: 14px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.suggestion-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.suggestion-item:hover {
+  background: #fef9c3;
+}
+
+.suggestion-item span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.auto-filled-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
