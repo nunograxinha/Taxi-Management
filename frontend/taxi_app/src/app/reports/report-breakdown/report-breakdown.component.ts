@@ -10,6 +10,7 @@ import { Driver } from '../../drivers/driver.interface';
 import { Taxi } from '../../taxis/taxi.interface';
 import { Client } from '../../client/client.interface';
 import { GeolocationService } from '../../appServices/geolocation.service';
+import { getTaxiCarImage } from '../../appServices/taxi-icon.util';
 
 @Component({
   selector: 'app-report-breakdown',
@@ -232,6 +233,10 @@ export class ReportBreakdownComponent implements OnInit {
     this.selectedDriver = null;
     this.selectedTaxi = null;
     this.selectedClient = null;
+  }
+
+  getTaxiImage(taxi: Taxi): string {
+    return getTaxiCarImage(taxi.brand, taxi.model);
   }
 
   formatDateTime(dateInput: Date | string): string {

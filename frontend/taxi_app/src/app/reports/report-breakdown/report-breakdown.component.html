@@ -299,6 +299,14 @@
       </button>
     </div>
 
+    <div class="modal-taxi-preview">
+      <img
+        class="modal-taxi-img"
+        [src]="getTaxiImage(selectedTaxi)"
+        [alt]="selectedTaxi.brand + ' ' + selectedTaxi.model"
+      />
+    </div>
+
     <div class="modal-grid">
       <div class="detail-item">
         <span class="detail-label">License Plate</span>
@@ -315,6 +323,10 @@
       <div class="detail-item">
         <span class="detail-label">Model</span>
         <span class="detail-value">{{ selectedTaxi.model }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Passenger Capacity</span>
+        <span class="detail-value">{{ selectedTaxi.passengerCapacity || 4 }} seats</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Purchase Year</span>
