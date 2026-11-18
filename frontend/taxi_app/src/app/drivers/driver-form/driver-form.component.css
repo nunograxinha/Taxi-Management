@@ -81,7 +81,7 @@ small {
 
 @media (max-width: 768px) {
   form {
-    padding: 15px; /* Ajusta o padding em telas pequenas */
+    padding: 15px; /* Adjust padding on small screens */
   }
 
   h3 {

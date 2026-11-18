@@ -91,7 +91,7 @@ export class RideRequestComponent implements OnInit, AfterViewChecked, OnDestroy
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData'] && this.clienteData) {
-      console.log('Client recebido no RideRequestComponent:', this.clienteData);
+      console.log('Client received in RideRequestComponent:', this.clienteData);
       this.clienteData = changes['clienteData'].currentValue;
     }
   }
@@ -241,7 +241,7 @@ export class RideRequestComponent implements OnInit, AfterViewChecked, OnDestroy
         this.miniMap = null;
       }
       if (document.getElementById('mapExit') && !this.mapExit) {
-        console.log('Reinicializando o mapa de saída...');
+        console.log('Reinitializing destination map...');
         this.initMapExit();
       }
       this.mapExitInitialized = false;
@@ -258,7 +258,7 @@ export class RideRequestComponent implements OnInit, AfterViewChecked, OnDestroy
         try {
           const position = await firstValueFrom(this.geolocationService.getCurrentPosition());
           if (position) {
-            console.log('Localização obtida:', position);
+            console.log('Location obtained:', position);
             const coordenadas = `${position.latitude},${position.longitude}`;
             this.form.patchValue({ entryAddress: coordenadas });
             
@@ -270,12 +270,12 @@ export class RideRequestComponent implements OnInit, AfterViewChecked, OnDestroy
                 this.rua = rua;
               }
             } catch (addressError) {
-              console.warn('Não foi possível obter o endereço para as coordenadas, usando coordenadas diretamente');
+              console.warn('Could not obtain address for coordinates, using raw coordinates directly');
               // Continue with just the coordinates, no need to alert the user
             }
           }
         } catch (err) {
-          console.error('Erro ao obter localização:', err);
+          console.error('Error obtaining location:', err);
           this.snackBar.open(
             'Automatic GPS requires HTTPS or permission. Tap on the map to choose your pickup location.',
             'Close',
@@ -291,12 +291,12 @@ export class RideRequestComponent implements OnInit, AfterViewChecked, OnDestroy
     const checkbox = event.target as HTMLInputElement;
     this.useGeolocation = checkbox.checked;
     if (this.useGeolocation) {
-      console.log('Geolocalização ativada');
+      console.log('Geolocation enabled');
       this.getLocation();
       this.initMap();
       this.streetSuggestions = [];
     } else {
-      console.log('Geolocalização desativada');
+      console.log('Geolocation disabled');
       this.clearMap();
       this.form.patchValue({ entryAddress: '', codigoPostal: '', pickupStreetInput: '' });
       this.cidade = null;

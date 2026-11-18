@@ -15,9 +15,9 @@ export class TotalHoursComponent {
     ngOnInit() {
     this.relatorioState.getViagensPorMotoristaHoje$().subscribe(mapa => {
       this.viagensPorMotorista = Array.from(mapa.entries()).map(([motoristaId, viagens]) => {
-        console.log('motoristaId:', motoristaId);
+        console.log('driverId:', motoristaId);
         const motorista = this.relatorioState.getDriver(motoristaId);
-        console.log("motorista: ",motorista);
+        console.log('driver:', motorista);
         return {
           motoristaId,
           viagens
@@ -50,7 +50,7 @@ export class TotalHoursComponent {
     const intervaloMs = saida - entrada;
     const intervaloHoras = intervaloMs / (1000 * 60 * 60);
 
-    return parseFloat(intervaloHoras.toFixed(2)); // arredonda para 2 casas decimais
+    return parseFloat(intervaloHoras.toFixed(2)); // round to 2 decimal places
 }
 
 }

@@ -63,7 +63,7 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
         this.turnoService.getShiftsByDriverNIF(m.NIF!).subscribe({
           next: (turnos) => {
             this.turnos = turnos;
-            console.log('Turnos do motorista:', this.turnos);
+            console.log('Driver shifts:', this.turnos);
         
             this.semTurnos = this.turnos.length === 0;
         
@@ -80,7 +80,7 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             this.loading = false;
-            console.error('Erro ao buscar turnos:', err);
+            console.error('Error fetching shifts:', err);
           }
         });
 
@@ -92,7 +92,7 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
           this.atualizarViagensDoTurnoAtual();
           },
           error: (err) => {
-            console.error('Erro ao buscar viagens:', err);
+            console.error('Error fetching trips:', err);
           }
         });
       }
@@ -117,20 +117,20 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
 
   getTurnoAtual(): Shift | undefined {
     const agora = new Date();
-    console.log('Data atual:', agora.toISOString());
+    console.log('Current date:', agora.toISOString());
   
     for (const turno of this.turnos) {
       const inicio = new Date(turno.start);
       const fim = new Date(turno.end);
-      console.log(`Shift: ${inicio.toISOString()} até ${fim.toISOString()}`);
+      console.log(`Shift: ${inicio.toISOString()} to ${fim.toISOString()}`);
   
       if (agora >= inicio && agora <= fim) {
-        console.log('Shift atual encontrado:', turno);
+        console.log('Current shift found:', turno);
         return turno;
       }
     }
   
-    console.log('Nenhum turno atual encontrado.');
+    console.log('No current shift found.');
     return undefined;
   }
 

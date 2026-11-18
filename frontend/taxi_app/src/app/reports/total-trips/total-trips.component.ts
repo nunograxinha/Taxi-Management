@@ -15,9 +15,9 @@ export class TotalTripsComponent {
     ngOnInit() {
     this.relatorioState.getViagensPorMotoristaHoje$().subscribe(mapa => {
       this.viagensPorMotorista = Array.from(mapa.entries()).map(([motoristaId, viagens]) => {
-        console.log('motoristaId:', motoristaId);
+        console.log('driverId:', motoristaId);
         const motorista = this.relatorioState.getDriver(motoristaId);
-        console.log("motorista: ",motorista);
+        console.log('driver:', motorista);
         return {
           motoristaId,
           viagens

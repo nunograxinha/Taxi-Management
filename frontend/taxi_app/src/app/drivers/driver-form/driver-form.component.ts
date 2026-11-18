@@ -14,7 +14,7 @@ export class DriverFormComponent implements OnInit, OnChanges{
 
   motoristaForm: FormGroup;
 
-  codigosPostais: any[] = []; //guarda os dados do ficheiro CSV
+  codigosPostais: any[] = []; // stores CSV file data
 
   mensagemSucesso: string = '';
 
