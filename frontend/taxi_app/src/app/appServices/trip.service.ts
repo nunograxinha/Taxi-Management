@@ -1,18 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of } from 'rxjs';
-import { Viagem } from '../trips/trip.interface';
+import { catchError, Observable, of } from 'rxjs';
+import { Trip } from '../trips/trip.interface';
 import { API_BASE_URL } from './api.config';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ViagemService {
+export class TripService {
   private url = `${API_BASE_URL}/trip`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  // Handle errors and return a default value
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(`${operation} failed: ${error.message}`);
@@ -20,74 +19,51 @@ export class ViagemService {
     };
   }
 
-  // List all trips in DB
-  listarTodasViagens(): Observable<any[]> {
-    return this.http.get<Viagem[]>(`${this.url}/`).pipe(
-      catchError(this.handleError<Viagem[]>('listarTodasViagens', []))
-    );
-}
-
-  criarViagem(viagem: any): Observable<Viagem> {
-    return this.http.post<Viagem>(this.url, viagem).pipe(
-      catchError(this.handleError<Viagem>('criarViagem'))
+  getAllTrips(): Observable<Trip[]> {
+    return this.http.get<Trip[]>(`${this.url}/`).pipe(
+      catchError(this.handleError<Trip[]>('getAllTrips', []))
     );
   }
 
-  // List all trips for a driver
-  listarViagens(motoristaId: string): Observable<Viagem[]> {
-    return this.http.get<Viagem[]>(`${this.url}/driver/${motoristaId}`).pipe(
-      catchError(this.handleError<Viagem[]>('listarViagens', []))
+  createTrip(trip: any): Observable<Trip> {
+    return this.http.post<Trip>(this.url, trip).pipe(
+      catchError(this.handleError<Trip>('createTrip'))
     );
   }
 
-  // Get details of a specific trip
-  detalharViagem(viagemId: string): Observable<Viagem | null> {
-    const url = `${this.url}/${viagemId}`;
-    return this.http.get<Viagem>(url).pipe(
-      catchError(this.handleError<Viagem>('detalharViagem', null!))
+  getTripsByDriver(driverId: string): Observable<Trip[]> {
+    return this.http.get<Trip[]>(`${this.url}/driver/${driverId}`).pipe(
+      catchError(this.handleError<Trip[]>('getTripsByDriver', []))
     );
   }
 
-  // Accept a ride request
-  aceitarPedido(viagemId: string, driverId: string): Observable<Viagem> {
-    const url = `${this.url}/${viagemId}`;
-    const body = { driver: driverId };
-    
-    return this.http.put<Viagem>(url, body).pipe(
-      catchError(this.handleError<Viagem>('aceitarPedido'))
+  getTripById(tripId: string): Observable<Trip | null> {
+    return this.http.get<Trip>(`${this.url}/${tripId}`).pipe(
+      catchError(this.handleError<Trip>('getTripById', null!))
     );
   }
 
-  // Register a trip (when the client enters the taxi)
-registarViagem(viagemId: string): Observable<Viagem> {
-  const url = `${this.url}/${viagemId}`;
-  
-  const payload = {
-    entryTime: new Date()
-  };
-  
-  return this.http.put<Viagem>(url, payload).pipe(
-    catchError(this.handleError<Viagem>('registarViagem'))
-  );
-}
+  acceptRideRequest(tripId: string, driverId: string): Observable<Trip> {
+    return this.http.put<Trip>(`${this.url}/${tripId}`, { driver: driverId }).pipe(
+      catchError(this.handleError<Trip>('acceptRideRequest'))
+    );
+  }
 
-// Finish a trip (register the end of the trip)
-finalizarViagem(viagemId: string): Observable<Viagem> {
-  const url = `${this.url}/${viagemId}`;
-  
-  const payload = {
-    exitTime: new Date()
-  };
-  
-  return this.http.put<Viagem>(url, payload).pipe(
-    catchError(this.handleError<Viagem>('finalizarViagem'))
-  );
-}
+  startTrip(tripId: string): Observable<Trip> {
+    return this.http.put<Trip>(`${this.url}/${tripId}`, { entryTime: new Date() }).pipe(
+      catchError(this.handleError<Trip>('startTrip'))
+    );
+  }
 
-  recusarViagem(viagemId: string): Observable<any> {
-    const url = `${this.url}/${viagemId}`;
-    return this.http.delete<Viagem>(url).pipe(
-      catchError(this.handleError<Viagem>('recusarViagem'))
+  finishTrip(tripId: string): Observable<Trip> {
+    return this.http.put<Trip>(`${this.url}/${tripId}`, { exitTime: new Date() }).pipe(
+      catchError(this.handleError<Trip>('finishTrip'))
+    );
+  }
+
+  rejectTrip(tripId: string): Observable<any> {
+    return this.http.delete<Trip>(`${this.url}/${tripId}`).pipe(
+      catchError(this.handleError<Trip>('rejectTrip'))
     );
   }
 }

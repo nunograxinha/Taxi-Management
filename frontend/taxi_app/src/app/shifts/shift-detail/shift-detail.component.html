@@ -16,7 +16,12 @@
     </div>
     <div class="header-actions">
       <button class="secondary-btn" routerLink="shifts">Manage Shifts</button>
-      <button class="primary-btn" routerLink="pending-requests">Find Rides</button>
+      <button class="primary-btn find-rides-btn" routerLink="pending-requests">
+        <span>Find Rides</span>
+        <span class="rides-count-badge" [class.has-rides]="compatiblePendingCount > 0">
+          {{ compatiblePendingCount }}
+        </span>
+      </button>
     </div>
   </div>
 
@@ -29,19 +34,47 @@
       <span class="info-label">End Time</span>
       <span class="info-value">{{ formatDate(turnoAtual.end) }}</span>
     </div>
-    <div class="info-item">
+    <div class="info-item taxi-info-item">
       <span class="info-label">Assigned Taxi</span>
-      <span class="info-value">{{ getTaxiInfo(turnoAtual.taxi) }}</span>
+      <ng-container *ngIf="getTaxi(turnoAtual.taxi) as taxi; else loadingTaxi">
+        <div class="taxi-info-row">
+          <img
+            class="shift-taxi-thumb"
+            [src]="getTaxiImage(taxi)"
+            [alt]="taxi.brand + ' ' + taxi.model"
+          />
+          <div class="taxi-text-block">
+            <span class="info-value">{{ taxi.brand }} {{ taxi.model }}</span>
+            <div class="taxi-submeta">
+              <span class="taxi-plate-badge">{{ taxi.licensePlate }}</span>
+              <span>{{ taxi.confort }} · {{ taxi.passengerCapacity || 4 }} seats</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #loadingTaxi>
+        <span class="info-value">{{ getTaxiInfo(turnoAtual.taxi) }}</span>
+      </ng-template>
     </div>
   </div>
 
   <div class="painel-controlo">
     <div *ngIf="viagensDoTurnoAtual.length > 0">
-      <h2>Completed Trips in This Shift</h2>
+      <div class="trips-header">
+        <h2>Completed Trips in This Shift ({{ viagensDoTurnoAtual.length }})</h2>
+        <span class="shift-total-badge">Total: {{ getTotalTurno() | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
       <ul>
         <li *ngFor="let viagem of viagensDoTurnoAtual">
-          <div>
-            <strong>{{ formatDate(viagem.entryTime) }} → {{ formatDate(viagem.exitTime) }}</strong>
+          <div class="trip-main">
+            <div class="trip-route">
+              <mat-icon class="route-pin">route</mat-icon>
+              <span>{{ viagem.entryAddressLabel || formatAddress(viagem.entryAddress) }} → {{ viagem.exitAddressLabel || formatAddress(viagem.exitAddress) }}</span>
+            </div>
+            <div class="trip-meta">
+              <span>{{ formatDate(viagem.entryTime) }} → {{ isSameDay(viagem.entryTime, viagem.exitTime) ? formatTimeOnly(viagem.exitTime) : formatDate(viagem.exitTime) }}</span>
+              <span>{{ (viagem.distanceKm || 0).toFixed(2) }} Km · {{ viagem.numberOfPeople }} passenger(s)</span>
+            </div>
           </div>
           <span class="trip-price">{{ viagem.price | currency:'EUR':'symbol':'1.2-2' }}</span>
         </li>

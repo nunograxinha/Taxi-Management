@@ -1,68 +1,66 @@
-const { Turno } = require('../models/shift')
-const { getMotoristaByNIF } = require('./driverService')
-const { getTaxiByLicensePlate } = require('./taxiService')
+const { Shift } = require('../models/shift');
+const { getDriverByNIF } = require('./driverService');
+const { getTaxiByLicensePlate } = require('./taxiService');
 
 module.exports = {
-
-    getTurnos: async () => {
-        try {
-          return await Turno.find();
-        } catch (error) {
-          throw error;
-        }
-      },
-      
-      getTurnoById: async (id) => {
-        try {
-          return await Turno.findById(id);
-        } catch (error) {
-          throw error;
-        }
-      },
-
-      createTurno: async (nif, taxi, start, end) => {
-        try {
-            const driver = await getMotoristaByNIF(nif);
-            if (driver) {
-              const shift = new Turno({
-                driver: driver._id, 
-                taxi: taxi,           
-                start: new Date(start), 
-                end: new Date(end)      
-              });
-              return await shift.save();
-          }
-          return null; 
-        } catch (error) {
-          throw error;
-        }
-      },
-      
-      
-      updateTurnoById: async (id, updateData) => {
-        try {
-          return await Turno.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true });
-        } catch (error) {
-          throw error;
-        }
-      },
-      
-      deleteTurnoById: async (id) => {
-        try {
-          return await Turno.findByIdAndDelete(id);
-        } catch (error) {
-          throw error;
-        }
-      },
-
-  getTurnosInTimeframe: async (nif, startTime, endTime) => {
+  getShifts: async () => {
     try {
-      const driver = await getMotoristaByNIF(nif);
+      return await Shift.find();
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShiftById: async (id) => {
+    try {
+      return await Shift.findById(id);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  createShift: async (nif, taxi, start, end) => {
+    try {
+      const driver = await getDriverByNIF(nif);
+      if (driver) {
+        const shift = new Shift({
+          driver: driver._id,
+          taxi: taxi,
+          start: new Date(start),
+          end: new Date(end)
+        });
+        return await shift.save();
+      }
+      return null;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updateShiftById: async (id, updateData) => {
+    try {
+      return await Shift.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true });
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  deleteShiftById: async (id) => {
+    try {
+      return await Shift.findByIdAndDelete(id);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShiftsInTimeframe: async (nif, startTime, endTime) => {
+    try {
+      const driver = await getDriverByNIF(nif);
       if (!driver) {
         return [];
       }
 
-      return await Turno.find({
+      return await Shift.find({
         driver: driver._id,
         start: { $lt: endTime },
         end: { $gt: startTime }
@@ -73,9 +71,9 @@ module.exports = {
     }
   },
 
-  getAllTurnosInTimeframe: async (startTime, endTime) => {
+  getAllShiftsInTimeframe: async (startTime, endTime) => {
     try {
-      return await Turno.find({
+      return await Shift.find({
         start: { $lt: endTime },
         end: { $gt: startTime }
       });
@@ -85,35 +83,34 @@ module.exports = {
     }
   },
 
-  getTurnosByMotoristaNIF: async (nif) => {
+  getShiftsByDriverNIF: async (nif) => {
     try {
-      const driver = await getMotoristaByNIF(nif);
-
+      const driver = await getDriverByNIF(nif);
       if (!driver) {
         throw new Error('Driver not found.');
       }
 
-      return await Turno.find({
+      return await Shift.find({
         driver: driver._id
       });
     } catch (error) {
       console.error('Error fetching shifts:', error);
-      throw error; 
+      throw error;
     }
   },
 
-  getTurnosByTaxiPlate: async (plate) => {
+  getShiftsByTaxiPlate: async (plate) => {
     try {
       const taxi = await getTaxiByLicensePlate(plate);
       if (!taxi) {
         throw new Error('Taxi not found.');
       }
-      return await Turno.find({
+      return await Shift.find({
         taxi: taxi._id
       });
     } catch (error) {
-      console.error('Error fetching turnos:', error);
-      throw error; 
+      console.error('Error fetching shifts:', error);
+      throw error;
     }
   },
-}
+};

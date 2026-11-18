@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { RelatorioStateService } from '../../appServices/report-state.service';
-import { Viagem } from '../../trips/trip.interface';
+import { ReportStateService } from '../../appServices/report-state.service';
+import { Trip } from '../../trips/trip.interface';
 
 @Component({
   selector: 'app-total-kms',
@@ -8,15 +8,15 @@ import { Viagem } from '../../trips/trip.interface';
   styleUrls: ['./total-kms.component.css']
 })
 export class TotalKmsComponent {
-viagensPorMotorista: { motoristaId: string; viagens: Viagem[] }[] = [];
+viagensPorMotorista: { motoristaId: string; viagens: Trip[] }[] = [];
 
-  constructor(private relatorioState: RelatorioStateService) {}
+  constructor(private relatorioState: ReportStateService) {}
 
     ngOnInit() {
     this.relatorioState.getViagensPorMotoristaHoje$().subscribe(mapa => {
       this.viagensPorMotorista = Array.from(mapa.entries()).map(([motoristaId, viagens]) => {
         console.log('motoristaId:', motoristaId);
-        const motorista = this.relatorioState.getMotorista(motoristaId);
+        const motorista = this.relatorioState.getDriver(motoristaId);
         console.log("motorista: ",motorista);
         return {
           motoristaId,
@@ -27,7 +27,7 @@ viagensPorMotorista: { motoristaId: string; viagens: Viagem[] }[] = [];
   }
 
   getNomeMotorista(id: string): string {
-    const motorista = this.relatorioState.getMotorista(id);
+    const motorista = this.relatorioState.getDriver(id);
     if(motorista != undefined){
       return motorista.name;
     } else {

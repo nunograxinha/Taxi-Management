@@ -1,15 +1,15 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from "@angular/core";
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import * as Papa from 'papaparse';
-import { MotoristaService } from '../../appServices/driver.service';
-import { Motorista } from '../driver.interface';
+import { DriverService } from '../../appServices/driver.service';
+import { Driver } from '../driver.interface';
 
 @Component({
   selector: 'app-motorista-form',
   templateUrl: './driver-form.component.html',
   styleUrls: ['./driver-form.component.css']
 })
-export class MotoristaFormComponent implements OnInit, OnChanges{
+export class DriverFormComponent implements OnInit, OnChanges{
   @Output() motoristaCriado = new EventEmitter<void>();
 
   motoristaForm: FormGroup;
@@ -97,7 +97,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
 }
 
 
-  constructor(private readonly fb: FormBuilder, private readonly motoristaService: MotoristaService) {
+  constructor(private readonly fb: FormBuilder, private readonly motoristaService: DriverService) {
     this.motoristaForm = this.fb.group({
       name: ['', Validators.required],
       birthYear: ['', [Validators.required,this.birthYearValidator]], // RIA 6
@@ -154,7 +154,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
     if (this.motoristaForm.valid) {
       const formData = this.motoristaForm.getRawValue();
   
-      const motoristaPayload: Motorista = {
+      const motoristaPayload: Driver = {
         name: formData.name,
         NIF: formData.NIF,
         gender: formData.gender,
@@ -171,7 +171,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
 
       if (this.motoristaParaEditar) {
       // Edit
-      this.motoristaService.atualizarMotorista(
+      this.motoristaService.updateDriver(
         this.motoristaParaEditar.NIF,
         motoristaPayload
       ).subscribe({
@@ -188,7 +188,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
       });
     } else {
       const createPayload = { ...motoristaPayload, password: formData.password };
-      this.motoristaService.criarMotorista(createPayload).subscribe({
+      this.motoristaService.createDriver(createPayload).subscribe({
         next: (res: any) => {
           console.log('Driver created successfully:', res);
           this.motoristaForm.reset();

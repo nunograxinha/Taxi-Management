@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MotoristaFormComponent } from './driver-form.component';
+import { DriverFormComponent } from './driver-form.component';
 
-describe('MotoristaFormComponent', () => {
-  let component: MotoristaFormComponent;
-  let fixture: ComponentFixture<MotoristaFormComponent>;
+describe('DriverFormComponent', () => {
+  let component: DriverFormComponent;
+  let fixture: ComponentFixture<DriverFormComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [MotoristaFormComponent]
+      declarations: [DriverFormComponent]
     });
-    fixture = TestBed.createComponent(MotoristaFormComponent);
+    fixture = TestBed.createComponent(DriverFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

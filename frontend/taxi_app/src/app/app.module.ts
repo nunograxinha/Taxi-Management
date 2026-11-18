@@ -18,36 +18,37 @@ import { MatListModule } from '@angular/material/list';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 
-import { MotoristaFormComponent } from './drivers/driver-form/driver-form.component';
-import { MotoristaListComponent } from './drivers/driver-list/driver-list.component';
+import { DriverFormComponent } from './drivers/driver-form/driver-form.component';
+import { DriverListComponent } from './drivers/driver-list/driver-list.component';
 import { HomePageComponent } from './home/home-page/home-page.component';
-import { GestorPageComponent } from './manager/manager-page/manager-page.component';
-import { MotoristaPageComponent } from './drivers/driver-page/driver-page.component';
-import { ClientePageComponent } from './client/client-page/client-page.component';
-import { VerTaxisComponent } from './taxis/taxi-list/taxi-list.component';
-import { GerirTaxisComponent } from './taxis/manage-taxis/manage-taxis.component';
-import { GerirMotoristasComponent } from './drivers/manage-drivers/manage-drivers.component';
-import { GerirPrecosComponent } from './manage-prices/manage-prices.component';
-import { SimularPrecoComponent } from './manage-prices/simulate-price/simulate-price.component';
+import { ManagerPageComponent } from './manager/manager-page/manager-page.component';
+import { DriverPageComponent } from './drivers/driver-page/driver-page.component';
+import { ClientPageComponent } from './client/client-page/client-page.component';
+import { TaxiListComponent } from './taxis/taxi-list/taxi-list.component';
+import { ManageTaxisComponent } from './taxis/manage-taxis/manage-taxis.component';
+import { ManageDriversComponent } from './drivers/manage-drivers/manage-drivers.component';
+import { ManagePricesComponent } from './manage-prices/manage-prices.component';
+import { SimulatePriceComponent } from './manage-prices/simulate-price/simulate-price.component';
 
 import { TaxiFormComponent } from './taxis/taxi-form/taxi-form.component';
-import { MotoristaLoginComponent } from './drivers/driver-login/driver-login.component';
-import { PedidoViagemComponent } from './client/ride-request/ride-request.component';
-import { ClienteFormComponent } from './client/client-form/client-form.component';
-import { AguardarRespostaComponent } from './client/waiting-response/waiting-response.component';
-import { TurnoFormComponent } from './shifts/shift-form/shift-form.component';
-import { ConfirmarViagemComponent } from './client/confirm-trip/confirm-trip.component';
-import { PedidosPendentesComponent } from './drivers/pending-requests/pending-requests.component';
-import { GerirTurnoComponent } from './shifts/manage-shifts/manage-shifts.component';
-import { TurnoListComponent } from './shifts/shift-list/shift-list.component';
-import { VerTurnoComponent } from './shifts/shift-detail/shift-detail.component';
-import { PedidoAceitoComponent } from './drivers/accepted-request/accepted-request.component';
-import { AcompanharViagemComponent } from './client/track-trip/track-trip.component';
-import { EditarMotoristaComponent } from './drivers/edit-driver/edit-driver.component';
-import { EditarTaxiComponent } from './taxis/edit-taxi/edit-taxi.component';
-import { RelatoriosPageComponent } from './reports/reports-page/reports-page.component';
-import { TotalViagensComponent } from './reports/total-trips/total-trips.component';
-import { TotalHorasComponent } from './reports/total-hours/total-hours.component';
+import { DriverLoginComponent } from './drivers/driver-login/driver-login.component';
+import { RideRequestComponent } from './client/ride-request/ride-request.component';
+import { ClientFormComponent } from './client/client-form/client-form.component';
+import { WaitingResponseComponent } from './client/waiting-response/waiting-response.component';
+import { ShiftFormComponent } from './shifts/shift-form/shift-form.component';
+import { ConfirmTripComponent } from './client/confirm-trip/confirm-trip.component';
+import { PendingRequestsComponent } from './drivers/pending-requests/pending-requests.component';
+import { ManageShiftsComponent } from './shifts/manage-shifts/manage-shifts.component';
+import { ShiftListComponent } from './shifts/shift-list/shift-list.component';
+import { ShiftDetailComponent } from './shifts/shift-detail/shift-detail.component';
+import { AcceptedRequestComponent } from './drivers/accepted-request/accepted-request.component';
+import { TrackTripComponent } from './client/track-trip/track-trip.component';
+import { ShareTripComponent } from './client/share-trip/share-trip.component';
+import { EditDriverComponent } from './drivers/edit-driver/edit-driver.component';
+import { EditTaxiComponent } from './taxis/edit-taxi/edit-taxi.component';
+import { ReportsPageComponent } from './reports/reports-page/reports-page.component';
+import { TotalTripsComponent } from './reports/total-trips/total-trips.component';
+import { TotalHoursComponent } from './reports/total-hours/total-hours.component';
 import { TotalKmsComponent } from './reports/total-kms/total-kms.component';
 import { TotalRevenueComponent } from './reports/total-revenue/total-revenue.component';
 import { ReportBreakdownComponent } from './reports/report-breakdown/report-breakdown.component';
@@ -55,35 +56,36 @@ import { ReportBreakdownComponent } from './reports/report-breakdown/report-brea
 @NgModule({
   declarations: [
     AppComponent,
-    MotoristaFormComponent,
-    MotoristaListComponent,
+    DriverFormComponent,
+    DriverListComponent,
     TaxiFormComponent,
     HomePageComponent,
-    GestorPageComponent,
-    MotoristaPageComponent,
-    ClientePageComponent,
-    VerTaxisComponent,
-    GerirTaxisComponent,
-    GerirMotoristasComponent,
-    GerirPrecosComponent,
-    SimularPrecoComponent,
-    MotoristaLoginComponent,
-    PedidoViagemComponent,
-    ClienteFormComponent,
-    AguardarRespostaComponent,
-    TurnoFormComponent,
-    ConfirmarViagemComponent,
-    PedidosPendentesComponent,
-    GerirTurnoComponent,
-    TurnoListComponent,
-    VerTurnoComponent,
-    PedidoAceitoComponent,
-    AcompanharViagemComponent,
-    EditarMotoristaComponent,
-    EditarTaxiComponent,
-    RelatoriosPageComponent,
-    TotalViagensComponent,
-    TotalHorasComponent,
+    ManagerPageComponent,
+    DriverPageComponent,
+    ClientPageComponent,
+    TaxiListComponent,
+    ManageTaxisComponent,
+    ManageDriversComponent,
+    ManagePricesComponent,
+    SimulatePriceComponent,
+    DriverLoginComponent,
+    RideRequestComponent,
+    ClientFormComponent,
+    WaitingResponseComponent,
+    ShiftFormComponent,
+    ConfirmTripComponent,
+    PendingRequestsComponent,
+    ManageShiftsComponent,
+    ShiftListComponent,
+    ShiftDetailComponent,
+    AcceptedRequestComponent,
+    TrackTripComponent,
+    ShareTripComponent,
+    EditDriverComponent,
+    EditTaxiComponent,
+    ReportsPageComponent,
+    TotalTripsComponent,
+    TotalHoursComponent,
     TotalKmsComponent,
     TotalRevenueComponent,
     ReportBreakdownComponent,

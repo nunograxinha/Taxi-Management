@@ -1,18 +1,17 @@
-const { Motorista } = require('../models/driver');
+const { Driver } = require('../models/driver');
 const { hashPassword } = require('../utils/password');
 
 module.exports = {
-
-    getMotoristas: async () => {
+  getDrivers: async () => {
     try {
-      const motoristas = await Motorista.find();
-      return motoristas;
+      const drivers = await Driver.find();
+      return drivers;
     } catch (error) {
       throw error;
     }
   },
-  
-  createMotorista: async (body) => {
+
+  createDriver: async (body) => {
     try {
       const data = { ...body };
       const plainPassword = typeof data.password === 'string' ? data.password.trim() : '';
@@ -24,59 +23,59 @@ module.exports = {
       delete data.password;
       data.passwordHash = hashPassword(plainPassword);
 
-      const motorista = new Motorista(data);
-      const savedmotorista = await motorista.save();
-      const result = savedmotorista.toObject();
+      const driver = new Driver(data);
+      const savedDriver = await driver.save();
+      const result = savedDriver.toObject();
       delete result.passwordHash;
       return result;
     } catch (error) {
       throw error;
     }
   },
-  
-  getMotoristaByNIF: async (nif) => {
+
+  getDriverByNIF: async (nif) => {
     try {
-      const motorista = await Motorista.findOne({ NIF: nif });
-      return motorista;
+      const driver = await Driver.findOne({ NIF: nif });
+      return driver;
     } catch (error) {
       throw error;
     }
   },
 
-  getMotoristaById: async (id) => {
+  getDriverById: async (id) => {
     try {
-      const motorista = await Motorista.findOne({ _id: id });
-      return motorista;
+      const driver = await Driver.findOne({ _id: id });
+      return driver;
     } catch (error) {
       throw error;
     }
   },
-  
-  updateMotoristaByNIF: async (nif, updateData) => {
+
+  updateDriverByNIF: async (nif, updateData) => {
     try {
-      const updatedMotorista = await Motorista.findOneAndUpdate(
-        { NIF: nif }, 
+      const updatedDriver = await Driver.findOneAndUpdate(
+        { NIF: nif },
         { $set: updateData },
         { new: true, runValidators: true }
       );
-      return updatedMotorista;
+      return updatedDriver;
     } catch (error) {
       throw error;
     }
   },
-  
-  deleteMotoristaByNIF: async (nif) => {
+
+  deleteDriverByNIF: async (nif) => {
     try {
-      const turnoService = require('./shiftService'); 
-      const turno = await turnoService.getTurnosByMotoristaNIF(nif);
-      if(Array.isArray(turno) && turno.length > 0){
-        return "Shift associated with Driver, cannot delete Driver";
-      }else{
-        const deletedMotorista = await Motorista.findOneAndDelete({ NIF: nif });
-        return deletedMotorista;
-    }
+      const shiftService = require('./shiftService');
+      const shifts = await shiftService.getShiftsByDriverNIF(nif);
+      if (Array.isArray(shifts) && shifts.length > 0) {
+        return 'Shift associated with Driver, cannot delete Driver';
+      } else {
+        const deletedDriver = await Driver.findOneAndDelete({ NIF: nif });
+        return deletedDriver;
+      }
     } catch (error) {
       throw error;
     }
   },
-}
+};

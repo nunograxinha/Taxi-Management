@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const turnoSchema = new mongoose.Schema({
+const shiftSchema = new mongoose.Schema({
   driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', required: true },
   taxi: { type: mongoose.Schema.Types.ObjectId, ref: 'Taxi', required: true },
   start: { type: Date, required: true },
@@ -16,6 +16,6 @@ const turnoSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-const Turno = mongoose.model('Shift', turnoSchema);
+const Shift = mongoose.model('Shift', shiftSchema);
 
-module.exports = { Turno, Shift: Turno };
+module.exports = { Shift };

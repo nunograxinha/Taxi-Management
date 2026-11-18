@@ -1,26 +1,26 @@
 import { Component, OnInit } from '@angular/core';
 import { TaxiService } from '../../appServices/taxi.service';
-import { MotoristaService } from '../../appServices/driver.service';
-import { PrecoService } from '../../appServices/price.service';
-import { ViagemService } from '../../appServices/trip.service';
-import { Preco } from '../../manage-prices/price.interface';
+import { DriverService } from '../../appServices/driver.service';
+import { PriceService } from '../../appServices/price.service';
+import { TripService } from '../../appServices/trip.service';
+import { Price } from '../../manage-prices/price.interface';
 
 @Component({
   selector: 'app-gestor-page',
   templateUrl: './manager-page.component.html',
   styleUrls: ['./manager-page.component.css']
 })
-export class GestorPageComponent implements OnInit {
+export class ManagerPageComponent implements OnInit {
   taxis: any[] = [];
   drivers: any[] = [];
   trips: any[] = [];
-  price: Preco | null = null;
+  price: Price | null = null;
 
   constructor(
     private taxiService: TaxiService,
-    private motoristaService: MotoristaService,
-    private precoService: PrecoService,
-    private viagemService: ViagemService
+    private motoristaService: DriverService,
+    private precoService: PriceService,
+    private viagemService: TripService
   ) {}
 
   ngOnInit(): void {
@@ -42,7 +42,7 @@ export class GestorPageComponent implements OnInit {
   }
 
   private loadDrivers(): void {
-    this.motoristaService.obterMotoristas().subscribe({
+    this.motoristaService.getDrivers().subscribe({
       next: (data) => {
         this.drivers = data || [];
       },
@@ -53,7 +53,7 @@ export class GestorPageComponent implements OnInit {
   }
 
   private loadPrice(): void {
-    this.precoService.getPreco().subscribe({
+    this.precoService.getPrice().subscribe({
       next: (data) => {
         this.price = data;
       },
@@ -64,7 +64,7 @@ export class GestorPageComponent implements OnInit {
   }
 
   private loadTrips(): void {
-    this.viagemService.listarTodasViagens().subscribe({
+    this.viagemService.getAllTrips().subscribe({
       next: (data: any[]) => {
         this.trips = data || [];
       },

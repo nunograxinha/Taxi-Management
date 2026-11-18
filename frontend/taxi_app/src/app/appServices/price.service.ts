@@ -1,44 +1,39 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, Observable, of, shareReplay, tap } from 'rxjs';
-import { Preco } from '../manage-prices/price.interface';
+import { Price } from '../manage-prices/price.interface';
 import { API_BASE_URL } from './api.config';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PrecoService {
+export class PriceService {
   private apiUrl = `${API_BASE_URL}/price`;
-  private cachedPreco$: Observable<Preco> | null = null;
-
+  private cachedPrice$: Observable<Price> | null = null;
 
   constructor(private http: HttpClient) {}
 
-  getPreco(): Observable<Preco> {
-    if (this.cachedPreco$) {// If we have a cached response, return it
-      return this.cachedPreco$;
+  getPrice(): Observable<Price> {
+    if (this.cachedPrice$) {
+      return this.cachedPrice$;
     }
-    this.cachedPreco$ = this.http.get<Preco>(this.apiUrl).pipe(
-      shareReplay(1), // Share the same response with all subscribers
+    this.cachedPrice$ = this.http.get<Price>(this.apiUrl).pipe(
+      shareReplay(1),
       catchError(error => {
         console.error('Error fetching prices:', error);
-        // Reset cache on error to allow retry
-        this.cachedPreco$ = null;
+        this.cachedPrice$ = null;
         throw error;
       })
     );
-    
-    return this.cachedPreco$;  }
 
-    atualizarPreco(id: string, preco: Preco): Observable<Preco> {
-      return this.http.put<Preco>(`${this.apiUrl}/${id}`, preco).pipe(
-        tap((updatedPreco) => {
-          // Clear the cache when prices are updated
-          this.cachedPreco$ = null;
-          
-          // immediately update the cache with the new value
-          this.cachedPreco$ = of(updatedPreco).pipe(shareReplay(1));
-        })
-      );
-    }
+    return this.cachedPrice$;
+  }
+
+  updatePrice(id: string, price: Price): Observable<Price> {
+    return this.http.put<Price>(`${this.apiUrl}/${id}`, price).pipe(
+      tap((updatedPrice) => {
+        this.cachedPrice$ = of(updatedPrice).pipe(shareReplay(1));
+      })
+    );
+  }
 }

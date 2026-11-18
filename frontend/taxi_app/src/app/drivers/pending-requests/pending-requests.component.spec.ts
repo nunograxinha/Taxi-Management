@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PedidosPendentesComponent } from './pending-requests.component';
+import { PendingRequestsComponent } from './pending-requests.component';
 
-describe('PedidosPendentesComponent', () => {
-  let component: PedidosPendentesComponent;
-  let fixture: ComponentFixture<PedidosPendentesComponent>;
+describe('PendingRequestsComponent', () => {
+  let component: PendingRequestsComponent;
+  let fixture: ComponentFixture<PendingRequestsComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [PedidosPendentesComponent]
+      declarations: [PendingRequestsComponent]
     });
-    fixture = TestBed.createComponent(PedidosPendentesComponent);
+    fixture = TestBed.createComponent(PendingRequestsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

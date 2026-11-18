@@ -1,16 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const turnoController = require('../controllers/shiftController');
+const shiftController = require('../controllers/shiftController');
+const { requireRole } = require('../middleware/authMiddleware');
 
-router.get('/', turnoController.get_turnos);
-router.get('/interval', turnoController.get_turnos_in_time_frame);
-router.get('/intervalo', turnoController.get_turnos_in_time_frame);
-router.get('/:id', turnoController.get_turno_by_id);
-router.post('/', turnoController.post_turno);
-router.put('/:id', turnoController.update_turno);
-router.delete('/:id', turnoController.delete_turno);
-router.get('/driver/:driverNIF', turnoController.get_turnos_by_motorista);
-router.get('/motorista/:driverNIF', turnoController.get_turnos_by_motorista);
-router.get('/taxi/:licensePlate', turnoController.get_turnos_by_taxi);
+router.get('/', requireRole('driver', 'manager'), shiftController.getShifts);
+router.get('/interval', requireRole('driver', 'manager'), shiftController.getShiftsInTimeFrame);
+router.get('/:id', requireRole('driver', 'manager'), shiftController.getShiftById);
+router.post('/', requireRole('driver', 'manager'), shiftController.createShift);
+router.put('/:id', requireRole('driver', 'manager'), shiftController.updateShift);
+router.delete('/:id', requireRole('driver', 'manager'), shiftController.deleteShift);
+router.get('/driver/:driverNIF', requireRole('driver', 'manager'), shiftController.getShiftsByDriver);
+router.get('/taxi/:licensePlate', requireRole('driver', 'manager'), shiftController.getShiftsByTaxi);
 
 module.exports = router;

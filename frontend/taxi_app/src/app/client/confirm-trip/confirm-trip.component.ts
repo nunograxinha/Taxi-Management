@@ -2,25 +2,26 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
-import { PedidoViagemService } from '../../appServices/ride-request.service';
-import { PedidoViagem } from '../ride-request.interface';
-import { Motorista } from '../../drivers/driver.interface';
+import { RideRequestService } from '../../appServices/ride-request.service';
+import { RideRequest } from '../ride-request.interface';
+import { Driver } from '../../drivers/driver.interface';
 import { Taxi } from '../../taxis/taxi.interface';
-import { TurnoService } from '../../appServices/shift.service';
+import { ShiftService } from '../../appServices/shift.service';
 import { TaxiService } from '../../appServices/taxi.service';
-import { MotoristaService } from '../../appServices/driver.service';
+import { DriverService } from '../../appServices/driver.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
-import { Turno } from '../../shifts/shift.interface';
-import { PrecoService } from '../../appServices/price.service';
+import { Shift } from '../../shifts/shift.interface';
+import { PriceService } from '../../appServices/price.service';
+import { getTaxiCarImage } from '../../appServices/taxi-icon.util';
 
 @Component({
   selector: 'app-confirmar-viagem',
   templateUrl: './confirm-trip.component.html',
   styleUrls: ['./confirm-trip.component.css']
 })
-export class ConfirmarViagemComponent implements OnInit {
-  pedido: PedidoViagem | null = null;
-  motorista: Motorista | null = null;
+export class ConfirmTripComponent implements OnInit {
+  pedido: RideRequest | null = null;
+  motorista: Driver | null = null;
   taxi: Taxi | null = null;
   loading = true;
   erro = '';
@@ -28,16 +29,20 @@ export class ConfirmarViagemComponent implements OnInit {
   exitCidadeRua = '';
   tempoEstimadoMin = 0;
   nightSurcharge = 0;
+
+  get taxiCarImage(): string {
+    return getTaxiCarImage(this.taxi?.brand, this.taxi?.model);
+  }
   custoEstimado = 0;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private pedidoViagemService: PedidoViagemService,
+    private pedidoViagemService: RideRequestService,
     private taxiService: TaxiService,
-    private motoristaService: MotoristaService,
+    private motoristaService: DriverService,
     private geolocationService: GeolocationService,
-    private precoService: PrecoService,
+    private precoService: PriceService,
     private snackBar: MatSnackBar
   ) { }
 
@@ -54,7 +59,7 @@ export class ConfirmarViagemComponent implements OnInit {
   async carregarDados(pedidoId: string) {
     try {
       // Load ride request data
-      const pedidoResponse = await firstValueFrom(this.pedidoViagemService.getPedidoById(pedidoId));
+      const pedidoResponse = await firstValueFrom(this.pedidoViagemService.getRideRequestById(pedidoId));
       if (!pedidoResponse) {
         throw new Error('Ride request not found');
       }
@@ -69,7 +74,7 @@ export class ConfirmarViagemComponent implements OnInit {
       }
       
       // Load driver data
-      const motoristaResponse = await firstValueFrom(this.motoristaService.getMotoristaPorId(this.pedido.driverId));
+      const motoristaResponse = await firstValueFrom(this.motoristaService.getDriverById(this.pedido.driverId));
       if (!motoristaResponse) {
         throw new Error('Driver not found');
       }
@@ -90,12 +95,12 @@ export class ConfirmarViagemComponent implements OnInit {
       const [lat2, lng2] = this.pedido.exitAddress.split(',').map(Number);
       this.exitCidadeRua = await this.geolocationService.getAddressFromCoordinates(lat2.toString(), lng2.toString());
 
-      const preco = await firstValueFrom(this.precoService.getPreco());
+      const preco = await firstValueFrom(this.precoService.getPrice());
       if (!preco) {
         throw new Error('Price not found');
       }
       this.nightSurcharge = preco.nightTimeSurcharge;
-      const distancia = this.pedidoViagemService.calcularDistancia(
+      const distancia = this.pedidoViagemService.calculateDistance(
         Number(this.pedido.entryAddress.split(',')[0]),
         Number(this.pedido.entryAddress.split(',')[1]),
         Number(this.pedido.exitAddress.split(',')[0]),
@@ -148,7 +153,7 @@ export class ConfirmarViagemComponent implements OnInit {
     }
 
     try {
-      await firstValueFrom(this.pedidoViagemService.rejectMotorista(pedidoId, this.pedido?.driverId));
+      await firstValueFrom(this.pedidoViagemService.rejectDriver(pedidoId, this.pedido?.driverId));
       this.router.navigate(['/client/waiting-response', pedidoId]);
     } catch (error) {
       console.error('Error rejecting driver:', error);

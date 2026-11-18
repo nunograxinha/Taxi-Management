@@ -1,14 +1,14 @@
 import { Component, Input, OnInit } from '@angular/core';
 import {
   DateRange,
-  RelatorioStateService,
+  ReportStateService,
   ReportMetric,
   SubtotalGroup
 } from '../../appServices/report-state.service';
-import { Viagem } from '../../trips/trip.interface';
-import { Motorista } from '../../drivers/driver.interface';
+import { Trip } from '../../trips/trip.interface';
+import { Driver } from '../../drivers/driver.interface';
 import { Taxi } from '../../taxis/taxi.interface';
-import { Cliente } from '../../client/client.interface';
+import { Client } from '../../client/client.interface';
 import { GeolocationService } from '../../appServices/geolocation.service';
 
 @Component({
@@ -23,18 +23,18 @@ export class ReportBreakdownComponent implements OnInit {
   driverGroups: SubtotalGroup[] = [];
   taxiGroups: SubtotalGroup[] = [];
   clientGroups: SubtotalGroup[] = [];
-  allViagens: Viagem[] = [];
+  allViagens: Trip[] = [];
   dateRange: DateRange = { startDate: '', endDate: '' };
 
   expandedGroupId: string | null = null;
-  selectedTrip: Viagem | null = null;
-  selectedDriver: Motorista | null = null;
+  selectedTrip: Trip | null = null;
+  selectedDriver: Driver | null = null;
   selectedTaxi: Taxi | null = null;
-  selectedClient: Cliente | null = null;
+  selectedClient: Client | null = null;
   resolvedAddresses: Record<string, string> = {};
 
   constructor(
-    private relatorioState: RelatorioStateService,
+    private relatorioState: ReportStateService,
     private geolocationService: GeolocationService
   ) {}
 
@@ -75,7 +75,7 @@ export class ReportBreakdownComponent implements OnInit {
     return resolved ? `${resolved} (${shortCoords})` : shortCoords;
   }
 
-  private resolveTripAddresses(trips: Viagem[]): void {
+  private resolveTripAddresses(trips: Trip[]): void {
     const rawSet = new Set<string>();
     trips.forEach(t => {
       if (t.entryAddress) rawSet.add(t.entryAddress);
@@ -143,7 +143,7 @@ export class ReportBreakdownComponent implements OnInit {
     return `${value} ${value === 1 ? 'trip' : 'trips'}`;
   }
 
-  formatTripMetric(viagem: Viagem): string {
+  formatTripMetric(viagem: Trip): string {
     if (this.metric === 'hours') {
       return this.relatorioState.formatHoursToHhMm(this.relatorioState.getDurationHours(viagem));
     }
@@ -169,19 +169,19 @@ export class ReportBreakdownComponent implements OnInit {
       : `${this.formatDateTime(start)} → ${this.formatDateTime(end)}`;
   }
 
-  getDriverForTrip(viagem: Viagem): Motorista | undefined {
+  getDriverForTrip(viagem: Trip): Driver | undefined {
     return this.relatorioState.getMotoristaForViagem(viagem);
   }
 
-  getTaxiForTrip(viagem: Viagem): Taxi | undefined {
+  getTaxiForTrip(viagem: Trip): Taxi | undefined {
     return this.relatorioState.getTaxiForViagem(viagem);
   }
 
-  getClientForTrip(viagem: Viagem): Cliente | undefined {
+  getClientForTrip(viagem: Trip): Client | undefined {
     return this.relatorioState.getClientForViagem(viagem);
   }
 
-  getTripDuration(viagem: Viagem): string {
+  getTripDuration(viagem: Trip): string {
     return this.relatorioState.formatHoursToHhMm(this.relatorioState.getDurationHours(viagem));
   }
 
@@ -196,14 +196,14 @@ export class ReportBreakdownComponent implements OnInit {
     }
   }
 
-  openTripModal(viagem: Viagem): void {
+  openTripModal(viagem: Trip): void {
     this.selectedDriver = null;
     this.selectedTaxi = null;
     this.selectedClient = null;
     this.selectedTrip = viagem;
   }
 
-  openDriverModal(driver: Motorista | undefined): void {
+  openDriverModal(driver: Driver | undefined): void {
     if (!driver) return;
     this.selectedTrip = null;
     this.selectedTaxi = null;
@@ -219,7 +219,7 @@ export class ReportBreakdownComponent implements OnInit {
     this.selectedTaxi = taxi;
   }
 
-  openClientModal(client: Cliente | undefined): void {
+  openClientModal(client: Client | undefined): void {
     if (!client) return;
     this.selectedTrip = null;
     this.selectedDriver = null;

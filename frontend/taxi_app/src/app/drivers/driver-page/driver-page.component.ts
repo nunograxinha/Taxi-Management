@@ -3,17 +3,17 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../appServices/auth.service';
-import { MotoristaService } from '../../appServices/driver.service';
-import { Motorista } from '../driver.interface';
+import { DriverService } from '../../appServices/driver.service';
+import { Driver } from '../driver.interface';
 
 @Component({
   selector: 'app-motorista-page',
   templateUrl: './driver-page.component.html',
   styleUrls: ['./driver-page.component.css']
 })
-export class MotoristaPageComponent implements OnInit {
+export class DriverPageComponent implements OnInit {
   nifMotorista!: string;
-  motorista?: Motorista;
+  motorista?: Driver;
 
   showPasswordModal = false;
   currentPassword = '';
@@ -26,7 +26,7 @@ export class MotoristaPageComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private readonly motoristaService: MotoristaService,
+    private readonly motoristaService: DriverService,
     private readonly authService: AuthService,
     private readonly snackBar: MatSnackBar
   ) {}
@@ -39,12 +39,15 @@ export class MotoristaPageComponent implements OnInit {
         this.hasChildRoute = this.route.firstChild !== null;
       });
 
-    this.nifMotorista = this.route.snapshot.paramMap.get('nif')!;
+    this.nifMotorista =
+      this.authService.getDriverNif() ||
+      this.route.snapshot.paramMap.get('nif') ||
+      '';
 
-    this.motoristaService.getMotoristaPorNIF(this.nifMotorista).subscribe({
+    this.motoristaService.getDriverByNIF(this.nifMotorista).subscribe({
       next: (motorista) => {
         this.motorista = motorista;
-        this.motoristaService.setMotorista(motorista);
+        this.motoristaService.setDriver(motorista);
       },
       error: (err) => {
         console.error('Error fetching driver:', err);

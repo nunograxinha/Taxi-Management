@@ -1,24 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MotoristaService } from '../../appServices/driver.service';
+import { DriverService } from '../../appServices/driver.service';
 
 @Component({
   selector: 'app-editar-motorista',
   templateUrl: './edit-driver.component.html',
   styleUrls: ['./edit-driver.component.css']
 })
-export class EditarMotoristaComponent implements OnInit {
+export class EditDriverComponent implements OnInit {
   motoristaParaEditar: any;
   constructor(
     private route: ActivatedRoute,
-    private motoristaService: MotoristaService,
+    private motoristaService: DriverService,
     private router: Router,
   ) {}
 
   ngOnInit() {
     const nif = this.route.snapshot.paramMap.get('nif');
     if (nif) {
-      this.motoristaService.getMotoristaPorNIF(nif).subscribe(motorista => {
+      this.motoristaService.getDriverByNIF(nif).subscribe(motorista => {
         this.motoristaParaEditar = motorista;
       });
     }

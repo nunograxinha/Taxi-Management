@@ -27,11 +27,10 @@
             <input
                 type="text"
                 id="entryAddress"
-                formControlName="entryAddress"
+                [value]="pickupAddressDisplay"
                 readonly
                 autocomplete="off"
             />
-            <p *ngIf="cidade && rua">Location: {{ cidade }}, {{ rua }}</p>
             <div id="map"></div>
         </div>
 
@@ -90,11 +89,12 @@
                 <span>{{ item.nome_localidade }} · {{ getItemPostalCode(item) }}</span>
             </button>
         </div>
-        <label for="exitAddress">Destination Address (Selected coordinates): </label>
+        <label for="exitAddress">Destination Address: </label>
         <input
             type="text"
             id="exitAddress"
-            formControlName="exitAddress"
+            [value]="exitAddressDisplay || form.get('exitAddress')?.value || ''"
+            placeholder="Select on map or search above"
             readonly
             autocomplete="off"
         />
@@ -131,6 +131,33 @@
             </small>
         </div>
     </div> 
+
+    <div class="estimate-preview-card" *ngIf="estimatedDistanceKm !== null && estimatedDurationMin !== null">
+        <div class="estimate-header">
+            <div class="estimate-title">
+                <mat-icon>insights</mat-icon>
+                <span>Trip Estimate</span>
+            </div>
+            <span class="night-badge" *ngIf="isNightRateActive">Night tariff</span>
+        </div>
+        <div class="estimate-grid">
+            <div class="estimate-item">
+                <span class="estimate-label">Estimated Distance</span>
+                <span class="estimate-value">{{ estimatedDistanceKm.toFixed(2) }} km</span>
+            </div>
+            <div class="estimate-item">
+                <span class="estimate-label">Estimated Duration</span>
+                <span class="estimate-value">~{{ estimatedDurationMin }} {{ estimatedDurationMin === 1 ? 'minute' : 'minutes' }}</span>
+            </div>
+            <div class="estimate-item highlight">
+                <span class="estimate-label">Estimated Price</span>
+                <span class="estimate-value" *ngIf="estimatedPrice !== null">€{{ estimatedPrice.toFixed(2) }}</span>
+                <span class="estimate-value compact" *ngIf="estimatedPrice === null && estimatedPriceBasic !== null && estimatedPriceLuxury !== null">
+                    Basic €{{ estimatedPriceBasic.toFixed(2) }} · Luxury €{{ estimatedPriceLuxury.toFixed(2) }}
+                </span>
+            </div>
+        </div>
+    </div>
 
     <button type="submit" [disabled]="!form.valid">Submit Request</button>
 </form>

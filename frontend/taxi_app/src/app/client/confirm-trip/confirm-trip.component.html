@@ -63,6 +63,13 @@
             <mat-icon>local_taxi</mat-icon>
             <h3>Taxi</h3>
           </div>
+          <div class="car-preview">
+            <img
+              class="car-thumb"
+              [src]="taxiCarImage"
+              [alt]="taxi.brand + ' ' + taxi.model"
+            />
+          </div>
           <div class="kv-list">
             <div class="kv-row">
               <span class="kv-label">Vehicle</span>

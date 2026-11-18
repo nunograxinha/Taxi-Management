@@ -18,7 +18,90 @@
   height: 64px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(17, 24, 39, 0.18);
+  background: #ffffff;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.share-btn:hover {
+  background: #f9fafb;
+  transform: translateY(-1px);
+}
+
+.share-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.info-tile.taxi-tile {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.taxi-meta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.taxi-text {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.plate-badge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: #111827;
+  color: #facc15;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.car-thumb {
+  width: 320px;
+  max-width: 100%;
+  height: 165px;
+  object-fit: contain;
+  background: transparent;
+  border: none;
+  flex-shrink: 0;
+  mix-blend-mode: multiply;
 }
 
 .navbar-brand {
@@ -60,8 +143,26 @@
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+.driver-tile { grid-column: 1; grid-row: 1; }
+.pickup-tile { grid-column: 1; grid-row: 2; }
+.dest-tile   { grid-column: 1; grid-row: 3; }
+
+@media (max-width: 640px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .driver-tile,
+  .pickup-tile,
+  .dest-tile,
+  .info-tile.taxi-tile {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }
 
 .info-tile {
@@ -183,6 +284,12 @@
   color: #4b5563;
 }
 
+.eta-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .eta-chip {
   display: inline-flex;
   align-items: center;
@@ -194,6 +301,12 @@
   padding: 10px 14px;
   font-size: 14px;
   color: #374151;
+}
+
+.eta-chip.eta-highlight {
+  background-color: #FEF9C3;
+  border-color: #FDE047;
+  color: #111827;
 }
 
 .eta-chip mat-icon {
@@ -354,6 +467,26 @@
   border-radius: 999px;
 }
 
+.map-eta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FEF9C3;
+  border: 1px solid #FDE047;
+  color: #92400e;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.live-map-title .map-eta-pill mat-icon {
+  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  color: #b45309;
+}
+
 .map-legend {
   display: flex;
   align-items: center;
@@ -382,4 +515,105 @@
 .client-track-map {
   width: 100%;
   height: 280px;
+}
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1200;
+}
+
+.confirm-modal {
+  width: 100%;
+  max-width: 400px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-icon mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.confirm-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.confirm-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.confirm-actions {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-keep,
+.btn-confirm-cancel {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-keep {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+
+.btn-keep:hover:enabled {
+  background: #e5e7eb;
+}
+
+.btn-confirm-cancel {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+}
+
+.btn-confirm-cancel:hover:enabled {
+  background: #b91c1c;
+}
+
+.btn-keep:disabled,
+.btn-confirm-cancel:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }

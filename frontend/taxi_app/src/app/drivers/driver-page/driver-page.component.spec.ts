@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MotoristaPageComponent } from './driver-page.component';
+import { DriverPageComponent } from './driver-page.component';
 
-describe('MotoristaPageComponent', () => {
-  let component: MotoristaPageComponent;
-  let fixture: ComponentFixture<MotoristaPageComponent>;
+describe('DriverPageComponent', () => {
+  let component: DriverPageComponent;
+  let fixture: ComponentFixture<DriverPageComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [MotoristaPageComponent]
+      declarations: [DriverPageComponent]
     });
-    fixture = TestBed.createComponent(MotoristaPageComponent);
+    fixture = TestBed.createComponent(DriverPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

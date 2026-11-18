@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GerirPrecosComponent } from './manage-prices.component';
+import { ManagePricesComponent } from './manage-prices.component';
 
-describe('GerirPrecosComponent', () => {
-  let component: GerirPrecosComponent;
-  let fixture: ComponentFixture<GerirPrecosComponent>;
+describe('ManagePricesComponent', () => {
+  let component: ManagePricesComponent;
+  let fixture: ComponentFixture<ManagePricesComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [GerirPrecosComponent]
+      declarations: [ManagePricesComponent]
     });
-    fixture = TestBed.createComponent(GerirPrecosComponent);
+    fixture = TestBed.createComponent(ManagePricesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const clienteController = require('../controllers/clientController');
+const clientController = require('../controllers/clientController');
+const { authenticateToken, requireRole } = require('../middleware/authMiddleware');
 
-router.get('/', clienteController.get_clientes);
-router.get('/:id', clienteController.get_cliente_by_id);
-router.post('/', clienteController.post_cliente);
-router.delete('/:id', clienteController.delete_cliente);
+router.get('/', requireRole('manager'), clientController.getClients);
+router.get('/:id', authenticateToken, clientController.getClientById);
+router.post('/', requireRole('manager'), clientController.createClient);
+router.delete('/:id', requireRole('manager'), clientController.deleteClient);
 
 module.exports = router;

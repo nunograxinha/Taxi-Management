@@ -1,46 +1,89 @@
-
-<div class="precario-container">
-  <h1 class="titulo precario-header"> Pricing </h1>
-
-  <div class="precos-container">
-    <div class="preco-card">
-      <h2 class="titulo" style="font-size: 1.4em;">"Basic" Car</h2>
-      <p class="valor-display">{{ custoBase }}€ / min</p>
-      <button (click)="alterarValor('custoBase')">Change</button>
+<div class="pricing-page">
+  <div class="page-header">
+    <div>
+      <h1>Pricing &amp; Surcharges</h1>
+      <p class="subtitle">Configure per-minute rates and nighttime surcharges for your fleet.</p>
     </div>
-  
-    <div class="preco-card">
-      <h2 class="titulo"> "Luxury" Car</h2>
-      <p class="valor-display">{{ custoLuxo }}€ / min</p>
-      <button (click)="alterarValor('custoLuxo')">Change</button>
+    <button type="button" class="sim-btn" routerLink="/manager/manage-prices/simulation">
+      <mat-icon>calculate</mat-icon>
+      <span>Run Simulation</span>
+    </button>
+  </div>
+
+  <div class="section-label">Per-Minute Rates</div>
+  <div class="cards-grid">
+    <div class="rate-card">
+      <div class="rate-top">
+        <div class="rate-icon basic">
+          <mat-icon>local_taxi</mat-icon>
+        </div>
+        <div>
+          <span class="rate-tag">Standard</span>
+          <h2>Basic Car</h2>
+        </div>
+      </div>
+      <div class="rate-value">{{ custoBase }}€ <span>/ min</span></div>
+      <button type="button" class="edit-btn" (click)="alterarValor('custoBase')">
+        <mat-icon>edit</mat-icon>
+        <span>Change Rate</span>
+      </button>
+    </div>
+
+    <div class="rate-card">
+      <div class="rate-top">
+        <div class="rate-icon luxury">
+          <mat-icon>star</mat-icon>
+        </div>
+        <div>
+          <span class="rate-tag luxury">Premium</span>
+          <h2>Luxury Car</h2>
+        </div>
+      </div>
+      <div class="rate-value">{{ custoLuxo }}€ <span>/ min</span></div>
+      <button type="button" class="edit-btn" (click)="alterarValor('custoLuxo')">
+        <mat-icon>edit</mat-icon>
+        <span>Change Rate</span>
+      </button>
     </div>
   </div>
-  
-  <h1 class="titulo taxas-header">Surcharges</h1>
 
-  <div class="taxas-container">
-    <div class="preco-card">
-      <h2 class="titulo">Night Surcharge (21:00 - 06:00)</h2>
-      <p class="valor-display">{{ taxaNocturna }}% / min</p>
-      <button (click)="alterarValor('taxaNocturna')">Change</button>
+  <div class="section-label centered">Surcharges</div>
+  <div class="cards-grid single">
+    <div class="rate-card">
+      <div class="rate-top">
+        <div class="rate-icon night">
+          <mat-icon>dark_mode</mat-icon>
+        </div>
+        <div>
+          <span class="rate-tag night">21:00 – 06:00</span>
+          <h2>Night Surcharge</h2>
+        </div>
+      </div>
+      <div class="rate-value">{{ taxaNocturna }}% <span>/ min</span></div>
+      <button type="button" class="edit-btn" (click)="alterarValor('taxaNocturna')">
+        <mat-icon>edit</mat-icon>
+        <span>Change Surcharge</span>
+      </button>
     </div>
   </div>
-  
-  <!-- Popup Modal -->
-  <div class="modal-backdrop" *ngIf="showModal">
-    <div class="modal">
-      <h3>Change value</h3>
+
+  <div class="modal-backdrop" *ngIf="showModal" (click)="cancelarAlteracao()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Update Value</h3>
+        <button type="button" class="close-btn" (click)="cancelarAlteracao()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
       <div class="input-wrapper">
-        <span class="input-prefix">
-          {{ campoAtual === 'taxaNocturna' ? '%' : '€' }}
-        </span>
-        <input type="text" [(ngModel)]="valorTemporario" />
+        <span class="input-prefix">{{ campoAtual === 'taxaNocturna' ? '%' : '€' }}</span>
+        <input type="text" [(ngModel)]="valorTemporario" placeholder="Enter new value..." />
       </div>
       <div class="erro" *ngIf="erroValidacao">{{ erroValidacao }}</div>
-      <button (click)="confirmarAlteracao()">Confirm</button>
-      <button (click)="cancelarAlteracao()">Cancel</button>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cancelarAlteracao()">Cancel</button>
+        <button type="button" class="btn-primary" (click)="confirmarAlteracao()">Confirm</button>
+      </div>
     </div>
   </div>
-  <div class="btn-container">
-    <button style="font-weight: bold;" routerLink="/manager/manage-prices/simulation"> Run Simulation </button>
-  </div>
+</div>

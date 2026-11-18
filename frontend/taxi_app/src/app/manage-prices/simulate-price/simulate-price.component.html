@@ -1,30 +1,58 @@
-<div class="simulacao-container">
-  <form [formGroup]="simulacaoForm" (ngSubmit)="calcularCusto()">
-    <label for="conforto">Price per minute (€):</label>
-      <select formControlName="conforto">
-        <option value="">Select</option>
-        <option value="Basic">{{ precoStandard }} € (Basic) </option>
-        <option value="Luxury">{{ precoLuxo }} € (Luxury)</option>
-      </select>
-  
-    <label for="agravamentoNoturno">Night surcharge (%):</label>
-      <input type="number" formControlName="agravamentoNoturno" step="1" min="0">
-  
-    <label for="inicio">Trip start:</label>
-      <input type="datetime-local" formControlName="inicio">
-  
-    <label for="fim">Trip end:</label>
-      <input type="datetime-local" formControlName="fim">
-  
-    <button type="submit" [disabled]="simulacaoForm.invalid">Calculate cost</button>
-  </form>
-  
-  <div *ngIf="custoTotal !== null">
-    <h3>Total trip cost: {{ custoTotal.toFixed(2) }}€</h3>
-  </div>
+<div class="sim-page">
+  <div class="sim-card">
+    <div class="sim-header">
+      <div class="sim-icon">
+        <mat-icon>calculate</mat-icon>
+      </div>
+      <div>
+        <h1>Fare Simulation</h1>
+        <p>Estimate the total trip cost based on comfort level, night surcharge, and duration.</p>
+      </div>
+    </div>
 
-  <div class="btn-container">
-    <button class="button" style="font-weight: bold;" routerLink="/manager/manage-prices">Back</button>
+    <form [formGroup]="simulacaoForm" (ngSubmit)="calcularCusto()" class="sim-form">
+      <div class="field">
+        <label for="conforto">Comfort &amp; Rate per Minute</label>
+        <select id="conforto" formControlName="conforto">
+          <option value="">Select comfort level...</option>
+          <option value="Basic">{{ precoStandard }}€ / min (Basic)</option>
+          <option value="Luxury">{{ precoLuxo }}€ / min (Luxury)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="agravamentoNoturno">Night Surcharge (%)</label>
+        <input id="agravamentoNoturno" type="number" formControlName="agravamentoNoturno" step="1" min="0" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="inicio">Trip Start</label>
+          <input id="inicio" type="datetime-local" formControlName="inicio" />
+        </div>
+
+        <div class="field">
+          <label for="fim">Trip End</label>
+          <input id="fim" type="datetime-local" formControlName="fim" />
+        </div>
+      </div>
+
+      <button type="submit" class="calc-btn" [disabled]="simulacaoForm.invalid">
+        <mat-icon>payments</mat-icon>
+        <span>Calculate Cost</span>
+      </button>
+    </form>
+
+    <div *ngIf="custoTotal !== null" class="result-banner">
+      <span class="result-label">Estimated Total Cost</span>
+      <strong class="result-value">{{ custoTotal.toFixed(2) }}€</strong>
+    </div>
+
+    <div class="back-row">
+      <button type="button" class="back-btn" routerLink="/manager/manage-prices">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to Pricing</span>
+      </button>
+    </div>
   </div>
-  
 </div>

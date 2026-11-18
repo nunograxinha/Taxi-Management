@@ -9,13 +9,13 @@
   </div>
 
   <div class="role-grid">
-    <div class="role-card role-manager" (click)="openManagerLogin()">
+    <div class="role-card role-client" (click)="enterAsClient()">
       <div class="role-icon">
-        <mat-icon>admin_panel_settings</mat-icon>
+        <mat-icon>person_pin_circle</mat-icon>
       </div>
-      <h2>Manager</h2>
-      <p>Manage taxis, drivers, per-minute pricing, fare simulations, and daily reports.</p>
-      <span class="role-action">Open Manager Portal →</span>
+      <h2>Client</h2>
+      <p>Sign in or create an account, choose pickup &amp; destination, and track your ride.</p>
+      <span class="role-action">Book a Ride →</span>
     </div>
 
     <div class="role-card role-driver" routerLink="/driver">
@@ -27,13 +27,13 @@
       <span class="role-action">Open Driver Portal →</span>
     </div>
 
-    <div class="role-card role-client" (click)="enterAsClient()">
+    <div class="role-card role-manager" (click)="openManagerLogin()">
       <div class="role-icon">
-        <mat-icon>person_pin_circle</mat-icon>
+        <mat-icon>admin_panel_settings</mat-icon>
       </div>
-      <h2>Client</h2>
-      <p>Sign in or create an account, choose pickup &amp; destination, and track your ride.</p>
-      <span class="role-action">Book a Ride →</span>
+      <h2>Manager</h2>
+      <p>Manage taxis, drivers, per-minute pricing, fare simulations, and daily reports.</p>
+      <span class="role-action">Open Manager Portal →</span>
     </div>
   </div>
 

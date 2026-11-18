@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TotalHorasComponent } from './total-hours.component';
+import { TotalHoursComponent } from './total-hours.component';
 
-describe('TotalHorasComponent', () => {
-  let component: TotalHorasComponent;
-  let fixture: ComponentFixture<TotalHorasComponent>;
+describe('TotalHoursComponent', () => {
+  let component: TotalHoursComponent;
+  let fixture: ComponentFixture<TotalHoursComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TotalHorasComponent]
+      declarations: [TotalHoursComponent]
     });
-    fixture = TestBed.createComponent(TotalHorasComponent);
+    fixture = TestBed.createComponent(TotalHoursComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

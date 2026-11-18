@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { VerTaxisComponent } from './taxi-list.component';
+import { TaxiListComponent } from './taxi-list.component';
 
-describe('VerTaxisComponent', () => {
-  let component: VerTaxisComponent;
-  let fixture: ComponentFixture<VerTaxisComponent>;
+describe('TaxiListComponent', () => {
+  let component: TaxiListComponent;
+  let fixture: ComponentFixture<TaxiListComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [VerTaxisComponent]
+      declarations: [TaxiListComponent]
     });
-    fixture = TestBed.createComponent(VerTaxisComponent);
+    fixture = TestBed.createComponent(TaxiListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 
-const pedidoViagemSchema = new mongoose.Schema({
+const rideRequestSchema = new mongoose.Schema({
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
   numberOfPeople: { type: Number, required: true, min:1},
   distanceKmToDriver: { type: Number, required: false, min: 0, default: null },
   entryAddress: { type: String, required: true },
   exitAddress: { type: String, required: true },
+  entryAddressLabel: { type: String, default: null },
+  exitAddressLabel: { type: String, default: null },
   confort: {
     type: String,
     required: true,
@@ -21,8 +23,9 @@ const pedidoViagemSchema = new mongoose.Schema({
   startTime: { type: Date, default: null },
   endTime: { type: Date, default: null },
   price: { type: Number, default: null },
+  shareToken: { type: String, default: null, index: true },
 }, { timestamps: true });
 
-const PedidoViagem = mongoose.model('RideRequest', pedidoViagemSchema);
+const RideRequest = mongoose.model('RideRequest', rideRequestSchema);
 
-module.exports = { PedidoViagem, RideRequest: PedidoViagem };
+module.exports = { RideRequest };

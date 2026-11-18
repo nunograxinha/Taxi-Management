@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GestorPageComponent } from './manager-page.component';
+import { ManagerPageComponent } from './manager-page.component';
 
-describe('GestorPageComponent', () => {
-  let component: GestorPageComponent;
-  let fixture: ComponentFixture<GestorPageComponent>;
+describe('ManagerPageComponent', () => {
+  let component: ManagerPageComponent;
+  let fixture: ComponentFixture<ManagerPageComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [GestorPageComponent]
+      declarations: [ManagerPageComponent]
     });
-    fixture = TestBed.createComponent(GestorPageComponent);
+    fixture = TestBed.createComponent(ManagerPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

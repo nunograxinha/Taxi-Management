@@ -35,7 +35,8 @@ input[readonly] {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
+    width: 100%;
+    max-width: 440px;
     margin: 30px auto;
   }
   
@@ -48,12 +49,18 @@ input[readonly] {
   
   input, select {
     width: 100%;
+    max-width: 100%;
     padding: 10px;
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-bottom: 15px;
     transition: border-color 0.3s ease;
+  }
+
+  select {
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
   input:focus, select:focus {

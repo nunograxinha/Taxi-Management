@@ -1,0 +1,76 @@
+<div class="share-page">
+  <div class="navbar">
+    <div class="navbar-brand">
+      <mat-icon>share_location</mat-icon>
+      <span class="navbar-title">Shared Trip (Read-Only)</span>
+    </div>
+  </div>
+
+  <div class="page-container">
+    <div class="card-centro" *ngIf="loading">
+      <p class="status-desc">Loading shared trip...</p>
+    </div>
+
+    <div class="card-centro expired-card" *ngIf="!loading && expired">
+      <mat-icon class="expired-icon">link_off</mat-icon>
+      <h2>Link Expired</h2>
+      <p class="status-desc">{{ errorMessage }}</p>
+    </div>
+
+    <div class="card-centro" *ngIf="!loading && !expired && trip">
+      <div class="status-banner" [class.in-progress]="status === 'inProgress'">
+        <span class="status-pill">{{ status === 'inProgress' ? 'Trip in Progress' : 'Driver on the Way' }}</span>
+        <span class="live-dot" *ngIf="hasLiveTaxiLocation">LIVE GPS</span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-tile driver-tile" *ngIf="trip.driverName">
+          <div class="tile-icon">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div>
+            <span class="tile-label">Driver</span>
+            <span class="tile-value">{{ trip.driverName }}</span>
+          </div>
+        </div>
+
+        <div class="info-tile pickup-tile">
+          <div class="tile-icon pickup">
+            <mat-icon>my_location</mat-icon>
+          </div>
+          <div>
+            <span class="tile-label">Pickup</span>
+            <span class="tile-value">{{ partidaNome }}</span>
+          </div>
+        </div>
+
+        <div class="info-tile dest-tile">
+          <div class="tile-icon dropoff">
+            <mat-icon>place</mat-icon>
+          </div>
+          <div>
+            <span class="tile-label">Destination</span>
+            <span class="tile-value">{{ destinoNome }}</span>
+          </div>
+        </div>
+
+        <div class="info-tile taxi-tile" *ngIf="trip.taxi">
+          <img
+            class="car-thumb"
+            [src]="taxiCarImage"
+            [alt]="trip.taxi.brand + ' ' + trip.taxi.model"
+          />
+          <div class="taxi-text">
+            <span class="tile-label">Taxi</span>
+            <span class="tile-value">{{ trip.taxi.brand }} {{ trip.taxi.model }}</span>
+            <span class="plate-badge">{{ trip.taxi.licensePlate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-map-card">
+        <div id="sharedTrackMap" class="shared-track-map"></div>
+      </div>
+    </div>
+  </div>
+</div>

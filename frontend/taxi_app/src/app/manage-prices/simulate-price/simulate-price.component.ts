@@ -1,20 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PrecoService } from '../../appServices/price.service';
-import { Preco } from '../price.interface';
+import { PriceService } from '../../appServices/price.service';
+import { Price } from '../price.interface';
 
 @Component({
   selector: 'app-simular-preco',
   templateUrl: './simulate-price.component.html',
   styleUrls: ['./simulate-price.component.css']
 })
-export class SimularPrecoComponent implements OnInit {
+export class SimulatePriceComponent implements OnInit {
   simulacaoForm: FormGroup;
   precoStandard: number = 0;
   precoLuxo: number = 0;
   custoTotal: number | null = null;
 
-  constructor(private fb: FormBuilder, private precoService: PrecoService) {
+  constructor(private fb: FormBuilder, private precoService: PriceService) {
     this.simulacaoForm = this.fb.group({
       conforto: ['', Validators.required],
       agravamentoNoturno: [0, [Validators.required, Validators.min(0)]],
@@ -24,8 +24,8 @@ export class SimularPrecoComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.precoService.getPreco().subscribe({
-      next: (data: Preco) => {
+    this.precoService.getPrice().subscribe({
+      next: (data: Price) => {
         this.precoStandard = data.pricePerMinuteConfort;
         this.precoLuxo = data.pricePerMinuteLuxury;
         this.simulacaoForm.patchValue({

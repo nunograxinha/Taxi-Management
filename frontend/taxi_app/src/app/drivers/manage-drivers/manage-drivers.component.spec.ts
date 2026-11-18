@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GerirMotoristasComponent } from './manage-drivers.component';
+import { ManageDriversComponent } from './manage-drivers.component';
 
-describe('GerirMotoristasComponent', () => {
-  let component: GerirMotoristasComponent;
-  let fixture: ComponentFixture<GerirMotoristasComponent>;
+describe('ManageDriversComponent', () => {
+  let component: ManageDriversComponent;
+  let fixture: ComponentFixture<ManageDriversComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [GerirMotoristasComponent]
+      declarations: [ManageDriversComponent]
     });
-    fixture = TestBed.createComponent(GerirMotoristasComponent);
+    fixture = TestBed.createComponent(ManageDriversComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

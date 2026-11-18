@@ -1,8 +1,8 @@
-const { Motorista } = require('../models/driver');
+const { Driver } = require('../models/driver');
 const { Taxi } = require('../models/taxi');
-const { Cliente } = require('../models/client');
-const { PedidoViagem } = require('../models/rideRequest');
-const { Fatura } = require('../models/invoice');
+const { Client } = require('../models/client');
+const { RideRequest } = require('../models/rideRequest');
+const { Invoice } = require('../models/invoice');
 const { hashPassword } = require('../utils/password');
 
 const defaultDrivers = [
@@ -54,27 +54,27 @@ const defaultTaxis = [
 exports.seedInitialData = async () => {
   try {
     // Migrate any legacy Portuguese enum values in existing documents to English
-    await Motorista.updateMany({ gender: 'Masculino' }, { $set: { gender: 'Male' } });
-    await Motorista.updateMany({ gender: 'Feminino' }, { $set: { gender: 'Female' } });
-    await Cliente.updateMany({ gender: 'Masculino' }, { $set: { gender: 'Male' } });
-    await Cliente.updateMany({ gender: 'Feminino' }, { $set: { gender: 'Female' } });
-    await Fatura.updateMany({ clientGender: 'Masculino' }, { $set: { clientGender: 'Male' } });
-    await Fatura.updateMany({ clientGender: 'Feminino' }, { $set: { clientGender: 'Female' } });
+    await Driver.updateMany({ gender: 'Masculino' }, { $set: { gender: 'Male' } });
+    await Driver.updateMany({ gender: 'Feminino' }, { $set: { gender: 'Female' } });
+    await Client.updateMany({ gender: 'Masculino' }, { $set: { gender: 'Male' } });
+    await Client.updateMany({ gender: 'Feminino' }, { $set: { gender: 'Female' } });
+    await Invoice.updateMany({ clientGender: 'Masculino' }, { $set: { clientGender: 'Male' } });
+    await Invoice.updateMany({ clientGender: 'Feminino' }, { $set: { clientGender: 'Female' } });
     await Taxi.updateMany({ confort: 'Basico' }, { $set: { confort: 'Basic' } });
     await Taxi.updateMany({ confort: 'Luxuoso' }, { $set: { confort: 'Luxury' } });
-    await PedidoViagem.updateMany({ confort: 'Basico' }, { $set: { confort: 'Basic' } });
-    await PedidoViagem.updateMany({ confort: 'Luxuoso' }, { $set: { confort: 'Luxury' } });
+    await RideRequest.updateMany({ confort: 'Basico' }, { $set: { confort: 'Basic' } });
+    await RideRequest.updateMany({ confort: 'Luxuoso' }, { $set: { confort: 'Luxury' } });
 
-    const driverCount = await Motorista.countDocuments();
+    const driverCount = await Driver.countDocuments();
     if (driverCount === 0) {
       const seededDrivers = defaultDrivers.map((d) => ({
         ...d,
         passwordHash: hashPassword('driver123')
       }));
-      await Motorista.insertMany(seededDrivers);
+      await Driver.insertMany(seededDrivers);
       console.log('Initial drivers seeded successfully.');
     } else {
-      const driversWithoutPassword = await Motorista.find({
+      const driversWithoutPassword = await Driver.find({
         $or: [{ passwordHash: { $exists: false } }, { passwordHash: null }, { passwordHash: '' }]
       });
       for (const drv of driversWithoutPassword) {

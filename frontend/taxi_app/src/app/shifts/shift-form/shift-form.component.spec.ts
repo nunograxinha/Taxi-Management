@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TurnoFormComponent } from './shift-form.component';
+import { ShiftFormComponent } from './shift-form.component';
 
-describe('TurnoFormComponent', () => {
-  let component: TurnoFormComponent;
-  let fixture: ComponentFixture<TurnoFormComponent>;
+describe('ShiftFormComponent', () => {
+  let component: ShiftFormComponent;
+  let fixture: ComponentFixture<ShiftFormComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TurnoFormComponent]
+      declarations: [ShiftFormComponent]
     });
-    fixture = TestBed.createComponent(TurnoFormComponent);
+    fixture = TestBed.createComponent(ShiftFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

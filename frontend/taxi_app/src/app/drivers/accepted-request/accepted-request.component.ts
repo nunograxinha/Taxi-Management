@@ -2,33 +2,33 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import * as L from 'leaflet';
-import { firstValueFrom } from 'rxjs';
-import { ClienteService } from '../../appServices/client.service';
+import { firstValueFrom, Subscription } from 'rxjs';
+import { ClientService } from '../../appServices/client.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
-import { MotoristaService } from '../../appServices/driver.service';
-import { PedidoViagemService } from '../../appServices/ride-request.service';
-import { PrecoService } from '../../appServices/price.service';
+import { DriverService } from '../../appServices/driver.service';
+import { RideRequestService } from '../../appServices/ride-request.service';
+import { PriceService } from '../../appServices/price.service';
 import { TaxiService } from '../../appServices/taxi.service';
-import { TurnoService } from '../../appServices/shift.service';
-import { ViagemService } from '../../appServices/trip.service';
+import { ShiftService } from '../../appServices/shift.service';
+import { TripService } from '../../appServices/trip.service';
 import { SocketService } from '../../appServices/socket.service';
-import { PedidoViagem } from '../../client/ride-request.interface';
-import { Preco } from '../../manage-prices/price.interface';
-import { Turno } from '../../shifts/shift.interface';
-import { Viagem } from '../../trips/trip.interface';
+import { RideRequest } from '../../client/ride-request.interface';
+import { Price } from '../../manage-prices/price.interface';
+import { Shift } from '../../shifts/shift.interface';
+import { Trip } from '../../trips/trip.interface';
 
 @Component({
   selector: 'app-pedido-aceito',
   templateUrl: './accepted-request.component.html',
   styleUrls: ['./accepted-request.component.css']
 })
-export class PedidoAceitoComponent implements OnInit, OnDestroy {
-  pedido: PedidoViagem  | null = null;
+export class AcceptedRequestComponent implements OnInit, OnDestroy {
+  pedido: RideRequest  | null = null;
   pedidoId: string = '';
   startTimeLocal: string | null = null;
   endTimeLocal: string | null = null;
   precoFinal: number | null = null;
-  preco: Preco | null = null;
+  preco: Price | null = null;
   bloquearBotoes: boolean = false;
   isStartingTrip: boolean = false;
   isEndingTrip: boolean = false;
@@ -47,24 +47,32 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
   showAllSteps: boolean = false;
   private routeMap: L.Map | null = null;
   private carMarker: L.Marker | null = null;
+  private approachOuterLine: L.Polyline | null = null;
+  private approachInnerLine: L.Polyline | null = null;
+  private tripOuterLine: L.Polyline | null = null;
   private watchId: number | null = null;
   private lastCarPos: [number, number] | null = null;
+  private lastGpsPos: { latitude: string; longitude: string } | null = null;
+  private lastGpsAt: number = 0;
   private routeBounds: L.LatLngBounds | null = null;
   private currentBearing: number = 0;
+  private socketSub = new Subscription();
+  private isCompletingTrip = false;
+  private checkCancelledIntervalId: any = null;
   numPessoas: number = 1;
   numPessoasConfirmado: boolean = false;
 
   constructor(
-    private pedidoViagemService: PedidoViagemService,
+    private pedidoViagemService: RideRequestService,
     private route: ActivatedRoute,
-    private precoService: PrecoService,
+    private precoService: PriceService,
     private taxiService: TaxiService,
-    private viagemService: ViagemService,
-    private turnoService: TurnoService,
-    private motoristaService: MotoristaService,
+    private viagemService: TripService,
+    private turnoService: ShiftService,
+    private motoristaService: DriverService,
     private router: Router,
     private geolocationService: GeolocationService,
-    private clienteService: ClienteService,
+    private clienteService: ClientService,
     private snackBar: MatSnackBar,
     private socketService: SocketService
   ) {}
@@ -76,8 +84,65 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
       return;
     }
     this.pedidoId = pedidoId;
-    this.pedidoViagemService.getPedidoById(pedidoId).subscribe({
-      next: async (pedido) => {
+    this.socketService.joinPedido(pedidoId);
+
+    this.socketSub.add(
+      this.socketService.onEvent<{ id: string }>('pedido:deleted').subscribe((ev) => {
+        if (ev && String(ev.id) === String(this.pedidoId)) {
+          this.handleRideCancelledByClient();
+        }
+      })
+    );
+
+    this.socketSub.add(
+      this.socketService.onEvent<RideRequest>('pedido:clientRejected').subscribe((ev) => {
+        if (ev && String(ev._id) === String(this.pedidoId)) {
+          this.handleRideCancelledByClient();
+        }
+      })
+    );
+
+    this.checkCancelledIntervalId = setInterval(() => {
+      if (this.startTimeLocal || this.endTimeLocal || this.isCompletingTrip) {
+        if (this.startTimeLocal || this.endTimeLocal) {
+          this.stopCheckCancelledInterval();
+        }
+        return;
+      }
+      this.pedidoViagemService.getRideRequestById(this.pedidoId).subscribe({
+        next: (res) => {
+          if (!res || !res.driverId) {
+            this.handleRideCancelledByClient();
+          }
+        },
+        error: () => {
+          this.handleRideCancelledByClient();
+        }
+      });
+    }, 4000);
+
+    this.geolocationService.getCurrentPosition().subscribe({
+      next: (pos) => {
+        this.lastGpsPos = pos;
+        this.lastGpsAt = Date.now();
+        this.socketService.emitDriverLocation({
+          pedidoId: this.pedidoId,
+          lat: Number(pos.latitude),
+          lon: Number(pos.longitude),
+          heading: this.currentBearing
+        });
+        if (this.routeMap && !this.startTimeLocal) {
+          void this.drawApproachRouteFromGps(Number(pos.latitude), Number(pos.longitude), !this.followGps);
+        }
+      },
+      error: () => {}
+    });
+    this.pedidoViagemService.getRideRequestById(pedidoId).subscribe({
+      next: (pedido) => {
+        if (!pedido || !pedido.driverId) {
+          this.handleRideCancelledByClient();
+          return;
+        }
         this.pedido = pedido;
         if (typeof pedido.client === 'object' && pedido.client !== null) {
           this.nomeCliente = (pedido.client as any).name || '';
@@ -90,18 +155,22 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
         }
         this.numPessoasConfirmado = localStorage.getItem(`numPessoasConfirmado_${pedidoId}`) === 'true';
 
-        if (pedido.exitAddress) {
-          this.requestedDestination = await this.resolveAddress(pedido.exitAddress);
-        }
-
         if (!pedido.endTime) {
           this.setupRouteMapData(pedido.entryAddress, pedido.exitAddress);
+        }
+
+        if (pedido.exitAddress) {
+          void this.resolveAddress(pedido.exitAddress).then((addr) => {
+            this.requestedDestination = addr;
+          });
         }
 
         if (pedido.startTime) {
           this.startTimeLocal = new Date(pedido.startTime).toISOString();
           if (pedido.entryAddress) {
-            this.startLocal = await this.resolveAddress(pedido.entryAddress);
+            void this.resolveAddress(pedido.entryAddress).then((addr) => {
+              this.startLocal = addr;
+            });
           }
         }
 
@@ -117,122 +186,129 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
             this.precoFinal = pedido.price;
           }
           if (pedido.exitAddress) {
-            this.endLocal = await this.resolveAddress(pedido.exitAddress);
+            void this.resolveAddress(pedido.exitAddress).then((addr) => {
+              this.endLocal = addr;
+            });
           }
         }
       },
-      error: (error) => { console.error('Error fetching ride request:', error); }
+      error: (error) => {
+        console.error('Error fetching ride request:', error);
+        this.handleRideCancelledByClient();
+      }
     });
-    this.precoService.getPreco().subscribe({
+    this.precoService.getPrice().subscribe({
       next: (preco) => { this.preco = preco; },
       error: (error) => { console.error('Error fetching price:', error); }
     });
   }
 
-  comecarViagem(): void {
+  async comecarViagem(): Promise<void> {
     if (!this.pedidoId || this.bloquearBotoes || this.isStartingTrip || this.isEndingTrip) {
       return;
     }
     this.isStartingTrip = true;
-    this.geolocationService.getCurrentPosition().subscribe({
-      next: async (pos) => {
-        const entryAddress = `${pos.latitude},${pos.longitude}`;
-        const startTime = new Date();
-        this.pedidoViagemService.updatePedido(this.pedidoId, { startTime, entryAddress }).subscribe({
-          next: async () => {
-            this.startTimeLocal = startTime.toISOString();
-            if (this.pedido) {
-              this.pedido.startTime = startTime;
-              this.pedido.entryAddress = entryAddress;
-            }
-            try {
-              this.startLocal = await this.geolocationService.getAddressFromCoordinates(pos.latitude, pos.longitude);
-            } catch {
-              this.startLocal = 'address not found';
-            } finally {
-              this.isStartingTrip = false;
-            }
-          },
-          error: (error) => {
-            this.isStartingTrip = false;
-            console.error('Error starting trip:', error);
+    try {
+      const pos = await this.getRealGpsCoords();
+      this.socketService.emitDriverLocation({
+        pedidoId: this.pedidoId,
+        lat: Number(pos.latitude),
+        lon: Number(pos.longitude),
+        heading: this.currentBearing
+      });
+      const entryAddress = `${pos.latitude},${pos.longitude}`;
+      const startTime = new Date();
+      this.pedidoViagemService.updateRideRequest(this.pedidoId, { startTime, entryAddress }).subscribe({
+        next: () => {
+          this.startTimeLocal = startTime.toISOString();
+          if (this.pedido) {
+            this.pedido.startTime = startTime;
+            this.pedido.entryAddress = entryAddress;
           }
-        });
-      },
-      error: (error) => {
-        this.isStartingTrip = false;
-        console.error('Error getting initial location:', error);
-      }
-    });
+          if (this.pedido?.exitAddress) {
+            this.setupRouteMapData(entryAddress, this.pedido.exitAddress);
+          }
+          this.startLocal = 'Resolving address...';
+          this.isStartingTrip = false;
+          void this.resolveAddress(entryAddress).then((addr) => {
+            this.startLocal = addr;
+          });
+        },
+        error: (error) => {
+          this.isStartingTrip = false;
+          console.error('Error starting trip:', error);
+        }
+      });
+    } catch (error) {
+      this.isStartingTrip = false;
+      console.error('Error getting initial location:', error);
+    }
   }
 
-  terminarViagem(): void {
+  async terminarViagem(): Promise<void> {
     if (!this.pedidoId || !this.pedido || this.bloquearBotoes || this.isEndingTrip || this.isStartingTrip) {
       return;
     }
     this.isEndingTrip = true;
-    this.geolocationService.getCurrentPosition().subscribe({
-      next: async (pos) => {
-        const exitAddress = `${pos.latitude},${pos.longitude}`;
-        const endTime = new Date();
+    try {
+      const pos = await this.getRealGpsCoords();
+      const exitAddress = `${pos.latitude},${pos.longitude}`;
+      const endTime = new Date();
 
-        try {
-          this.endLocal = await this.geolocationService.getAddressFromCoordinates(pos.latitude, pos.longitude);
-        } catch {
-          this.endLocal = 'address not found';
+      this.endLocal = 'Resolving address...';
+      void this.resolveAddress(exitAddress).then((addr) => {
+        this.endLocal = addr;
+      });
+
+      const start = new Date(this.pedido!.startTime!);
+      const totalMinutos = Math.floor((endTime.getTime() - start.getTime()) / 60000);
+      const minutosNoite = this.calcularTempoNoite(start, endTime);
+
+      try {
+        const taxi = await firstValueFrom(this.taxiService.getTaxiById(this.pedido!.taxi!));
+        const confort = taxi?.confort || this.pedido!.confort;
+        let precoMinuto = 0;
+        if (confort === 'Basic') {
+          precoMinuto = this.preco!.pricePerMinuteConfort;
+        } else if (confort === 'Luxury') {
+          precoMinuto = this.preco!.pricePerMinuteLuxury;
         }
 
-        const start = new Date(this.pedido!.startTime!);
-        const totalMinutos = Math.floor((endTime.getTime() - start.getTime()) / 60000);
-        const minutosNoite = this.calcularTempoNoite(start, endTime);
+        this.duracaoViagem = totalMinutos;
+        const minutosDia = totalMinutos - minutosNoite;
+        const precoDia = precoMinuto * minutosDia;
+        const precoNoite = minutosNoite * (precoMinuto * (1 + (this.preco!.nightTimeSurcharge / 100)));
+        this.precoFinal = Math.round((precoDia + precoNoite) * 100) / 100;
 
-        try {
-          const taxi = await firstValueFrom(this.taxiService.getTaxiById(this.pedido!.taxi!));
-          const confort = taxi?.confort || this.pedido!.confort;
-          let precoMinuto = 0;
-          if (confort === 'Basic') {
-            precoMinuto = this.preco!.pricePerMinuteConfort;
-          } else if (confort === 'Luxury') {
-            precoMinuto = this.preco!.pricePerMinuteLuxury;
-          }
-
-          this.duracaoViagem = totalMinutos;
-          const minutosDia = totalMinutos - minutosNoite;
-          const precoDia = precoMinuto * minutosDia;
-          const precoNoite = minutosNoite * (precoMinuto * (1 + (this.preco!.nightTimeSurcharge / 100)));
-          this.precoFinal = Math.round((precoDia + precoNoite) * 100) / 100;
-
-          this.pedidoViagemService.updatePedido(this.pedidoId, {
-            endTime,
-            exitAddress,
-            price: this.precoFinal
-          }).subscribe({
-            next: () => {
-              console.log('Trip finished and price updated:', this.precoFinal);
-              this.endTimeLocal = endTime.toISOString();
-              if (this.pedido) {
-                this.pedido.endTime = endTime;
-                this.pedido.exitAddress = exitAddress;
-                this.pedido.price = this.precoFinal!;
-              }
-              this.bloquearBotoes = true;
-              this.isEndingTrip = false;
-            },
-            error: (error) => {
-              this.isEndingTrip = false;
-              console.error('Error finishing trip:', error);
+        this.pedidoViagemService.updateRideRequest(this.pedidoId, {
+          endTime,
+          exitAddress,
+          price: this.precoFinal
+        }).subscribe({
+          next: () => {
+            console.log('Trip finished and price updated:', this.precoFinal);
+            this.endTimeLocal = endTime.toISOString();
+            if (this.pedido) {
+              this.pedido.endTime = endTime;
+              this.pedido.exitAddress = exitAddress;
+              this.pedido.price = this.precoFinal!;
             }
-          });
-        } catch (error) {
-          this.isEndingTrip = false;
-          console.error('Error calculating trip price:', error);
-        }
-      },
-      error: (error) => {
+            this.bloquearBotoes = true;
+            this.isEndingTrip = false;
+          },
+          error: (error) => {
+            this.isEndingTrip = false;
+            console.error('Error finishing trip:', error);
+          }
+        });
+      } catch (error) {
         this.isEndingTrip = false;
-        console.error('Error getting final location:', error);
+        console.error('Error calculating trip price:', error);
       }
-    });
+    } catch (error) {
+      this.isEndingTrip = false;
+      console.error('Error getting final location:', error);
+    }
   }
 
   formatarHoraMinuto(dateString: string | null): string | null {
@@ -261,8 +337,8 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
     } else {
 
     // Get driver by ID to obtain NIF
-    this.motoristaService.getMotoristaPorId(this.pedido.driverId!).subscribe({
-      next: (motorista) => {
+    this.motoristaService.getDriverById(this.pedido.driverId!).subscribe({
+      next: async (motorista) => {
         if (!motorista || !motorista.NIF) {
           this.snackBar.open('Could not find driver NIF.', 'Close', { duration: 4000 });
           return;
@@ -271,12 +347,38 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
 
         const entryCoords = this.pedido!.entryAddress!.split(',').map(Number);
         const exitCoords = this.pedido!.exitAddress!.split(',').map(Number);
-        const distanceKm = haversineDistance(
+        let distanceKm = haversineDistance(
           entryCoords[0], entryCoords[1],
           exitCoords[0], exitCoords[1]
         );
 
-        this.turnoService.getTurnosInTimeFrame(
+        const samePoint =
+          Math.abs(entryCoords[0] - exitCoords[0]) < 1e-6 &&
+          Math.abs(entryCoords[1] - exitCoords[1]) < 1e-6;
+
+        if (samePoint) {
+          distanceKm = 0;
+        } else {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000);
+          try {
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${entryCoords[1]},${entryCoords[0]};${exitCoords[1]},${exitCoords[0]}?overview=false`;
+            const resp = await fetch(osrmUrl, { signal: controller.signal });
+            if (resp.ok) {
+              const data = await resp.json();
+              const distMeters = data?.routes?.[0]?.distance;
+              if (typeof distMeters === 'number') {
+                distanceKm = parseFloat((distMeters / 1000).toFixed(2));
+              }
+            }
+          } catch (err) {
+            console.warn('OSRM distance fallback to Haversine:', err);
+          } finally {
+            clearTimeout(timeoutId);
+          }
+        }
+
+        this.turnoService.getShiftsInTimeFrame(
           motorista.NIF,
           startTimeISO,
           startTimeISO
@@ -291,20 +393,24 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
               exitTime: this.pedido!.endTime,
               entryAddress: this.pedido!.entryAddress,
               exitAddress: this.pedido!.exitAddress,
+              entryAddressLabel: this.isResolvedLabel(this.startLocal) ? this.startLocal : undefined,
+              exitAddressLabel: this.isResolvedLabel(this.endLocal) ? this.endLocal : undefined,
               driver: this.pedido!.driverId,
               client: this.pedido!.client,
               price: this.precoFinal
             };
-            console.log('Data sent to criarViagem:', novaViagem);
-            this.viagemService.criarViagem(novaViagem).subscribe({
+            console.log('Data sent to createTrip:', novaViagem);
+            this.viagemService.createTrip(novaViagem).subscribe({
               next: () => {
-                this.pedidoViagemService.deletePedido(this.pedidoId).subscribe({
+                this.isCompletingTrip = true;
+                this.pedidoViagemService.deleteRideRequest(this.pedidoId).subscribe({
                   next: () => {
                     localStorage.removeItem(`numPessoasConfirmado_${this.pedidoId}`);
                     this.snackBar.open('Trip finished successfully!', 'Close', { duration: 3500 });
-                    this.router.navigate(['/driver', motorista.NIF]);
+                    this.router.navigate(['/driver/portal']);
                   },
                   error: (error) => {
+                    this.isCompletingTrip = false;
                     console.error('Error deleting ride request:', error);
                     this.snackBar.open('Error deleting ride request.', 'Close', { duration: 4000 });
                   }
@@ -333,7 +439,7 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
 
   confirmarNumeroPessoas(): void {
     if (!this.pedidoId) return;
-    this.pedidoViagemService.updatePedido(this.pedidoId, { numberOfPeople: this.numPessoas }).subscribe({
+    this.pedidoViagemService.updateRideRequest(this.pedidoId, { numberOfPeople: this.numPessoas }).subscribe({
       next: () => {
         this.numPessoasConfirmado = true;
         localStorage.setItem(`numPessoasConfirmado_${this.pedidoId}`, 'true');
@@ -352,8 +458,58 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
     }
   }
 
+  private stopCheckCancelledInterval(): void {
+    if (this.checkCancelledIntervalId !== null) {
+      clearInterval(this.checkCancelledIntervalId);
+      this.checkCancelledIntervalId = null;
+    }
+  }
+
+  private handleRideCancelledByClient(): void {
+    if (this.isCompletingTrip || this.endTimeLocal) return;
+    this.isCompletingTrip = true;
+    this.stopCheckCancelledInterval();
+    if (this.pedidoId) {
+      localStorage.removeItem(`numPessoasConfirmado_${this.pedidoId}`);
+    }
+    this.snackBar.open('The client cancelled this ride request.', 'Close', { duration: 4000 });
+    this.router.navigate(['/driver/portal/pending-requests']);
+  }
+
   ngOnDestroy(): void {
+    this.stopCheckCancelledInterval();
+    this.socketSub.unsubscribe();
+    if (this.pedidoId) {
+      this.socketService.leavePedido(this.pedidoId);
+    }
     this.destroyRouteMap();
+  }
+
+  private async getRealGpsCoords(): Promise<{ latitude: string; longitude: string }> {
+    if (this.lastGpsPos && Date.now() - this.lastGpsAt < 10000) {
+      return this.lastGpsPos;
+    }
+
+    try {
+      const pos = await firstValueFrom(this.geolocationService.getCurrentPosition());
+      this.lastGpsPos = pos;
+      this.lastGpsAt = Date.now();
+      return pos;
+    } catch (err) {
+      if (this.lastGpsPos) {
+        return this.lastGpsPos;
+      }
+      throw err;
+    }
+  }
+
+  private isResolvedLabel(label: string): boolean {
+    return Boolean(
+      label &&
+      label !== 'address not found' &&
+      label !== 'Resolving address...' &&
+      !this.geolocationService.isCoordinateString(label)
+    );
   }
 
   private async resolveAddress(coords: string): Promise<string> {
@@ -362,7 +518,8 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
       return coords;
     }
     try {
-      return await this.geolocationService.getAddressFromCoordinates(parts[0], parts[1]);
+      const resolved = await this.geolocationService.resolveDisplayAddress(coords);
+      return resolved || 'address not found';
     } catch {
       return 'address not found';
     }
@@ -401,6 +558,9 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
     if (this.routeMap) {
       this.routeMap.remove();
       this.routeMap = null;
+      this.approachOuterLine = null;
+      this.approachInnerLine = null;
+      this.tripOuterLine = null;
     }
   }
 
@@ -478,7 +638,7 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
     }).addTo(this.routeMap);
 
     // Draw crisp two-layer blue route line along the roads
-    L.polyline(routeLatLngs, { color: '#1d4ed8', weight: 9, opacity: 0.9 }).addTo(this.routeMap);
+    this.tripOuterLine = L.polyline(routeLatLngs, { color: '#1d4ed8', weight: 9, opacity: 0.9 }).addTo(this.routeMap);
     L.polyline(routeLatLngs, { color: '#3b82f6', weight: 5, opacity: 1 }).addTo(this.routeMap);
 
     const makePinIcon = (color: string) =>
@@ -497,7 +657,15 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
       .bindPopup('<b>Requested Destination</b>')
       .addTo(this.routeMap);
 
-    this.placeCarArrow(startLatLng, this.currentBearing);
+    if (!this.startTimeLocal && this.lastGpsPos) {
+      await this.drawApproachRouteFromGps(
+        Number(this.lastGpsPos.latitude),
+        Number(this.lastGpsPos.longitude),
+        !this.followGps
+      );
+    } else {
+      this.placeCarArrow(startLatLng, this.currentBearing);
+    }
     this.startLiveGpsTracking();
 
     if (!this.followGps && this.routeBounds) {
@@ -505,6 +673,53 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
     }
 
     setTimeout(() => this.routeMap?.invalidateSize(), 150);
+  }
+
+  private async drawApproachRouteFromGps(driverLat: number, driverLon: number, fitAllBounds: boolean): Promise<void> {
+    if (!this.routeMap || this.startTimeLocal || !this.pickupCoords || !this.destCoords) return;
+    if (!Number.isFinite(driverLat) || !Number.isFinite(driverLon)) return;
+
+    const [pLat, pLng] = this.pickupCoords;
+    let approachLatLngs: [number, number][] = [[driverLat, driverLon], [pLat, pLng]];
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${driverLon},${driverLat};${pLng},${pLat}?overview=full&geometries=geojson`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        const coords: [number, number][] | undefined = data?.routes?.[0]?.geometry?.coordinates;
+        if (coords && coords.length >= 2) {
+          approachLatLngs = coords.map(([lng, lat]) => [lat, lng]);
+        }
+      }
+    } catch {
+      // Fall back to direct approach line if OSRM is unreachable
+    }
+
+    if (!this.routeMap || this.startTimeLocal) return;
+
+    if (this.approachOuterLine) {
+      this.approachOuterLine.setLatLngs(approachLatLngs);
+    } else {
+      this.approachOuterLine = L.polyline(approachLatLngs, { color: '#15803d', weight: 8, opacity: 0.9 }).addTo(this.routeMap);
+    }
+    if (this.approachInnerLine) {
+      this.approachInnerLine.setLatLngs(approachLatLngs);
+    } else {
+      this.approachInnerLine = L.polyline(approachLatLngs, { color: '#22c55e', weight: 4.5, opacity: 1, dashArray: '8, 8' }).addTo(this.routeMap);
+    }
+
+    const nextApproach = approachLatLngs.length > 1 ? approachLatLngs[1] : this.pickupCoords;
+    const bearing = this.calculateBearing([driverLat, driverLon], nextApproach);
+    this.placeCarArrow([driverLat, driverLon], bearing);
+
+    const bounds = L.latLngBounds([this.pickupCoords, this.destCoords, ...approachLatLngs]);
+    if (this.tripOuterLine) {
+      bounds.extend(this.tripOuterLine.getBounds());
+    }
+    this.routeBounds = bounds;
+    if (fitAllBounds) {
+      this.routeMap.fitBounds(bounds, { padding: [40, 40] });
+    }
   }
 
   toggleSteps(): void {
@@ -595,6 +810,11 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
     if (!navigator.geolocation || this.watchId !== null) return;
     this.watchId = navigator.geolocation.watchPosition(
       (position) => {
+        this.lastGpsPos = {
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString()
+        };
+        this.lastGpsAt = Date.now();
         const newPos: [number, number] = [position.coords.latitude, position.coords.longitude];
         let bearing = position.coords.heading;
         if (bearing === null || bearing === undefined || isNaN(bearing)) {
@@ -613,7 +833,7 @@ export class PedidoAceitoComponent implements OnInit, OnDestroy {
       (err) => {
         console.warn('GPS watchPosition unavailable:', err.message);
       },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+      { enableHighAccuracy: false, maximumAge: 10000, timeout: 10000 }
     );
   }
 

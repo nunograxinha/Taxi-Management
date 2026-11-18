@@ -1,4 +1,3 @@
-import { Pessoa } from "../models/person.interface";
+import { Person } from '../models/person.interface';
 
-export interface Cliente extends Pessoa {
-}
+export interface Client extends Person {}

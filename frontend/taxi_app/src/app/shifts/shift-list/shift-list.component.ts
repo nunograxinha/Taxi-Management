@@ -1,31 +1,37 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { TurnoService } from '../../appServices/shift.service';
-import { Turno } from '../shift.interface';
+import { ShiftService } from '../../appServices/shift.service';
+import { Shift } from '../shift.interface';
 import { TaxiService } from '../../appServices/taxi.service';
 import { Taxi } from '../../taxis/taxi.interface';
+import { AuthService } from '../../appServices/auth.service';
 
 @Component({
   selector: 'app-turno-list',
   templateUrl: './shift-list.component.html',
   styleUrls: ['./shift-list.component.css']
 })
-export class TurnoListComponent {
+export class ShiftListComponent {
   motoristaNif!: string;
-  turnos: Turno[] = [];
+  turnos: Shift[] = [];
   taxiMap = new Map<string, string>();
 
   constructor(
     private route: ActivatedRoute,
-    private turnoService: TurnoService,
-    private taxiService: TaxiService
+    private turnoService: ShiftService,
+    private taxiService: TaxiService,
+    private authService: AuthService
   ) {}  
 
   ngOnInit(): void {
-    this.motoristaNif = this.route.snapshot.paramMap.get('nif')!;
+    this.motoristaNif =
+      this.authService.getDriverNif() ||
+      this.route.snapshot.paramMap.get('nif') ||
+      this.route.parent?.snapshot.paramMap.get('nif') ||
+      '';
 
-    this.turnoService.getTurnosByMotoristaNIF(this.motoristaNif).subscribe({
-      next: (turnos: Turno[]) => {
+    this.turnoService.getShiftsByDriverNIF(this.motoristaNif).subscribe({
+      next: (turnos: Shift[]) => {
         this.turnos = turnos.sort((a, b) => new Date(b.start).getTime() - new Date(a.start).getTime());
         const taxiIds = Array.from(new Set(turnos.map(t => t.taxi)));
         this.taxiService.getTaxis().subscribe({

@@ -1,13 +1,13 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MotoristaService } from '../../appServices/driver.service';
+import { DriverService } from '../../appServices/driver.service';
 
 @Component({
   selector: 'app-motorista-list',
   templateUrl: './driver-list.component.html',
   styleUrls: ['./driver-list.component.css']
 })
-export class MotoristaListComponent implements OnInit, OnChanges {
+export class DriverListComponent implements OnInit, OnChanges {
   @Input() refreshTrigger!: number;
 
   drivers: any[] = [];
@@ -16,7 +16,7 @@ export class MotoristaListComponent implements OnInit, OnChanges {
   loadError: string = '';
 
   constructor(
-    private readonly motoristaService: MotoristaService,
+    private readonly motoristaService: DriverService,
     private readonly snackBar: MatSnackBar
   ) {}
 
@@ -33,9 +33,9 @@ export class MotoristaListComponent implements OnInit, OnChanges {
   loadDrivers(): void {
     this.isLoading = true;
     this.loadError = '';
-    this.motoristaService.obterMotoristas().subscribe({
+    this.motoristaService.getDrivers().subscribe({
       next: (data) => {
-        this.drivers = this.motoristaService.sortMotoristasByUpdatedAt(data);
+        this.drivers = this.motoristaService.sortDriversByUpdatedAt(data);
         this.isLoading = false;
       },
       error: (err) => {
@@ -58,7 +58,7 @@ export class MotoristaListComponent implements OnInit, OnChanges {
 
   removeDriver(driver: any): void {
     if (confirm(`Are you sure you want to remove driver ${driver.name}?`)) {
-      this.motoristaService.apagarMotoristaPorNIF(driver.NIF).subscribe({
+      this.motoristaService.deleteDriverByNIF(driver.NIF).subscribe({
         next: () => {
           this.loadDrivers();
           this.snackBar.open('Driver removed successfully!', 'Close', { duration: 3500 });

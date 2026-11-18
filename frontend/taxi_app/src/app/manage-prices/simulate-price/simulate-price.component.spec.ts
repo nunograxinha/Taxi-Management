@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SimularPrecoComponent } from './simulate-price.component';
+import { SimulatePriceComponent } from './simulate-price.component';
 
-describe('SimularPrecoComponent', () => {
-  let component: SimularPrecoComponent;
-  let fixture: ComponentFixture<SimularPrecoComponent>;
+describe('SimulatePriceComponent', () => {
+  let component: SimulatePriceComponent;
+  let fixture: ComponentFixture<SimulatePriceComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [SimularPrecoComponent]
+      declarations: [SimulatePriceComponent]
     });
-    fixture = TestBed.createComponent(SimularPrecoComponent);
+    fixture = TestBed.createComponent(SimulatePriceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

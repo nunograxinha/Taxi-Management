@@ -4,6 +4,7 @@ export interface Taxi{
     brand: string;
     model: string;
     confort: 'Basic' | 'Luxury';
+    passengerCapacity?: number;
     purchaseYear: number;
     dataCriacao? : Date;
 }

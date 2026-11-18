@@ -27,6 +27,24 @@
       </button>
     </div>
 
+    <div class="active-ride-banner" *ngIf="activeRideRequest">
+      <div class="active-ride-info">
+        <div class="active-ride-icon">
+          <mat-icon>directions_car</mat-icon>
+        </div>
+        <div class="active-ride-text">
+          <span class="active-ride-status">{{ getActiveRideStatusText() }}</span>
+          <span class="active-ride-route">
+            {{ activeRideRequest.entryAddressLabel || formatAddress(activeRideRequest.entryAddress) }} → {{ activeRideRequest.exitAddressLabel || formatAddress(activeRideRequest.exitAddress) }}
+          </span>
+        </div>
+      </div>
+      <button type="button" class="active-ride-btn" (click)="goToActiveRide()">
+        <span>{{ getActiveRideButtonText() }}</span>
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+
     <div class="client-tabs">
       <button
         type="button"
@@ -71,7 +89,7 @@
         <div class="history-item" *ngFor="let trip of tripHistory">
           <div class="history-route">
             <mat-icon class="route-pin">route</mat-icon>
-            <span>{{ formatAddress(trip.entryAddress) }} → {{ formatAddress(trip.exitAddress) }}</span>
+            <span>{{ trip.entryAddressLabel || formatAddress(trip.entryAddress) }} → {{ trip.exitAddressLabel || formatAddress(trip.exitAddress) }}</span>
           </div>
           <div class="history-meta">
             <span>
@@ -80,9 +98,108 @@
             </span>
             <span>{{ trip.distanceKm.toFixed(2) }} Km · {{ trip.numberOfPeople }} passenger(s)</span>
           </div>
-          <div class="history-price">€{{ trip.price.toFixed(2) }}</div>
+          <div class="history-right">
+            <div class="history-price">€{{ trip.price.toFixed(2) }}</div>
+            <button type="button" class="receipt-btn" (click)="openReceipt(trip)">
+              <mat-icon>receipt_long</mat-icon>
+              <span>Receipt</span>
+            </button>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="receipt-backdrop" *ngIf="selectedReceiptTrip" (click)="closeReceipt()">
+  <div class="receipt-modal" (click)="$event.stopPropagation()">
+    <div class="receipt-header">
+      <div class="receipt-brand">
+        <span class="receipt-badge">TaxiApp</span>
+        <div>
+          <h3>Trip Receipt</h3>
+          <span class="receipt-ref">#{{ (selectedReceiptTrip._id || '').slice(-8).toUpperCase() || 'TRIP' }}</span>
+        </div>
+      </div>
+      <button type="button" class="receipt-close-icon" (click)="closeReceipt()" aria-label="Close receipt">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="receipt-timeline">
+      <div class="timeline-row">
+        <span class="timeline-dot pickup"></span>
+        <div>
+          <span class="receipt-label">Pickup · {{ selectedReceiptTrip.entryTime | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="receipt-value">{{ selectedReceiptTrip.entryAddressLabel || formatAddress(selectedReceiptTrip.entryAddress) }}</span>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <span class="timeline-dot dropoff"></span>
+        <div>
+          <span class="receipt-label">Drop-off · {{ selectedReceiptTrip.exitTime | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="receipt-value">{{ selectedReceiptTrip.exitAddressLabel || formatAddress(selectedReceiptTrip.exitAddress) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="receipt-grid">
+      <div class="receipt-stat">
+        <span class="receipt-label">Duration</span>
+        <span class="receipt-value">{{ getTripDurationMin(selectedReceiptTrip) }} min</span>
+      </div>
+      <div class="receipt-stat">
+        <span class="receipt-label">Distance</span>
+        <span class="receipt-value">{{ selectedReceiptTrip.distanceKm.toFixed(2) }} km</span>
+      </div>
+      <div class="receipt-stat">
+        <span class="receipt-label">Passengers</span>
+        <span class="receipt-value">{{ selectedReceiptTrip.numberOfPeople }}</span>
+      </div>
+    </div>
+
+    <div class="receipt-people-grid">
+      <div class="receipt-person-card">
+        <span class="receipt-label">Client</span>
+        <span class="receipt-value">{{ clienteSelecionado?.name }}</span>
+        <span class="receipt-sub" *ngIf="clienteSelecionado?.NIF">NIF: {{ clienteSelecionado?.NIF }}</span>
+      </div>
+      <div class="receipt-person-card">
+        <span class="receipt-label">Driver</span>
+        <span class="receipt-value">{{ getReceiptDriverName(selectedReceiptTrip) }}</span>
+        <span class="receipt-sub" *ngIf="getReceiptDriverNif(selectedReceiptTrip)">NIF: {{ getReceiptDriverNif(selectedReceiptTrip) }}</span>
+      </div>
+    </div>
+
+    <div class="receipt-taxi-box" *ngIf="receiptTaxi">
+      <img
+        class="receipt-taxi-img"
+        [src]="getReceiptTaxiImage()"
+        [alt]="receiptTaxi.brand + ' ' + receiptTaxi.model"
+      />
+      <div class="receipt-taxi-meta">
+        <span class="receipt-label">Taxi</span>
+        <span class="receipt-value">{{ receiptTaxi.brand }} {{ receiptTaxi.model }}</span>
+        <div class="receipt-taxi-badges">
+          <span class="receipt-plate">{{ receiptTaxi.licensePlate }}</span>
+          <span class="receipt-sub">{{ receiptTaxi.confort }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="receipt-total-row">
+      <span>Total Paid</span>
+      <span class="receipt-total-value">€{{ selectedReceiptTrip.price.toFixed(2) }}</span>
+    </div>
+
+    <div class="receipt-actions">
+      <button type="button" class="receipt-print-btn" (click)="printReceipt()">
+        <mat-icon>print</mat-icon>
+        <span>Print / Save PDF</span>
+      </button>
+      <button type="button" class="receipt-close-btn" (click)="closeReceipt()">
+        Close
+      </button>
     </div>
   </div>
 </div>

@@ -2,20 +2,20 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../appServices/auth.service';
-import { Cliente } from '../client.interface';
+import { Client } from '../client.interface';
 
 @Component({
   selector: 'app-cliente-form',
   templateUrl: './client-form.component.html',
   styleUrls: ['./client-form.component.css']
 })
-export class ClienteFormComponent {
+export class ClientFormComponent {
   mode: 'login' | 'register' = 'login';
   loginForm: FormGroup;
   registerForm: FormGroup;
   errorMessage: string = '';
   isSubmitting = false;
-  @Output() clienteCriado = new EventEmitter<Cliente>();
+  @Output() clienteCriado = new EventEmitter<Client>();
 
   constructor(
     private fb: FormBuilder,

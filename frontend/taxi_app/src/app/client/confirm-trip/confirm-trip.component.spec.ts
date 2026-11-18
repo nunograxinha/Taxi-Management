@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ConfirmarViagemComponent } from './confirm-trip.component';
+import { ConfirmTripComponent } from './confirm-trip.component';
 
-describe('ConfirmarViagemComponent', () => {
-  let component: ConfirmarViagemComponent;
-  let fixture: ComponentFixture<ConfirmarViagemComponent>;
+describe('ConfirmTripComponent', () => {
+  let component: ConfirmTripComponent;
+  let fixture: ComponentFixture<ConfirmTripComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ConfirmarViagemComponent]
+      declarations: [ConfirmTripComponent]
     });
-    fixture = TestBed.createComponent(ConfirmarViagemComponent);
+    fixture = TestBed.createComponent(ConfirmTripComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

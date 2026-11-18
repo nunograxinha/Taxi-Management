@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { VerTurnoComponent } from './shift-detail.component';
+import { ShiftDetailComponent } from './shift-detail.component';
 
-describe('VerTurnoComponent', () => {
-  let component: VerTurnoComponent;
-  let fixture: ComponentFixture<VerTurnoComponent>;
+describe('ShiftDetailComponent', () => {
+  let component: ShiftDetailComponent;
+  let fixture: ComponentFixture<ShiftDetailComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [VerTurnoComponent]
+      declarations: [ShiftDetailComponent]
     });
-    fixture = TestBed.createComponent(VerTurnoComponent);
+    fixture = TestBed.createComponent(ShiftDetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

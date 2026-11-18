@@ -139,18 +139,6 @@ h1 {
     grid-template-columns: 1fr;
   }
 
-  .role-client {
-    order: 1;
-  }
-
-  .role-driver {
-    order: 2;
-  }
-
-  .role-manager {
-    order: 3;
-  }
-
   h1 {
     font-size: 2rem;
   }

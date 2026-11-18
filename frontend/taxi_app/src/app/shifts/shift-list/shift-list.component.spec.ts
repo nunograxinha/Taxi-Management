@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TurnoListComponent } from './shift-list.component';
+import { ShiftListComponent } from './shift-list.component';
 
-describe('TurnoListComponent', () => {
-  let component: TurnoListComponent;
-  let fixture: ComponentFixture<TurnoListComponent>;
+describe('ShiftListComponent', () => {
+  let component: ShiftListComponent;
+  let fixture: ComponentFixture<ShiftListComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [TurnoListComponent]
+      declarations: [ShiftListComponent]
     });
-    fixture = TestBed.createComponent(TurnoListComponent);
+    fixture = TestBed.createComponent(ShiftListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

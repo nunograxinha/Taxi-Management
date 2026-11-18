@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GerirTurnoComponent } from './manage-shifts.component';
+import { ManageShiftsComponent } from './manage-shifts.component';
 
-describe('GerirTurnoComponent', () => {
-  let component: GerirTurnoComponent;
-  let fixture: ComponentFixture<GerirTurnoComponent>;
+describe('ManageShiftsComponent', () => {
+  let component: ManageShiftsComponent;
+  let fixture: ComponentFixture<ManageShiftsComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [GerirTurnoComponent]
+      declarations: [ManageShiftsComponent]
     });
-    fixture = TestBed.createComponent(GerirTurnoComponent);
+    fixture = TestBed.createComponent(ManageShiftsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

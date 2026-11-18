@@ -1,22 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const pedidoViagemController = require('../controllers/rideRequestController');
+const rideRequestController = require('../controllers/rideRequestController');
+const { authenticateToken, requireRole } = require('../middleware/authMiddleware');
 
-router.get('/', pedidoViagemController.get_pedidosViagens);
-router.get('/:id', pedidoViagemController.get_pedidoViagem);
-router.post('/', pedidoViagemController.post_pedidoViagem);
-router.delete('/:id', pedidoViagemController.delete_pedidoViagem);
-router.patch('/:id', pedidoViagemController.update_pedidoViagem);
+router.get('/', authenticateToken, rideRequestController.getRideRequests);
+router.get('/share/:shareToken', rideRequestController.getSharedTrip);
+router.get('/:id', authenticateToken, rideRequestController.getRideRequest);
+router.post('/', requireRole('client', 'manager'), rideRequestController.createRideRequest);
+router.post('/:id/share', requireRole('client', 'manager'), rideRequestController.createShareLink);
+router.delete('/:id', authenticateToken, rideRequestController.deleteRideRequest);
+router.patch('/:id', authenticateToken, rideRequestController.updateRideRequest);
 
-router.patch('/:id/reject', pedidoViagemController.reject_pedidoViagem);
-
-router.patch('/:id/acceptDriver', pedidoViagemController.accept_pedidoViagem);
-router.patch('/:id/acceptMotorista', pedidoViagemController.accept_pedidoViagem);
-router.get('/:id/requestDriver', pedidoViagemController.request_motorista);
-router.get('/:id/requestMotorista', pedidoViagemController.request_motorista);
-
-router.patch('/:id/acceptClient', pedidoViagemController.accept_pedidoViagemCliente);
-router.get('/:id/clientConfirm', pedidoViagemController.clientConfirm);
-
+router.patch('/:id/reject', authenticateToken, rideRequestController.rejectRideRequest);
+router.patch('/:id/acceptDriver', requireRole('driver', 'manager'), rideRequestController.acceptRideRequestDriver);
+router.get('/:id/requestDriver', authenticateToken, rideRequestController.requestDriver);
+router.patch('/:id/acceptClient', authenticateToken, rideRequestController.acceptRideRequestClient);
+router.get('/:id/clientConfirm', authenticateToken, rideRequestController.clientConfirm);
 
 module.exports = router;

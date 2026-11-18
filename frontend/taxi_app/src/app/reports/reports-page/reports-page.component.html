@@ -40,6 +40,15 @@
         <button type="button" class="preset-btn" (click)="selectThisMonth()">
           This month
         </button>
+        <button
+          *ngIf="viagens.length > 0"
+          type="button"
+          class="export-btn"
+          (click)="exportCsv()"
+          title="Download trips report as CSV"
+        >
+          Export CSV
+        </button>
       </div>
     </div>
   </div>

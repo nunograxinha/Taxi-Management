@@ -7,6 +7,9 @@
       "jasmine"
     ]
   },
+  "files": [
+    "src/app/app.module.ts"
+  ],
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts"

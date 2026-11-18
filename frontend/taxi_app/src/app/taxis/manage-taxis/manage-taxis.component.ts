@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
   templateUrl: './manage-taxis.component.html',
   styleUrls: ['./manage-taxis.component.css']
 })
-export class GerirTaxisComponent {
+export class ManageTaxisComponent {
   refreshTrigger: number = 0;
 
   refreshList() {

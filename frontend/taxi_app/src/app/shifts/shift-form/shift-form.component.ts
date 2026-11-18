@@ -1,19 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TurnoService } from '../../appServices/shift.service';
+import { ShiftService } from '../../appServices/shift.service';
 import { TaxiService } from '../../appServices/taxi.service';
 import { ActivatedRoute } from '@angular/router';
-import { Turno } from '../shift.interface';
+import { Shift } from '../shift.interface';
 import { Taxi } from '../../taxis/taxi.interface';
 import { Router } from '@angular/router';
+import { AuthService } from '../../appServices/auth.service';
 
 @Component({
   selector: 'app-turno-form',
   templateUrl: './shift-form.component.html',
   styleUrls: ['./shift-form.component.css']
 })
-export class TurnoFormComponent implements OnInit {
+export class ShiftFormComponent implements OnInit {
   turnoForm!: FormGroup;
   taxisDisponiveis: Taxi[] = [];
   isLoadingTaxis: boolean = false;
@@ -21,17 +22,20 @@ export class TurnoFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private turnoService: TurnoService,
+    private turnoService: ShiftService,
     private taxiService: TaxiService,
     private route: ActivatedRoute,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.motoristaNif =
+      this.authService.getDriverNif() ||
       this.route.snapshot.paramMap.get('nif') ||
-      this.route.parent?.snapshot.paramMap.get('nif')!;
+      this.route.parent?.snapshot.paramMap.get('nif') ||
+      '';
 
     this.turnoForm = this.fb.group(
       {
@@ -95,8 +99,8 @@ export class TurnoFormComponent implements OnInit {
     this.isLoadingTaxis = true;
     this.taxiService.getTaxis().subscribe({
       next: (todosTaxis: Taxi[]) => {
-        this.turnoService.getTurnos().subscribe({
-          next: (turnos: Turno[]) => {
+        this.turnoService.getShifts().subscribe({
+          next: (turnos: Shift[]) => {
             const turnosConflitantes = turnos.filter(t => {
               const tInicio = new Date(t.start);
               const tFim = new Date(t.end);
@@ -135,7 +139,7 @@ export class TurnoFormComponent implements OnInit {
     const fim = new Date(this.turnoForm.value.fim);
     const taxiId = this.turnoForm.value.taxi;
   
-    this.turnoService.getTurnosInTimeFrame(this.motoristaNif, inicio.toISOString(), fim.toISOString())
+    this.turnoService.getShiftsInTimeFrame(this.motoristaNif, inicio.toISOString(), fim.toISOString())
       .subscribe({
         next: (existeIntersecao: any) => {
           if (existeIntersecao && existeIntersecao.length > 0) {
@@ -164,14 +168,14 @@ export class TurnoFormComponent implements OnInit {
       end: fim.toISOString(),
     };
   
-    this.turnoService.createTurno(novoTurno).subscribe({
+    this.turnoService.createShift(novoTurno).subscribe({
       next: () => {
         this.snackBar.open('Shift registered successfully!', 'Close', { duration: 3500 });
         this.turnoForm.reset();
         this.taxisDisponiveis = [];
         
         // Redirect to shifts page
-        this.router.navigate(['/driver', this.motoristaNif, 'shifts']);
+        this.router.navigate(['/driver/portal', 'shifts']);
       },
       error: (err) => {
         console.error('Error registering shift:', err);

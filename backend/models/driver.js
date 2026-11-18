@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const motoristaSchema = new mongoose.Schema({
+const driverSchema = new mongoose.Schema({
     NIF: { 
         type: String, 
         unique: true, 
@@ -25,8 +25,8 @@ const motoristaSchema = new mongoose.Schema({
     passwordHash: { type: String, select: false },
 }, { timestamps: true });
 
-motoristaSchema.index({ createdAt: -1 });
+driverSchema.index({ createdAt: -1 });
 
-const Motorista = mongoose.model('Driver', motoristaSchema);
+const Driver = mongoose.model('Driver', driverSchema);
 
-module.exports = { Motorista, Driver: Motorista };
+module.exports = { Driver };

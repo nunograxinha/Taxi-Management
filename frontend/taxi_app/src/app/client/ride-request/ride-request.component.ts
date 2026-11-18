@@ -1,13 +1,15 @@
 import { AfterViewChecked, Component, Input, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { firstValueFrom } from 'rxjs';
-import { PedidoViagemService } from '../../appServices/ride-request.service';
+import { firstValueFrom, Subscription } from 'rxjs';
+import { RideRequestService } from '../../appServices/ride-request.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
+import { PriceService } from '../../appServices/price.service';
+import { Price } from '../../manage-prices/price.interface';
 import * as Papa from 'papaparse';
 import * as L from 'leaflet';
-import { Cliente } from '../client.interface';
-import { PedidoViagem } from '../ride-request.interface';
+import { Client } from '../client.interface';
+import { RideRequest } from '../ride-request.interface';
 import { Router } from '@angular/router';
 
 
@@ -16,7 +18,7 @@ import { Router } from '@angular/router';
   templateUrl: './ride-request.component.html',
   styleUrls: ['./ride-request.component.css']
 })
-export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class RideRequestComponent implements OnInit, AfterViewChecked, OnDestroy {
   form: FormGroup;
   confortOptions = ['Basic', 'Luxury'];
   address: string | null = null;
@@ -25,11 +27,12 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
   codigoPostal: string | null = null;
   cidade: string | null = null;
   rua: string | null = null;
+  exitAddressDisplay: string = '';
   mapExit: L.Map | null = null;
   useExitGeolocation: boolean = true;
   map: L.Map | null = null;
-  @Input() clienteData!: Cliente;
-  clienteCriado: Cliente | null = null;
+  @Input() clienteData!: Client;
+  clienteCriado: Client | null = null;
   private mapExitInitialized = false;
   loading: boolean = false;
   addressVerified: boolean = false;
@@ -40,12 +43,22 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
   private exitMarker: L.Marker | null = null;
   private pickupSearchTimer: any = null;
   private exitSearchTimer: any = null;
+  currentPrice: Price | null = null;
+  estimatedDistanceKm: number | null = null;
+  estimatedDurationMin: number | null = null;
+  estimatedPrice: number | null = null;
+  estimatedPriceBasic: number | null = null;
+  estimatedPriceLuxury: number | null = null;
+  isNightRateActive: boolean = false;
+  private lastEstimatePair: string = '';
+  private formSub?: Subscription;
 
 
   constructor(
     private fb: FormBuilder,
-    private pedidoViagemService: PedidoViagemService,
+    private pedidoViagemService: RideRequestService,
     private geolocationService: GeolocationService,
+    private priceService: PriceService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {
@@ -64,11 +77,21 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
 
   ngOnInit() {
     this.carregarCodigosPostais();
+    this.priceService.getPrice().subscribe({
+      next: (p) => {
+        this.currentPrice = p;
+        this.recalculateFareEstimate();
+      },
+      error: () => {}
+    });
+    this.formSub = this.form.valueChanges.subscribe(() => {
+      this.onFormCoordinatesOrComfortChange();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clienteData'] && this.clienteData) {
-      console.log('Cliente recebido no PedidoViagemComponent:', this.clienteData);
+      console.log('Client recebido no RideRequestComponent:', this.clienteData);
       this.clienteData = changes['clienteData'].currentValue;
     }
   }
@@ -164,8 +187,30 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     }
   }
 
-  private setExitMapPoint(lat: number, lon: number, centerMap: boolean): void {
+  get pickupAddressDisplay(): string {
+    if (this.cidade && this.rua) {
+      return `${this.cidade}, ${this.rua}`;
+    }
+    if (this.cidade || this.rua) {
+      return this.cidade || this.rua || '';
+    }
+    return this.form.get('entryAddress')?.value ? 'Locating address...' : '';
+  }
+
+  private async setExitMapPoint(lat: number, lon: number, centerMap: boolean, displayName?: string): Promise<void> {
     this.form.patchValue({ exitAddress: `${lat},${lon}` });
+    if (displayName) {
+      this.exitAddressDisplay = displayName;
+    } else {
+      this.exitAddressDisplay = 'Resolving address...';
+      this.geolocationService.getAddressFromCoordinates(String(lat), String(lon))
+        .then((resolved) => {
+          this.exitAddressDisplay = resolved || `${lat},${lon}`;
+        })
+        .catch(() => {
+          this.exitAddressDisplay = `${lat},${lon}`;
+        });
+    }
     if (!this.mapExit) return;
 
     if (this.exitMarker) {
@@ -308,14 +353,14 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       }
       
       // create ride request
-      const pedidoData: PedidoViagem= {
+      const pedidoData: RideRequest= {
         client: this.clienteData._id || '',
         entryAddress: this.form.value.entryAddress,
         exitAddress: this.form.value.exitAddress,
         confort: this.form.value.confort,
         numberOfPeople: this.form.value.numberOfPeople
       };
-          const response = await firstValueFrom(this.pedidoViagemService.createPedido(pedidoData));
+          const response = await firstValueFrom(this.pedidoViagemService.createRideRequest(pedidoData));
           if (response) {
             this.snackBar.open('Ride request created successfully!', 'Close', { duration: 3500 });
             console.log(`Redirecting to /client/waiting-response/${response._id}`);
@@ -561,7 +606,8 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
       if (coordsResponse && coordsResponse.latitude && coordsResponse.longitude) {
         const lat = parseFloat(coordsResponse.latitude);
         const lon = parseFloat(coordsResponse.longitude);
-        this.setExitMapPoint(lat, lon, true);
+        const label = cidade ? `${cidade}, ${rua}` : rua;
+        this.setExitMapPoint(lat, lon, true, label);
       } else {
         this.snackBar.open('Could not locate this street on the map. Please tap the map manually.', 'Close', { duration: 4000 });
       }
@@ -703,7 +749,137 @@ export class PedidoViagemComponent implements OnInit, AfterViewChecked, OnDestro
     }
   }
 
+  private parseCoordPair(raw: string): [number, number] | null {
+    if (!raw || typeof raw !== 'string' || !raw.includes(',')) return null;
+    const parts = raw.split(',').map((s) => s.trim());
+    if (parts.length !== 2) return null;
+    const lat = Number(parts[0]);
+    const lon = Number(parts[1]);
+    return Number.isFinite(lat) && Number.isFinite(lon) ? [lat, lon] : null;
+  }
+
+  private onFormCoordinatesOrComfortChange(): void {
+    const entryAddress = this.form.value.entryAddress;
+    const exitAddress = this.form.value.exitAddress;
+    const pickup = this.parseCoordPair(entryAddress);
+    const dest = this.parseCoordPair(exitAddress);
+
+    if (!pickup || !dest) {
+      this.estimatedDistanceKm = null;
+      this.estimatedDurationMin = null;
+      this.estimatedPrice = null;
+      this.estimatedPriceBasic = null;
+      this.estimatedPriceLuxury = null;
+      this.isNightRateActive = false;
+      this.lastEstimatePair = '';
+      return;
+    }
+
+    const pairKey = `${entryAddress}|${exitAddress}`;
+    if (pairKey !== this.lastEstimatePair) {
+      this.lastEstimatePair = pairKey;
+      this.estimatedDistanceKm = null;
+      this.estimatedDurationMin = null;
+      this.estimatedPrice = null;
+      this.estimatedPriceBasic = null;
+      this.estimatedPriceLuxury = null;
+      this.isNightRateActive = false;
+
+      const applyHaversineFallback = () => {
+        if (this.lastEstimatePair !== pairKey) return;
+        const haversineKm = this.pedidoViagemService.calculateDistance(pickup[0], pickup[1], dest[0], dest[1]);
+        const roadKm = Number((haversineKm * 1.3).toFixed(2));
+        this.estimatedDistanceKm = roadKm;
+        this.estimatedDurationMin = Math.max(1, Math.round((roadKm / 35) * 60));
+        this.recalculateFareEstimate();
+      };
+
+      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${pickup[1]},${pickup[0]};${dest[1]},${dest[0]}?overview=false`;
+      void fetch(osrmUrl)
+        .then((resp) => {
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          return resp.json();
+        })
+        .then((data) => {
+          if (this.lastEstimatePair !== pairKey) return;
+          const route = data?.routes?.[0];
+          if (!route) {
+            applyHaversineFallback();
+            return;
+          }
+          if (typeof route.distance === 'number') {
+            this.estimatedDistanceKm = Number((route.distance / 1000).toFixed(2));
+          }
+          if (typeof route.duration === 'number') {
+            this.estimatedDurationMin = Math.max(1, Math.round(route.duration / 60));
+          }
+          this.recalculateFareEstimate();
+        })
+        .catch(() => {
+          applyHaversineFallback();
+        });
+      return;
+    }
+
+    this.recalculateFareEstimate();
+  }
+
+  private computePriceForComfort(
+    confort: 'Basic' | 'Luxury',
+    durationMin: number
+  ): { total: number; hasNight: boolean } {
+    const rate =
+      confort === 'Luxury'
+        ? this.currentPrice!.pricePerMinuteLuxury
+        : this.currentPrice!.pricePerMinuteConfort;
+    const surcharge = this.currentPrice!.nightTimeSurcharge || 0;
+    const current = new Date();
+    let nightMinutes = 0;
+
+    for (let i = 0; i < durationMin; i++) {
+      const hora = current.getHours();
+      if (hora >= 21 || hora < 6) {
+        nightMinutes++;
+      }
+      current.setMinutes(current.getMinutes() + 1);
+    }
+
+    const dayMinutes = durationMin - nightMinutes;
+    const dayPrice = rate * dayMinutes;
+    const nightPrice = nightMinutes * (rate * (1 + surcharge / 100));
+    return {
+      total: Math.round((dayPrice + nightPrice) * 100) / 100,
+      hasNight: nightMinutes > 0 && surcharge > 0
+    };
+  }
+
+  private recalculateFareEstimate(): void {
+    if (!this.currentPrice || this.estimatedDurationMin === null) {
+      this.estimatedPrice = null;
+      this.estimatedPriceBasic = null;
+      this.estimatedPriceLuxury = null;
+      this.isNightRateActive = false;
+      return;
+    }
+
+    const basic = this.computePriceForComfort('Basic', this.estimatedDurationMin);
+    const luxury = this.computePriceForComfort('Luxury', this.estimatedDurationMin);
+    this.estimatedPriceBasic = basic.total;
+    this.estimatedPriceLuxury = luxury.total;
+    this.isNightRateActive = basic.hasNight;
+
+    const confort = this.form.value.confort;
+    if (confort === 'Basic') {
+      this.estimatedPrice = basic.total;
+    } else if (confort === 'Luxury') {
+      this.estimatedPrice = luxury.total;
+    } else {
+      this.estimatedPrice = null;
+    }
+  }
+
   ngOnDestroy() {
+    this.formSub?.unsubscribe();
     this.clearMap();
     this.clearMapExit();
     if (this.miniMap) {

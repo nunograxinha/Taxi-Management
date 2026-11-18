@@ -2,7 +2,8 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { TaxiService } from '../../appServices/taxi.service';
 import { Taxi } from '../taxi.interface';
-import { TurnoService } from '../../appServices/shift.service';
+import { ShiftService } from '../../appServices/shift.service';
+import { getTaxiCarImage } from '../../appServices/taxi-icon.util';
 
 @Component({
   selector: 'app-taxi-form',
@@ -83,13 +84,14 @@ export class TaxiFormComponent implements OnChanges {
   constructor(
     private readonly fb: FormBuilder,
     private readonly taxiService: TaxiService,
-    private readonly turnoService: TurnoService
+    private readonly turnoService: ShiftService
   ) {
     this.taxiForm = this.fb.group({
       licensePlate: ['', [Validators.required, Validators.pattern(/^[A-Za-z]{2}-\d{2}-[A-Za-z]{2}$|^\d{2}-[A-Za-z]{2}-\d{2}$|^[A-Za-z]{2}-\d{2}-\d{2}$|^\d{2}-\d{2}-[A-Za-z]{2}$/)]],
       brand: ['', Validators.required],
       model: ['', Validators.required],
       confort: ['', Validators.required],
+      passengerCapacity: [4, [Validators.required, Validators.min(1), Validators.max(9)]],
       purchaseYear: ['', [Validators.required, this.maxCurrentYearValidator]]
     });
 
@@ -105,11 +107,12 @@ export class TaxiFormComponent implements OnChanges {
         brand: this.taxiToEdit.brand,
         model: this.taxiToEdit.model,
         confort: this.taxiToEdit.confort,
+        passengerCapacity: this.taxiToEdit.passengerCapacity ?? 4,
         purchaseYear: this.taxiToEdit.purchaseYear
       });
 
       // Check if the taxi has associated shifts -> if so, disable the comfort field
-      this.turnoService.getTurnosByTaxiPlate(this.taxiToEdit.licensePlate).subscribe({
+      this.turnoService.getShiftsByTaxiPlate(this.taxiToEdit.licensePlate).subscribe({
         next: (shifts) => {
           this.inShift = Array.isArray(shifts) && shifts.length > 0;
           if (this.inShift) {
@@ -181,5 +184,14 @@ export class TaxiFormComponent implements OnChanges {
 
   get availableBrands(): string[] {
     return Object.keys(this.brandModels);
+  }
+
+  get selectedCarImage(): string | null {
+    const brand = this.taxiForm.get('brand')?.value;
+    const model = this.taxiForm.get('model')?.value;
+    if (!brand || !model) {
+      return null;
+    }
+    return getTaxiCarImage(brand, model);
   }
 }

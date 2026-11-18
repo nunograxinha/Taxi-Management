@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PedidoViagemService } from '../../appServices/ride-request.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { RideRequestService } from '../../appServices/ride-request.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import { SocketService } from '../../appServices/socket.service';
-import { PedidoViagem } from '../../client/ride-request.interface';
-import { Motorista } from '../../drivers/driver.interface';
+import { RideRequest } from '../../client/ride-request.interface';
+import { Driver } from '../../drivers/driver.interface';
 import { firstValueFrom, Subscription } from 'rxjs';
 
 @Component({
@@ -12,14 +13,16 @@ import { firstValueFrom, Subscription } from 'rxjs';
   templateUrl: './waiting-response.component.html',
   styleUrls: ['./waiting-response.component.css']
 })
-export class AguardarRespostaComponent implements OnInit, OnDestroy {
+export class WaitingResponseComponent implements OnInit, OnDestroy {
   pedidoId: string = '';
-  pedido: PedidoViagem | null = null;
-  motorista: Motorista | null = null;
+  pedido: RideRequest | null = null;
+  motorista: Driver | null = null;
   loading: boolean = true;
   erro: string = '';
   pickupAddress: string = '';
   destinationAddress: string = '';
+  showCancelModal: boolean = false;
+  isCancelling: boolean = false;
   private subscriptions = new Subscription();
   private fallbackPollTimer: any = null;
   private readonly onVisibilityOrOnline = () => {
@@ -31,10 +34,11 @@ export class AguardarRespostaComponent implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private pedidoViagemService: PedidoViagemService,
+    private pedidoViagemService: RideRequestService,
     private geolocationService: GeolocationService,
     private socketService: SocketService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -50,9 +54,22 @@ export class AguardarRespostaComponent implements OnInit, OnDestroy {
 
     // Real-time WebSocket listener for driver acceptance
     this.subscriptions.add(
-      this.socketService.onEvent<PedidoViagem>('pedido:driverAccepted').subscribe((pedidoAtualizado) => {
+      this.socketService.onEvent<RideRequest>('pedido:driverAccepted').subscribe((pedidoAtualizado) => {
         if (pedidoAtualizado && pedidoAtualizado.driverId) {
           this.router.navigate(['/client/confirm-trip', this.pedidoId]);
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.socketService.onEvent<{ id: string; reason?: string }>('pedido:deleted').subscribe((ev) => {
+        if (ev && String(ev.id) === String(this.pedidoId)) {
+          localStorage.removeItem('pedidoId');
+          const msg = ev.reason === 'expired'
+            ? 'Your ride request expired after 5 minutes without a driver.'
+            : 'Your ride request was cancelled.';
+          this.snackBar.open(msg, 'Close', { duration: 4500 });
+          this.router.navigate(['/client']);
         }
       })
     );
@@ -88,7 +105,7 @@ export class AguardarRespostaComponent implements OnInit, OnDestroy {
   }
 
   carregarPedido(): void {
-    this.pedidoViagemService.getPedidoById(this.pedidoId).subscribe({
+    this.pedidoViagemService.getRideRequestById(this.pedidoId).subscribe({
       next: async (pedido) => {
         this.pedido = pedido ? pedido : null;
         this.loading = false;
@@ -113,15 +130,26 @@ export class AguardarRespostaComponent implements OnInit, OnDestroy {
     });
   }
 
-  async cancelarPedido() {
-    const confirmacao = window.confirm('Are you sure you want to cancel the ride request?');
-    if (!confirmacao) {
-      return;
+  abrirModalCancelar(): void {
+    this.showCancelModal = true;
+  }
+
+  fecharModalCancelar(): void {
+    if (!this.isCancelling) {
+      this.showCancelModal = false;
     }
+  }
+
+  async cancelarPedido() {
+    if (this.isCancelling) return;
+    this.isCancelling = true;
     try {
-      await firstValueFrom(this.pedidoViagemService.deletePedido(this.pedidoId));
+      await firstValueFrom(this.pedidoViagemService.deleteRideRequest(this.pedidoId));
+      this.showCancelModal = false;
       this.router.navigate(['/client']);
     } catch (error) {
+      this.isCancelling = false;
+      this.showCancelModal = false;
       console.error('Error cancelling ride request:', error);
       this.erro = 'Error cancelling ride request.';
     }

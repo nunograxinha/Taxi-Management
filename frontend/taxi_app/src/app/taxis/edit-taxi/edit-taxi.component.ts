@@ -8,7 +8,7 @@ import { TaxiService } from '../../appServices/taxi.service';
   templateUrl: './edit-taxi.component.html',
   styleUrls: ['./edit-taxi.component.css']
 })
-export class EditarTaxiComponent implements OnInit {
+export class EditTaxiComponent implements OnInit {
   taxiToEdit: any;
   constructor(
     private route: ActivatedRoute,

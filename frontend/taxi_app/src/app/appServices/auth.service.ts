@@ -84,7 +84,27 @@ export class AuthService {
   }
 
   getDriverNif(): string | null {
-    return localStorage.getItem(this.DRIVER_NIF_KEY);
+    const stored = localStorage.getItem(this.DRIVER_NIF_KEY);
+    if (stored) {
+      return stored;
+    }
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (payloadBase64) {
+        const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(normalized));
+        if (payload.role === 'driver' && payload.nif) {
+          return String(payload.nif);
+        }
+      }
+    } catch {
+      return null;
+    }
+    return null;
   }
 
   isAuthenticated(expectedRole?: string, expectedNif?: string): boolean {

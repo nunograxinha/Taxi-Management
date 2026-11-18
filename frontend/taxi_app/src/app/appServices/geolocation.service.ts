@@ -5,9 +5,47 @@ import { from, map, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class GeolocationService {
+  private static readonly STORAGE_KEY = 'taxi_address_cache_v1';
   private readonly addressCache = new Map<string, Promise<string>>();
+  private readonly persistentCache: Record<string, string> = {};
+  private reverseQueue: Promise<void> = Promise.resolve();
 
-  constructor() { }
+  constructor() {
+    this.loadPersistentCache();
+  }
+
+  private loadPersistentCache(): void {
+    try {
+      const raw = localStorage.getItem(GeolocationService.STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          Object.assign(this.persistentCache, parsed);
+        }
+      }
+    } catch {
+      // Ignore storage errors (private mode, quota, etc.)
+    }
+  }
+
+  private savePersistentCache(key: string, address: string): void {
+    this.persistentCache[key] = address;
+    try {
+      localStorage.setItem(GeolocationService.STORAGE_KEY, JSON.stringify(this.persistentCache));
+    } catch {
+      // Ignore storage errors
+    }
+  }
+
+  private buildCoordKey(rawAddress: string): string {
+    const [latStr, lonStr] = rawAddress.split(',').map(part => part.trim());
+    const lat = Number(latStr);
+    const lon = Number(lonStr);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return rawAddress.trim();
+    }
+    return `${lat.toFixed(5)},${lon.toFixed(5)}`;
+  }
 
   isCoordinateString(value: string | undefined | null): boolean {
     if (!value) return false;
@@ -20,21 +58,51 @@ export class GeolocationService {
     }
 
     const normalized = rawAddress.trim();
-    const cached = this.addressCache.get(normalized);
+    const coordKey = this.buildCoordKey(normalized);
+
+    if (this.persistentCache[coordKey]) {
+      return Promise.resolve(this.persistentCache[coordKey]);
+    }
+    if (this.persistentCache[normalized]) {
+      return Promise.resolve(this.persistentCache[normalized]);
+    }
+
+    const cached = this.addressCache.get(coordKey);
     if (cached) {
       return cached;
     }
 
     const [lat, lon] = normalized.split(',').map(part => part.trim());
-    const promise = this.getAddressFromCoordinates(lat, lon).catch(() => normalized);
-    this.addressCache.set(normalized, promise);
+    const promise = new Promise<string>((resolve) => {
+      this.reverseQueue = this.reverseQueue.then(async () => {
+        if (this.persistentCache[coordKey]) {
+          resolve(this.persistentCache[coordKey]);
+          return;
+        }
+        try {
+          const resolved = await this.getAddressFromCoordinates(lat, lon);
+          this.savePersistentCache(coordKey, resolved);
+          resolve(resolved);
+        } catch {
+          this.addressCache.delete(coordKey);
+          resolve(normalized);
+        }
+        await new Promise(r => setTimeout(r, 350));
+      });
+    });
+
+    this.addressCache.set(coordKey, promise);
     return promise;
   }
 
   getCurrentPosition(): Observable<{ latitude: string, longitude: string }> {
     return from(
       new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject)
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: false,
+          maximumAge: 60000,
+          timeout: 2500
+        })
       )
     ).pipe(
       map((position: GeolocationPosition) => ({

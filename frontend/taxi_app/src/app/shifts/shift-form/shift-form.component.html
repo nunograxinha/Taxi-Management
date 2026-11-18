@@ -29,7 +29,7 @@
       <select id="taxi" formControlName="taxi">
         <option value="" disabled>Choose a taxi</option>
         <option *ngFor="let taxi of taxisDisponiveis" [ngValue]="taxi">
-          {{ taxi.brand }} {{ taxi.model }} ({{ taxi.confort }})
+          {{ taxi.brand }} {{ taxi.model }} · {{ taxi.licensePlate }} ({{ taxi.confort }}, {{ taxi.passengerCapacity || 4 }} seats)
         </option>
       </select>
     </div>
@@ -45,5 +45,5 @@
     <button type="submit" [disabled]="turnoForm.invalid">Register</button>
   </form>
 
-  <button class="voltar" [routerLink]="['/driver', motoristaNif, 'shifts']">Back</button>
+  <button class="voltar" [routerLink]="['/driver/portal', 'shifts']">Back</button>
 </div>

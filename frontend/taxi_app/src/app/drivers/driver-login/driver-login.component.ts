@@ -2,24 +2,24 @@ import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../appServices/auth.service';
-import { MotoristaService } from '../../appServices/driver.service';
-import { Motorista } from '../driver.interface';
+import { DriverService } from '../../appServices/driver.service';
+import { Driver } from '../driver.interface';
 
 @Component({
   selector: 'app-motorista-login',
   templateUrl: './driver-login.component.html',
   styleUrls: ['./driver-login.component.css']
 })
-export class MotoristaLoginComponent implements OnInit {
-  allDrivers: Motorista[] = [];
-  filteredDrivers: Motorista[] = [];
+export class DriverLoginComponent implements OnInit {
+  allDrivers: Driver[] = [];
+  filteredDrivers: Driver[] = [];
   driverLoginForm: FormGroup;
   loginError = '';
   isSubmitting = false;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly motoristaService: MotoristaService,
+    private readonly motoristaService: DriverService,
     private readonly authService: AuthService,
     private readonly router: Router
   ) {
@@ -39,7 +39,7 @@ export class MotoristaLoginComponent implements OnInit {
     });
   }
 
-  selectDriver(driver: Motorista): void {
+  selectDriver(driver: Driver): void {
     this.driverLoginForm.patchValue({ NIF: driver.NIF });
     this.driverLoginForm.get('NIF')?.markAsTouched();
     this.loginError = '';
@@ -60,7 +60,7 @@ export class MotoristaLoginComponent implements OnInit {
     this.authService.loginAsDriver(NIF.trim(), password).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/driver', NIF.trim()]);
+        this.router.navigate(['/driver/portal']);
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -76,7 +76,7 @@ export class MotoristaLoginComponent implements OnInit {
   }
 
   private loadDrivers(): void {
-    this.motoristaService.obterMotoristas().subscribe({
+    this.motoristaService.getDrivers().subscribe({
       next: (drivers) => {
         this.allDrivers = drivers.sort((a, b) =>
           new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()

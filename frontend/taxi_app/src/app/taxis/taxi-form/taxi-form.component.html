@@ -27,6 +27,13 @@
     </select>
   </label>
 
+  <div class="car-preview" *ngIf="selectedCarImage">
+    <img
+      [src]="selectedCarImage"
+      [alt]="taxiForm.get('brand')?.value + ' ' + taxiForm.get('model')?.value"
+    />
+  </div>
+
   <label for="confort">Comfort:</label>
   <select formControlName="confort">
     <option value="">Select</option>
@@ -34,6 +41,13 @@
     <option value="Luxury">Luxury</option>
   </select>
   <small *ngIf="inShift">Note: Comfort cannot be changed because this taxi is assigned to a shift.</small>
+
+  <label for="passengerCapacity">Passenger Capacity:</label>
+  <input id="passengerCapacity" type="number" min="1" max="9" formControlName="passengerCapacity">
+  <div *ngIf="taxiForm.get('passengerCapacity')?.invalid && taxiForm.get('passengerCapacity')?.touched">
+    <small *ngIf="taxiForm.get('passengerCapacity')?.errors?.['required']">Passenger capacity is required.</small>
+    <small *ngIf="taxiForm.get('passengerCapacity')?.errors?.['min'] || taxiForm.get('passengerCapacity')?.errors?.['max']">Capacity must be between 1 and 9 passengers.</small>
+  </div>
 
   <label>Purchase Year:</label>
   <input type="number" formControlName="purchaseYear">

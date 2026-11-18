@@ -179,3 +179,21 @@
   background-color: #FBC02D;
   transform: translateY(-1px);
 }
+
+.export-btn {
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.export-btn:hover {
+  background-color: #1e293b;
+  transform: translateY(-1px);
+}

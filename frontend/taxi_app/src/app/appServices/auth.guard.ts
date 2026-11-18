@@ -16,17 +16,28 @@ export const managerGuard: CanActivateFn = () => {
   return router.createUrlTree(['/']);
 };
 
-export const driverGuard: CanActivateFn = (route) => {
+export const driverGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const snackBar = inject(MatSnackBar);
 
-  const routeNif = route.paramMap.get('nif') || undefined;
-
-  if (authService.isAuthenticated('driver', routeNif)) {
+  if (authService.isAuthenticated('driver')) {
     return true;
   }
 
   snackBar.open('Please sign in with your Driver profile first.', 'Close', { duration: 3500 });
   return router.createUrlTree(['/driver']);
+};
+
+export const clientGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const snackBar = inject(MatSnackBar);
+
+  if (authService.isAuthenticated('client')) {
+    return true;
+  }
+
+  snackBar.open('Please sign in as a Client first.', 'Close', { duration: 3500 });
+  return router.createUrlTree(['/client']);
 };

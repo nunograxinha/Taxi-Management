@@ -1,15 +1,15 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav #sidenav mode="over" disableClose="false">
     <mat-nav-list>
-      <a mat-list-item [routerLink]="['/driver', motorista?.NIF]" (click)="sidenav.close()">
+      <a mat-list-item [routerLink]="['/driver/portal']" (click)="sidenav.close()">
         <mat-icon>dashboard</mat-icon>
         <span>Current Shift</span>
       </a>
-      <a mat-list-item [routerLink]="['/driver', motorista?.NIF, 'shifts']" (click)="sidenav.close()">
+      <a mat-list-item [routerLink]="['/driver/portal', 'shifts']" (click)="sidenav.close()">
         <mat-icon>local_taxi</mat-icon>
         <span>Manage Shifts</span>
       </a>
-      <a mat-list-item [routerLink]="['/driver', motorista?.NIF, 'pending-requests']" (click)="sidenav.close()">
+      <a mat-list-item [routerLink]="['/driver/portal', 'pending-requests']" (click)="sidenav.close()">
         <mat-icon>notifications</mat-icon>
         <span>Pending Requests</span>
       </a>

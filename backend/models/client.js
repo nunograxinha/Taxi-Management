@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const clienteSchema = new mongoose.Schema({
+const clientSchema = new mongoose.Schema({
     NIF: { 
         type: String, 
         unique: false, 
@@ -12,8 +12,8 @@ const clienteSchema = new mongoose.Schema({
     passwordHash: { type: String, select: false },
 }, { timestamps: true });
 
-clienteSchema.index({ createdAt: -1 });
+clientSchema.index({ createdAt: -1 });
 
-const Cliente = mongoose.model('Client', clienteSchema);
+const Client = mongoose.model('Client', clientSchema);
 
-module.exports = { Cliente, Client: Cliente };
+module.exports = { Client };

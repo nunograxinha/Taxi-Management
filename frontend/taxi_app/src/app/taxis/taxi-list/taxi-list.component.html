@@ -4,7 +4,8 @@
       <span class="material-icons search-icon">search</span>
       <input
         type="text"
-        [(ngModel)]="searchTerm"
+        [value]="searchTerm"
+        (input)="onSearchInput($event)"
         placeholder="Search by plate, brand or model..."
         class="search-input"
       />
@@ -34,6 +35,32 @@
         </button>
       </div>
     </div>
+
+    <div class="custom-dropdown" [class.open]="seatMenuOpen">
+      <button
+        type="button"
+        class="dropdown-trigger"
+        (click)="toggleSeatMenu($event)"
+        [attr.aria-expanded]="seatMenuOpen"
+      >
+        <span class="material-icons filter-icon">event_seat</span>
+        <span>{{ selectedSeatLabel }}</span>
+        <span class="material-icons chevron-icon">expand_more</span>
+      </button>
+
+      <div class="dropdown-menu" *ngIf="seatMenuOpen">
+        <button
+          type="button"
+          class="dropdown-option"
+          *ngFor="let opt of seatOptions"
+          [class.selected]="seatFilter === opt.value"
+          (click)="selectSeat(opt.value)"
+        >
+          <span>{{ opt.label }}</span>
+          <span class="material-icons check-icon" *ngIf="seatFilter === opt.value">check</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div *ngIf="isLoading" class="state-msg">Loading taxis...</div>
@@ -42,22 +69,30 @@
   <div *ngIf="!isLoading && !loadError && filteredTaxis.length > 0; else emptyState">
     <div class="card-list">
       <div class="item-card" *ngFor="let taxi of filteredTaxis">
-        <div class="item-info">
-          <div class="item-header">
-            <strong class="plate-badge">{{ taxi.licensePlate }}</strong>
-            <span class="comfort-pill" [class.luxury]="taxi.confort === 'Luxury'">
-              {{ taxi.confort }}
-            </span>
-          </div>
-          <div class="item-meta">
-            {{ taxi.brand }} {{ taxi.model }} · Year {{ taxi.purchaseYear }}
-            <span *ngIf="taxi.updatedAt">
-              · Updated {{ taxi.updatedAt | date:'dd/MM/yyyy HH:mm' }}
-            </span>
+        <div class="item-main">
+          <img
+            class="taxi-car-thumb"
+            [src]="getCarImage(taxi)"
+            [alt]="(taxi.brand || '') + ' ' + (taxi.model || '')"
+            loading="lazy"
+          />
+          <div class="item-info">
+            <div class="item-header">
+              <strong class="plate-badge">{{ taxi.licensePlate }}</strong>
+              <span class="comfort-pill" [class.luxury]="taxi.confort === 'Luxury'">
+                {{ taxi.confort }}
+              </span>
+            </div>
+            <div class="item-meta">
+              {{ taxi.brand }} {{ taxi.model }} · {{ taxi.passengerCapacity || 4 }} seats · Year {{ taxi.purchaseYear }}
+              <span *ngIf="taxi.updatedAt">
+                · Updated {{ formatUpdatedAt(taxi.updatedAt) }}
+              </span>
+            </div>
           </div>
         </div>
         <div class="item-actions">
-          <button class="icon-button edit" [routerLink]="['/manager/edit-taxi', taxi.licensePlate]" title="Edit">
+          <button class="icon-button edit" (click)="editTaxi(taxi)" title="Edit">
             <span class="material-symbols-outlined">edit</span>
           </button>
           <button class="icon-button remove" (click)="removeTaxi(taxi)" title="Remove">

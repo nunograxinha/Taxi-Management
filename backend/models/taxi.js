@@ -18,6 +18,13 @@ const taxiSchema = new mongoose.Schema({
             message: 'Comfort level must be "Basic" or "Luxury"'
         }
     },
+    passengerCapacity: {
+        type: Number,
+        required: true,
+        min: [1, 'Passenger capacity must be at least 1'],
+        max: [9, 'Passenger capacity cannot exceed 9'],
+        default: 4
+    },
     brand: { type: String, required: true },
     model: { type: String, required: true },
 }, { timestamps: true });

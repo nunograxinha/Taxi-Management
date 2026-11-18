@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PedidoAceitoComponent } from './accepted-request.component';
+import { AcceptedRequestComponent } from './accepted-request.component';
 
-describe('PedidoAceitoComponent', () => {
-  let component: PedidoAceitoComponent;
-  let fixture: ComponentFixture<PedidoAceitoComponent>;
+describe('AcceptedRequestComponent', () => {
+  let component: AcceptedRequestComponent;
+  let fixture: ComponentFixture<AcceptedRequestComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [PedidoAceitoComponent]
+      declarations: [AcceptedRequestComponent]
     });
-    fixture = TestBed.createComponent(PedidoAceitoComponent);
+    fixture = TestBed.createComponent(AcceptedRequestComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

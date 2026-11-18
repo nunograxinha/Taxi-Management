@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AguardarRespostaComponent } from './waiting-response.component';
+import { WaitingResponseComponent } from './waiting-response.component';
 
-describe('AguardarRespostaComponent', () => {
-  let component: AguardarRespostaComponent;
-  let fixture: ComponentFixture<AguardarRespostaComponent>;
+describe('WaitingResponseComponent', () => {
+  let component: WaitingResponseComponent;
+  let fixture: ComponentFixture<WaitingResponseComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [AguardarRespostaComponent]
+      declarations: [WaitingResponseComponent]
     });
-    fixture = TestBed.createComponent(AguardarRespostaComponent);
+    fixture = TestBed.createComponent(WaitingResponseComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,19 +1,23 @@
 import { Component, OnInit } from '@angular/core';
-import { RelatorioStateService } from '../../appServices/report-state.service';
-import { Viagem } from '../../trips/trip.interface';
+import { ReportStateService } from '../../appServices/report-state.service';
+import { GeolocationService } from '../../appServices/geolocation.service';
+import { Trip } from '../../trips/trip.interface';
 
 @Component({
   selector: 'app-relatorios-page',
   templateUrl: './reports-page.component.html',
   styleUrls: ['./reports-page.component.css']
 })
-export class RelatoriosPageComponent implements OnInit {
-  viagens: Viagem[] = [];
+export class ReportsPageComponent implements OnInit {
+  viagens: Trip[] = [];
   startDate: string = '';
   endDate: string = '';
   todayDate: string = '';
 
-  constructor(private relatorioState: RelatorioStateService) {}
+  constructor(
+    private relatorioState: ReportStateService,
+    private geolocationService: GeolocationService
+  ) {}
 
   ngOnInit(): void {
     this.todayDate = this.relatorioState.getTodayDateString();
@@ -108,6 +112,81 @@ export class RelatoriosPageComponent implements OnInit {
 
   calcularTotalEuros(): number {
     return this.relatorioState.calcularTotalEuros(this.viagens);
+  }
+
+  async exportCsv(): Promise<void> {
+    if (this.viagens.length === 0) return;
+
+    const escapeCsv = (val: unknown): string => {
+      const str = String(val ?? '').replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const formatCsvAddress = async (raw: string): Promise<string> => {
+      if (!raw) return '';
+      if (!this.geolocationService.isCoordinateString(raw)) return raw;
+      const resolved = await this.geolocationService.resolveDisplayAddress(raw);
+      const [latStr, lonStr] = raw.split(',').map(p => p.trim());
+      const lat = Number(latStr);
+      const lon = Number(lonStr);
+      const shortCoords = Number.isFinite(lat) && Number.isFinite(lon)
+        ? `${lat.toFixed(4)}, ${lon.toFixed(4)}`
+        : raw;
+      return resolved && resolved !== raw ? `${resolved} (${shortCoords})` : shortCoords;
+    };
+
+    const headers = [
+      'Start Time',
+      'End Time',
+      'Duration',
+      'Driver',
+      'Taxi',
+      'Client',
+      'Pickup Address',
+      'Destination Address',
+      'Distance (Km)',
+      'Passengers',
+      'Price (EUR)'
+    ];
+
+    const rows = await Promise.all(this.viagens.map(async v => {
+      const driver = this.relatorioState.getMotoristaForViagem(v);
+      const taxi = this.relatorioState.getTaxiForViagem(v);
+      const client = this.relatorioState.getClientForViagem(v);
+      const duration = this.relatorioState.formatHoursToHhMm(this.relatorioState.getDurationHours(v));
+      const [pickupAddr, destAddr] = await Promise.all([
+        formatCsvAddress(v.entryAddress || ''),
+        formatCsvAddress(v.exitAddress || '')
+      ]);
+
+      return [
+        new Date(v.entryTime).toLocaleString('pt-PT'),
+        new Date(v.exitTime).toLocaleString('pt-PT'),
+        duration,
+        driver ? `${driver.name} (${driver.NIF})` : '',
+        taxi ? `${taxi.licensePlate} (${taxi.brand} ${taxi.model})` : '',
+        client ? `${client.name} (${client.NIF})` : '',
+        pickupAddr,
+        destAddr,
+        (v.distanceKm || 0).toFixed(2),
+        v.numberOfPeople ?? 1,
+        (v.price || 0).toFixed(2)
+      ].map(escapeCsv).join(',');
+    }));
+
+    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const fileName = this.isSingleDay()
+      ? `taxi-reports_${this.startDate}.csv`
+      : `taxi-reports_${this.startDate}_to_${this.endDate}.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   private toIsoDate(d: Date): string {

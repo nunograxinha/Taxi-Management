@@ -75,7 +75,7 @@
           </div>
         </div>
 
-        <button type="button" class="cancelar-button" (click)="cancelarPedido()">
+        <button type="button" class="cancelar-button" (click)="abrirModalCancelar()">
           <mat-icon>close</mat-icon>
           <span>Cancel Request</span>
         </button>
@@ -88,6 +88,24 @@
         <h2>Ride request not found</h2>
         <p class="subtitle">This ride request may have been cancelled or expired.</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="confirm-backdrop" *ngIf="showCancelModal" (click)="fecharModalCancelar()">
+  <div class="confirm-modal" (click)="$event.stopPropagation()">
+    <div class="confirm-icon">
+      <mat-icon>warning_amber</mat-icon>
+    </div>
+    <h3 class="confirm-title">Cancel Ride Request?</h3>
+    <p class="confirm-desc">Are you sure you want to cancel your ride request? This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-keep" (click)="fecharModalCancelar()" [disabled]="isCancelling">
+        Keep Ride
+      </button>
+      <button type="button" class="btn-confirm-cancel" (click)="cancelarPedido()" [disabled]="isCancelling">
+        {{ isCancelling ? 'Cancelling...' : 'Yes, Cancel Request' }}
+      </button>
     </div>
   </div>
 </div>

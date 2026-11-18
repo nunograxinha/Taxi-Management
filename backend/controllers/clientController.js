@@ -1,9 +1,9 @@
-const clienteService = require('../services/clientService');
+const clientService = require('../services/clientService');
 
 // GET /client
-exports.get_clientes = async (req, res) => { 
+exports.getClients = async (req, res) => {
   try {
-    const clients = await clienteService.getClientes();
+    const clients = await clientService.getClients();
     res.status(200).json(clients);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -11,10 +11,10 @@ exports.get_clientes = async (req, res) => {
 };
 
 // GET /client/:id
-exports.get_cliente_by_id = async (req, res) => {
+exports.getClientById = async (req, res) => {
   const { id } = req.params;
   try {
-    const client = await clienteService.getClienteBy_id(id);
+    const client = await clientService.getClientById(id);
     if (!client) {
       return res.status(404).json({ error: `Client with ID ${id} not found` });
     }
@@ -25,9 +25,9 @@ exports.get_cliente_by_id = async (req, res) => {
 };
 
 // POST /client
-exports.post_cliente = async (req, res) => {
+exports.createClient = async (req, res) => {
   try {
-    const client = await clienteService.createCliente(req.body);
+    const client = await clientService.createClient(req.body);
     res.status(201).json(client);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -35,12 +35,12 @@ exports.post_cliente = async (req, res) => {
 };
 
 // PUT /client/:id
-exports.update_cliente = async (req, res) => {
+exports.updateClient = async (req, res) => {
   const { id } = req.params;
   const { NIF, name, gender } = req.body;
-  
+
   try {
-    const updatedClient = await clienteService.updateClienteBy_id(id, { NIF, name, gender });
+    const updatedClient = await clientService.updateClientById(id, { NIF, name, gender });
     if (!updatedClient) {
       return res.status(404).json({ error: `Client with ID ${id} not found` });
     }
@@ -51,10 +51,10 @@ exports.update_cliente = async (req, res) => {
 };
 
 // DELETE /client/:id
-exports.delete_cliente = async (req, res) => {
+exports.deleteClient = async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedClient = await clienteService.deleteClienteBy_id(id);
+    const deletedClient = await clientService.deleteClientById(id);
     if (!deletedClient) {
       return res.status(404).json({ error: `Client with ID ${id} not found` });
     }

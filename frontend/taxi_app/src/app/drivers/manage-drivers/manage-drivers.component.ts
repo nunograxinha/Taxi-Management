@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
   templateUrl: './manage-drivers.component.html',
   styleUrls: ['./manage-drivers.component.css']
 })
-export class GerirMotoristasComponent {
+export class ManageDriversComponent {
   refreshTrigger: number = 0;
 
   atualizarLista() {

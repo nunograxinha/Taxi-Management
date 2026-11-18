@@ -1,53 +1,51 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Turno } from '../shifts/shift.interface';
+import { Shift } from '../shifts/shift.interface';
 import { API_BASE_URL } from './api.config';
 
 @Injectable({
   providedIn: 'root'
 })
-export class TurnoService {
+export class ShiftService {
   private readonly API_URL = `${API_BASE_URL}/shift`;
 
   constructor(private http: HttpClient) {}
 
-  getTurnos(): Observable<Turno[]> {
-    return this.http.get<Turno[]>(`${this.API_URL}`);
+  getShifts(): Observable<Shift[]> {
+    return this.http.get<Shift[]>(`${this.API_URL}`);
   }
 
-  getTurnosInTimeFrame(driverNIF: string, start: string, end: string): Observable<Turno[]> {
+  getShiftsInTimeFrame(driverNIF: string, start: string, end: string): Observable<Shift[]> {
     const params = new HttpParams()
       .set('driverNIF', driverNIF)
       .set('start', start)
       .set('end', end);
-  
-    return this.http.get<Turno[]>(`${this.API_URL}/interval`, { params });
-  }
-  
 
-  createTurno(turno: Turno): Observable<Turno> {
-    return this.http.post<Turno>(`${this.API_URL}`, turno);
+    return this.http.get<Shift[]>(`${this.API_URL}/interval`, { params });
   }
 
-  getTurnoById(id: string): Observable<Turno> {
-    return this.http.get<Turno>(`${this.API_URL}/${id}`);
+  createShift(shift: Shift): Observable<Shift> {
+    return this.http.post<Shift>(`${this.API_URL}`, shift);
   }
 
-  deleteTurno(id: string): Observable<any> {
+  getShiftById(id: string): Observable<Shift> {
+    return this.http.get<Shift>(`${this.API_URL}/${id}`);
+  }
+
+  deleteShift(id: string): Observable<any> {
     return this.http.delete(`${this.API_URL}/${id}`);
   }
 
-  updateTurno(id: string, turno: Partial<Turno>): Observable<Turno> {
-    return this.http.put<Turno>(`${this.API_URL}/${id}`, turno);
+  updateShift(id: string, shift: Partial<Shift>): Observable<Shift> {
+    return this.http.put<Shift>(`${this.API_URL}/${id}`, shift);
   }
 
-  getTurnosByMotoristaNIF(driverNIF: string): Observable<Turno[]> {
-    return this.http.get<Turno[]>(`${this.API_URL}/driver/${driverNIF}`);
+  getShiftsByDriverNIF(driverNIF: string): Observable<Shift[]> {
+    return this.http.get<Shift[]>(`${this.API_URL}/driver/${driverNIF}`);
   }
 
-  getTurnosByTaxiPlate(plate: string): Observable<Turno[]> {
-    return this.http.get<Turno[]>(`${this.API_URL}/taxi/${plate}`);
+  getShiftsByTaxiPlate(plate: string): Observable<Shift[]> {
+    return this.http.get<Shift[]>(`${this.API_URL}/taxi/${plate}`);
   }
 }
-

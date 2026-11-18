@@ -1,23 +1,23 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { MotoristaService } from '../../appServices/driver.service';
-import { Motorista } from '../../drivers/driver.interface';
+import { DriverService } from '../../appServices/driver.service';
+import { Driver } from '../../drivers/driver.interface';
 
 @Component({
   selector: 'app-gerir-turno',
   templateUrl: './manage-shifts.component.html',
   styleUrls: ['./manage-shifts.component.css']
 })
-export class GerirTurnoComponent implements OnInit, OnDestroy {
-    motorista?: Motorista;
+export class ManageShiftsComponent implements OnInit, OnDestroy {
+    motorista?: Driver;
     private subscription?: Subscription;
     
   
     constructor(
-        private motoristaService: MotoristaService ) {}
+        private motoristaService: DriverService ) {}
 
         ngOnInit() {
-          this.subscription = this.motoristaService.motorista$.subscribe((m) => {
+          this.subscription = this.motoristaService.driver$.subscribe((m) => {
             if (m) {
               this.motorista = m;
             }

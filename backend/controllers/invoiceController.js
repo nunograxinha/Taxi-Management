@@ -1,44 +1,44 @@
-const faturaService = require('../services/invoiceService');
+const invoiceService = require('../services/invoiceService');
 
-// GET fatura/
-exports.get_faturas = async (req, res) => {
+// GET /invoice
+exports.getInvoices = async (req, res) => {
   try {
-    const faturas = await faturaService.getFaturas();
-    res.status(200).json(faturas);
+    const invoices = await invoiceService.getInvoices();
+    res.status(200).json(invoices);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// GET fatura/get/:id
-exports.get_fatura_by_id = async (req, res) => {
+// GET /invoice/:id
+exports.getInvoiceById = async (req, res) => {
   try {
-    const fatura = await faturaService.getFaturaById(req.params.id);
-    if (!fatura) {
-      return res.status(404).json({ error: 'Fatura not found' });
+    const invoice = await invoiceService.getInvoiceById(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
     }
-    res.status(200).json(fatura);
+    res.status(200).json(invoice);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// POST fatura/create
-exports.create_fatura = async (req, res) => {
+// POST /invoice
+exports.createInvoice = async (req, res) => {
   try {
-    const fatura = await faturaService.createFatura(req.body);
-    res.status(201).json(fatura);
+    const invoice = await invoiceService.createInvoice(req.body);
+    res.status(201).json(invoice);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-// PUT fatura/update/:id
-exports.update_fatura = async (req, res) => {
+// PUT /invoice/:id
+exports.updateInvoice = async (req, res) => {
   try {
-    const updated = await faturaService.updateFatura(req.params.id, req.body);
+    const updated = await invoiceService.updateInvoice(req.params.id, req.body);
     if (!updated) {
-      return res.status(404).json({ error: 'Fatura not found' });
+      return res.status(404).json({ error: 'Invoice not found' });
     }
     res.status(200).json(updated);
   } catch (error) {
@@ -46,14 +46,14 @@ exports.update_fatura = async (req, res) => {
   }
 };
 
-// DEL fatura/delete/:id
-exports.delete_fatura = async (req, res) => {
+// DELETE /invoice/:id
+exports.deleteInvoice = async (req, res) => {
   try {
-    const deleted = await faturaService.deleteFatura(req.params.id);
+    const deleted = await invoiceService.deleteInvoice(req.params.id);
     if (!deleted) {
-      return res.status(404).json({ error: 'Fatura not found' });
+      return res.status(404).json({ error: 'Invoice not found' });
     }
-    res.status(200).json({ message: 'Fatura deleted' });
+    res.status(200).json({ message: 'Invoice deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }

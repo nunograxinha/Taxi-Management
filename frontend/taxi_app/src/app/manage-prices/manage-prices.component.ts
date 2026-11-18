@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { PrecoService } from '../appServices/price.service';
-import { Preco } from './price.interface';
+import { PriceService } from '../appServices/price.service';
+import { Price } from './price.interface';
 
 @Component({
   selector: 'app-gerir-precos',
   templateUrl: './manage-prices.component.html',
   styleUrls: ['./manage-prices.component.css']
 })
-export class GerirPrecosComponent implements OnInit {
+export class ManagePricesComponent implements OnInit {
   custoBase = 0;
   custoLuxo = 0;
   taxaNocturna = 0;
@@ -18,11 +18,11 @@ export class GerirPrecosComponent implements OnInit {
   valorTemporario: string = '';
   erroValidacao: string = '';
 
-  constructor(private precoService: PrecoService) {}
+  constructor(private precoService: PriceService) {}
 
   ngOnInit(): void {
-    this.precoService.getPreco().subscribe({
-      next: (data: Preco) => {
+    this.precoService.getPrice().subscribe({
+      next: (data: Price) => {
         this.custoBase = data.pricePerMinuteConfort;
         this.custoLuxo = data.pricePerMinuteLuxury;
         this.taxaNocturna = data.nightTimeSurcharge;
@@ -90,14 +90,14 @@ export class GerirPrecosComponent implements OnInit {
   salvarPreco() {
     if (!this.precoId) return;
 
-    const precoAtualizado: Preco = {
+    const precoAtualizado: Price = {
       _id: this.precoId,
       pricePerMinuteConfort: this.custoBase,
       pricePerMinuteLuxury: this.custoLuxo,
       nightTimeSurcharge: this.taxaNocturna,
     };
 
-    this.precoService.atualizarPreco(this.precoId, precoAtualizado).subscribe({
+    this.precoService.updatePrice(this.precoId, precoAtualizado).subscribe({
       next: () => console.log('[SUCCESS] Price updated successfully.'),
       error: (err) => console.error('[ERROR] Error updating price:', err)
     });

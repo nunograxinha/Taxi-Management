@@ -2,32 +2,33 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom, Subscription } from 'rxjs';
-import { PedidoViagemService } from '../../appServices/ride-request.service';
+import { RideRequestService } from '../../appServices/ride-request.service';
 import { SocketService } from '../../appServices/socket.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
-import { MotoristaService } from '../../appServices/driver.service';
+import { DriverService } from '../../appServices/driver.service';
 import { TaxiService } from '../../appServices/taxi.service';
-import { PrecoService } from '../../appServices/price.service';
-import { PedidoViagem } from '../../client/ride-request.interface';
-import { Preco } from '../../manage-prices/price.interface';
-import { Turno } from '../../shifts/shift.interface';
-import { TurnoService } from '../../appServices/shift.service';
+import { PriceService } from '../../appServices/price.service';
+import { RideRequest } from '../../client/ride-request.interface';
+import { Price } from '../../manage-prices/price.interface';
+import { Shift } from '../../shifts/shift.interface';
+import { ShiftService } from '../../appServices/shift.service';
+import { AuthService } from '../../appServices/auth.service';
 
 @Component({
   selector: 'app-pedidos-pendentes',
   templateUrl: './pending-requests.component.html',
   styleUrls: ['./pending-requests.component.css']
 })
-export class PedidosPendentesComponent implements OnInit, OnDestroy {
+export class PendingRequestsComponent implements OnInit, OnDestroy {
   driverNIF: string = '';
   driver: any;
   taxi: any;
-  pendingRequests: PedidoViagem[] = [];
+  pendingRequests: RideRequest[] = [];
   loading = true;
   errorMessage = '';
   currentPosition: { latitude: number, longitude: number } = { latitude: 38.756734, longitude: -9.155412 }; // Default to FCUL
-  prices: Preco | null = null;
-  currentShift: Turno | null = null;
+  prices: Price | null = null;
+  currentShift: Shift | null = null;
   clientAddresses: Map<string, string> = new Map();
   destinationAddresses: Map<string, string> = new Map();
   clientDistances: Map<string, number> = new Map();
@@ -41,19 +42,22 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private pedidoViagemService: PedidoViagemService,
-    private motoristaService: MotoristaService,
+    private pedidoViagemService: RideRequestService,
+    private motoristaService: DriverService,
     private taxiService: TaxiService,
     private geolocationService: GeolocationService,
-    private precoService: PrecoService,
-    private turnoService: TurnoService,
+    private precoService: PriceService,
+    private turnoService: ShiftService,
     private socketService: SocketService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
     const url = this.router.url;
     const nif =
+      this.authService.getDriverNif() ||
+      this.motoristaService.getDriver()?.NIF ||
       this.route.snapshot.paramMap.get('nif') ||
       this.route.parent?.snapshot.paramMap.get('nif') ||
       url.match(/\/(?:driver|motorista)\/(\d+)\//)?.[1];
@@ -78,7 +82,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
 
   private setupSocketListeners() {
     this.subscriptions.add(
-      this.socketService.onEvent<PedidoViagem>('pedido:created').subscribe(() => {
+      this.socketService.onEvent<RideRequest>('pedido:created').subscribe(() => {
         if (this.currentShift && this.taxi) {
           this.loadPendingRequests();
         }
@@ -86,7 +90,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.add(
-      this.socketService.onEvent<PedidoViagem>('pedido:updated').subscribe(() => {
+      this.socketService.onEvent<RideRequest>('pedido:updated').subscribe(() => {
         if (this.currentShift && this.taxi) {
           this.loadPendingRequests();
         }
@@ -107,7 +111,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.add(
-      this.socketService.onEvent<PedidoViagem>('pedido:clientConfirmed').subscribe((confirmedRequest) => {
+      this.socketService.onEvent<RideRequest>('pedido:clientConfirmed').subscribe((confirmedRequest) => {
         if (confirmedRequest && confirmedRequest._id) {
           this.router.navigate([`/driver/accepted-request/${confirmedRequest._id}`]);
         }
@@ -115,7 +119,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.add(
-      this.socketService.onEvent<PedidoViagem>('pedido:clientRejected').subscribe(() => {
+      this.socketService.onEvent<RideRequest>('pedido:clientRejected').subscribe(() => {
         this.snackBar.open('The client rejected or cancelled the request.', 'Close', { duration: 4000 });
         if (this.activeRequestId) {
           this.socketService.leavePedido(this.activeRequestId);
@@ -144,7 +148,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
         }
       });
 
-      this.motoristaService.obterMotorista(this.driverNIF).subscribe({
+      this.motoristaService.getDriverByNIF(this.driverNIF).subscribe({
         next: (driver) => {
           this.driver = driver;
           this.loadCurrentShift();
@@ -154,7 +158,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
         }
       });
 
-      this.prices = await firstValueFrom(this.precoService.getPreco()) || null;
+      this.prices = await firstValueFrom(this.precoService.getPrice()) || null;
     } catch (error) {
       console.error('Error in loadData:', error);
       this.errorMessage = 'Error loading required data';
@@ -165,7 +169,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
   async loadCurrentShift() {
     try {
       const now = new Date();
-      const shifts = await firstValueFrom(this.turnoService.getTurnos()) || [];
+      const shifts = await firstValueFrom(this.turnoService.getShifts()) || [];
 
       this.currentShift = shifts.find(shift => {
         const start = new Date(shift.start);
@@ -202,7 +206,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
       this.tripTimes.clear();
       this.totalTimes.clear();
 
-      const requests = await firstValueFrom(this.pedidoViagemService.getPedidos()) || [];
+      const requests = await firstValueFrom(this.pedidoViagemService.getRideRequests()) || [];
 
       const myActiveRequest = requests.find(r => r.driverId === this.driver?._id);
       if (myActiveRequest && myActiveRequest._id) {
@@ -222,19 +226,20 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
 
       for (const request of filteredRequests) {
         try {
-          if (request.confort !== this.taxi.confort || !request._id || !request.entryAddress || !request.exitAddress) continue;
+          const taxiCapacity = Number(this.taxi.passengerCapacity) || 4;
+          if (request.confort !== this.taxi.confort || request.numberOfPeople > taxiCapacity || !request._id || !request.entryAddress || !request.exitAddress) continue;
 
           const [clientLat, clientLng] = request.entryAddress.split(',').map(coord => parseFloat(coord));
           const [destLat, destLng] = request.exitAddress.split(',').map(coord => parseFloat(coord));
 
-          const distanceToClient = this.pedidoViagemService.calcularDistancia(
+          const distanceToClient = this.pedidoViagemService.calculateDistance(
             this.currentPosition.latitude,
             this.currentPosition.longitude,
             clientLat,
             clientLng
           );
 
-          const tripDistance = this.pedidoViagemService.calcularDistancia(
+          const tripDistance = this.pedidoViagemService.calculateDistance(
             clientLat,
             clientLng,
             destLat,
@@ -300,7 +305,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onAcceptRequest(request: PedidoViagem) {
+  async onAcceptRequest(request: RideRequest) {
     try {
       if (!request._id || !this.driver || !this.prices) {
         throw new Error('Driver or pricing data not available');
@@ -308,7 +313,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
 
       const distanceKmToDriver = this.clientDistances.get(request._id) || 0;
 
-      this.pedidoViagemService.acceptMotorista(
+      this.pedidoViagemService.acceptDriver(
         request._id,
         this.driver?._id,
         this.taxi?._id,
@@ -369,7 +374,7 @@ export class PedidosPendentesComponent implements OnInit, OnDestroy {
   cancelPendingAcceptance() {
     if (!this.activeRequestId) return;
     const requestId = this.activeRequestId;
-    this.pedidoViagemService.rejectMotorista(requestId, this.driver?._id).subscribe({
+    this.pedidoViagemService.rejectDriver(requestId, this.driver?._id).subscribe({
       next: () => {
         this.socketService.leavePedido(requestId);
         this.activeRequestId = null;

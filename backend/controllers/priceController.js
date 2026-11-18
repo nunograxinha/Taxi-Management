@@ -1,27 +1,23 @@
-const precoService = require('../services/priceService');
+const priceService = require('../services/priceService');
 
 // GET price/
-exports.get_preco = async (req, res) => { 
+exports.getPrice = async (req, res) => {
   try {
-    const precos = await precoService.getPrecos();
-    res.status(200).json(precos);
+    const prices = await priceService.getPrices();
+    res.status(200).json(prices);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// PUT price/update/:id
-exports.put_preco = async (req, res) => {
+// PUT price/:id
+exports.updatePrice = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('[DEBUG] PUT /price/:id called with id:', id);
-    console.log('[DEBUG] Body received:', req.body);
-
-    const updatedpreco = await precoService.updatePreco(id, req.body);
-
-    res.status(200).json(updatedpreco);
+    const updatedPrice = await priceService.updatePrice(id, req.body);
+    res.status(200).json(updatedPrice);
   } catch (error) {
-    console.error('[ERROR] Error in put_preco handler:', error);
+    console.error('[ERROR] Error in updatePrice handler:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

@@ -4,12 +4,22 @@
       <mat-icon>location_on</mat-icon>
       <span class="navbar-title">Track Trip in Real Time</span>
     </div>
+    <button
+      *ngIf="pedido && status !== 'finalizada'"
+      type="button"
+      class="share-btn"
+      (click)="shareTrip()"
+      title="Generate a public read-only tracking link"
+    >
+      <mat-icon>share</mat-icon>
+      <span>Share Trip</span>
+    </button>
   </div>
 
   <div class="page-container">
     <div class="card-centro" *ngIf="pedido">
       <div class="info-grid">
-        <div class="info-tile">
+        <div class="info-tile driver-tile">
           <div class="tile-icon">
             <mat-icon>person</mat-icon>
           </div>
@@ -19,17 +29,7 @@
           </div>
         </div>
 
-        <div class="info-tile">
-          <div class="tile-icon">
-            <mat-icon>local_taxi</mat-icon>
-          </div>
-          <div>
-            <span class="tile-label">Taxi</span>
-            <span class="tile-value">{{ taxiMatricula }} - {{ taxiMarca }} {{ taxiModelo }}</span>
-          </div>
-        </div>
-
-        <div class="info-tile">
+        <div class="info-tile pickup-tile">
           <div class="tile-icon pickup">
             <mat-icon>my_location</mat-icon>
           </div>
@@ -39,13 +39,32 @@
           </div>
         </div>
 
-        <div class="info-tile">
+        <div class="info-tile dest-tile">
           <div class="tile-icon dropoff">
             <mat-icon>place</mat-icon>
           </div>
           <div>
             <span class="tile-label">Destination</span>
             <span class="tile-value">{{ destinoNome }}</span>
+          </div>
+        </div>
+
+        <div class="info-tile taxi-tile">
+          <img
+            *ngIf="taxiMarca"
+            class="car-thumb"
+            [src]="taxiCarImage"
+            [alt]="taxiMarca + ' ' + taxiModelo"
+          />
+          <div class="taxi-meta">
+            <div class="tile-icon" *ngIf="!taxiMarca">
+              <mat-icon>local_taxi</mat-icon>
+            </div>
+            <div class="taxi-text">
+              <span class="tile-label">Taxi</span>
+              <span class="tile-value">{{ taxiMarca }} {{ taxiModelo }}</span>
+              <span class="plate-badge" *ngIf="taxiMatricula">{{ taxiMatricula }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -56,6 +75,10 @@
             <mat-icon>navigation</mat-icon>
             <span>Live Route</span>
             <span class="live-dot" *ngIf="hasLiveTaxiLocation" title="Receiving live taxi GPS">LIVE</span>
+            <span class="map-eta-pill" *ngIf="status === 'emCurso' && tempoRestanteMin !== null">
+              <mat-icon>schedule</mat-icon>
+              <span>~{{ tempoRestanteMin }} min left<ng-container *ngIf="distanciaRestanteLabel"> · {{ distanciaRestanteLabel }}</ng-container></span>
+            </span>
           </div>
           <div class="map-legend">
             <span><i class="dot pickup"></i>Pickup</span>
@@ -89,7 +112,7 @@
           <span>Estimated arrival: <strong>{{ tempoMotorista }} minutes</strong></span>
         </div>
         <div class="waiting-actions">
-          <button type="button" class="cancel-btn" (click)="cancelarViagem()">
+          <button type="button" class="cancel-btn" (click)="abrirModalCancelar()">
             <mat-icon>close</mat-icon>
             <span>Cancel Ride</span>
           </button>
@@ -151,6 +174,24 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="confirm-backdrop" *ngIf="showCancelModal" (click)="fecharModalCancelar()">
+  <div class="confirm-modal" (click)="$event.stopPropagation()">
+    <div class="confirm-icon">
+      <mat-icon>warning_amber</mat-icon>
+    </div>
+    <h3 class="confirm-title">Cancel Ride?</h3>
+    <p class="confirm-desc">Your driver is already assigned. Are you sure you want to cancel this ride?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn-keep" (click)="fecharModalCancelar()" [disabled]="isCancelling">
+        Keep Ride
+      </button>
+      <button type="button" class="btn-confirm-cancel" (click)="cancelarViagem()" [disabled]="isCancelling">
+        {{ isCancelling ? 'Cancelling...' : 'Yes, Cancel Ride' }}
+      </button>
     </div>
   </div>
 </div>

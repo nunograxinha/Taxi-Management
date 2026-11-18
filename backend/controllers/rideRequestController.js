@@ -1,79 +1,88 @@
-const pedidoViagemService = require('../services/rideRequestService');
-const { PedidoViagem } = require('../models/rideRequest');
-const { getIO } = require('../socket');
+const crypto = require('crypto');
+const rideRequestService = require('../services/rideRequestService');
+const { RideRequest } = require('../models/rideRequest');
+const { Driver } = require('../models/driver');
+const { Taxi } = require('../models/taxi');
+const { getIO, getLastDriverLocation } = require('../socket');
 
-// GET pedidoViagens
-exports.get_pedidosViagens = async (req, res) => { 
+exports.getRideRequests = async (req, res) => {
   try {
-    const pedidos = await pedidoViagemService.getpedidos();
-    res.status(200).json(pedidos);
+    const requests = await rideRequestService.getRideRequests();
+    res.status(200).json(requests);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-// Delete pedidoViagem/:id
-exports.delete_pedidoViagem = async (req, res) => {
+exports.deleteRideRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedpedido = await pedidoViagemService.deletePedido(id);
+    const deletedRequest = await rideRequestService.deleteRideRequest(id);
     const io = getIO();
     if (io) {
       io.to(String(id)).emit('pedido:deleted', { id });
       io.emit('pedido:deleted', { id });
     }
-
-    res.status(200).json(updatedpedido);
+    res.status(200).json(deletedRequest);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
-  };
+  }
 };
 
-exports.post_pedidoViagem = async (req, res) => {
+exports.createRideRequest = async (req, res) => {
   try {
-    const newPedido = await pedidoViagemService.postPedido(req.body);
+    const newRequest = await rideRequestService.createRideRequest(req.body);
     const io = getIO();
     if (io) {
-      io.emit('pedido:created', newPedido);
+      io.emit('pedido:created', newRequest);
     }
-
-    res.status(201).json(newPedido);
+    res.status(201).json(newRequest);
   } catch (error) {
     console.error('Error creating ride request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
-  };
+  }
 };
 
-exports.get_pedidoViagem = async (req, res) => {
+exports.getRideRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const pedido = await PedidoViagem.findById(id).populate('client');
-    if (!pedido) {
+    const rideRequest = await RideRequest.findById(id).populate('client');
+    if (!rideRequest) {
       return res.status(404).json({ error: 'Ride request not found' });
     }
-    res.status(200).json(pedido);
+    res.status(200).json(rideRequest);
   } catch (error) {
     console.error('Error fetching ride request:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-exports.accept_pedidoViagem = async (req, res) => {
+exports.acceptRideRequestDriver = async (req, res) => {
   const { id } = req.params;
-  const driverId = req.body.driverId ?? req.body.motoristaId;
-  const taxi = req.body.taxi;
-  const distanceKmToDriver = req.body.distanceKmToDriver ?? req.body.distanceKmToMotorista;
-  const clientAccepted = req.body.clientAccepted ?? req.body.clienteAceitou;
+  const { driverId, taxi, distanceKmToDriver, clientAccepted } = req.body;
 
   try {
-    const updated = await PedidoViagem.findByIdAndUpdate(
+    const existingRequest = await RideRequest.findById(id);
+    if (!existingRequest) return res.status(404).json({ error: 'Ride request not found' });
+
+    if (taxi) {
+      const mongoose = require('mongoose');
+      const taxiDoc = mongoose.Types.ObjectId.isValid(taxi)
+        ? await Taxi.findById(taxi)
+        : await Taxi.findOne({ licensePlate: taxi });
+      if (taxiDoc) {
+        const capacity = taxiDoc.passengerCapacity ?? 4;
+        if (existingRequest.numberOfPeople > capacity) {
+          return res.status(400).json({
+            error: `Taxi capacity (${capacity} passengers) is insufficient for ${existingRequest.numberOfPeople} passengers.`
+          });
+        }
+      }
+    }
+
+    const updated = await RideRequest.findByIdAndUpdate(
       id,
-      {
-        driverId,
-        taxi,
-        distanceKmToDriver,
-        clientAccepted
-      },
+      { driverId, taxi, distanceKmToDriver, clientAccepted },
       { new: true }
     ).populate('client');
 
@@ -90,15 +99,10 @@ exports.accept_pedidoViagem = async (req, res) => {
   }
 };
 
-exports.request_motorista = async (req, res) => {
-  console.log("RequestMotorista params:", req.params);
+exports.requestDriver = async (req, res) => {
   const { id } = req.params;
-
-  console.log(`Starting request_motorista for PedidoViagem with id: ${id}`);
-
-  const timeoutMs = 5 * 60 * 1000; // 5 minutes timeout
-  const intervalMs = 15 * 1000; // 15 seconds interval
-
+  const timeoutMs = 5 * 60 * 1000;
+  const intervalMs = 15 * 1000;
   let elapsed = 0;
 
   const cleanup = () => {
@@ -106,19 +110,14 @@ exports.request_motorista = async (req, res) => {
     clearTimeout(timeoutTimer);
   };
 
-  req.on('close', () => {
-    cleanup();
-  });
+  req.on('close', () => cleanup());
 
   const intervalCheck = setInterval(async () => {
     try {
       elapsed += intervalMs;
+      const rideRequest = await RideRequest.findById(id);
 
-      console.log(`Checking PedidoViagem with id: ${id} (Elapsed time: ${elapsed / 1000}s)`);
-
-      const pedidoViagem = await PedidoViagem.findById(id);
-
-      if (!pedidoViagem) {
+      if (!rideRequest) {
         cleanup();
         if (!res.headersSent) {
           return res.status(404).json({ message: 'Ride request not found or cancelled' });
@@ -126,22 +125,19 @@ exports.request_motorista = async (req, res) => {
         return;
       }
 
-      if (pedidoViagem.driverId) {
+      if (rideRequest.driverId) {
         cleanup();
-        console.log(`Driver found: ${pedidoViagem.driverId}`);
         if (!res.headersSent) {
-          return res.status(200).json({ driverId: pedidoViagem.driverId, motoristaId: pedidoViagem.driverId });
+          return res.status(200).json({ driverId: rideRequest.driverId });
         }
         return;
       }
 
       if (elapsed >= timeoutMs) {
         clearInterval(intervalCheck);
-        console.log("Timeout reached without finding a driver.");
       }
     } catch (err) {
       cleanup();
-      console.log("Error checking driver status:", err);
       if (!res.headersSent) {
         return res.status(500).json({ message: 'Error checking driver status' });
       }
@@ -150,23 +146,16 @@ exports.request_motorista = async (req, res) => {
 
   const timeoutTimer = setTimeout(() => {
     cleanup();
-    console.log("No driver assigned within the timeout period.");
     if (!res.headersSent) {
-      return res.status(202).json({ motoristaId: null, message: 'No driver assigned yet' });
+      return res.status(202).json({ driverId: null, message: 'No driver assigned yet' });
     }
   }, timeoutMs);
 };
 
-
 exports.clientConfirm = async (req, res) => {
-  console.log("clientConfirm params:", req.params);
   const { id } = req.params;
-
-  console.log(`Starting clientConfirm for PedidoViagem with id: ${id}`);
-
-  const timeoutMs = 5 * 60 * 1000; // 5 minutes timeout
-  const intervalMs = 15 * 1000; // 15 seconds interval
-
+  const timeoutMs = 5 * 60 * 1000;
+  const intervalMs = 15 * 1000;
   let elapsed = 0;
 
   const cleanup = () => {
@@ -174,31 +163,23 @@ exports.clientConfirm = async (req, res) => {
     clearTimeout(timeoutTimer);
   };
 
-  req.on('close', () => {
-    cleanup();
-  });
+  req.on('close', () => cleanup());
 
   const intervalCheck = setInterval(async () => {
     try {
       elapsed += intervalMs;
+      const rideRequest = await RideRequest.findById(id);
 
-      console.log(`Checking PedidoViagem with id: ${id} (Elapsed time: ${elapsed / 1000}s)`);
-
-      const pedidoViagem = await PedidoViagem.findById(id);
-
-      // If the request was cancelled or the client rejected the driver (driverId returned to null)
-      if (!pedidoViagem || !pedidoViagem.driverId) {
+      if (!rideRequest || !rideRequest.driverId) {
         cleanup();
-        console.log("Client rejected driver or cancelled order.");
         if (!res.headersSent) {
           return res.status(200).json({ confirmed: false, rejected: true, message: 'Client rejected or cancelled' });
         }
         return;
       }
 
-      if (pedidoViagem.clientAccepted) {
+      if (rideRequest.clientAccepted) {
         cleanup();
-        console.log(`Client accepted: ${pedidoViagem.clientAccepted}`);
         if (!res.headersSent) {
           return res.status(200).json({ confirmed: true, message: 'Client confirmed' });
         }
@@ -207,11 +188,9 @@ exports.clientConfirm = async (req, res) => {
 
       if (elapsed >= timeoutMs) {
         clearInterval(intervalCheck);
-        console.log("Timeout reached without confirming with the client.");
       }
     } catch (err) {
       cleanup();
-      console.log("Error checking client status:", err);
       if (!res.headersSent) {
         return res.status(500).json({ message: 'Error checking client status' });
       }
@@ -220,18 +199,17 @@ exports.clientConfirm = async (req, res) => {
 
   const timeoutTimer = setTimeout(() => {
     cleanup();
-    console.log("Client did not answer");
     if (!res.headersSent) {
       return res.status(202).json({ confirmed: false, rejected: false, message: 'Client did not answer' });
     }
   }, timeoutMs);
 };
 
-exports.accept_pedidoViagemCliente = async (req, res) => {
+exports.acceptRideRequestClient = async (req, res) => {
   const { id } = req.params;
-  const clientAccepted = req.body.clientAccepted ?? req.body.clienteAceitou;
+  const { clientAccepted } = req.body;
   try {
-    const updated = await PedidoViagem.findByIdAndUpdate(
+    const updated = await RideRequest.findByIdAndUpdate(
       id,
       { clientAccepted },
       { new: true }
@@ -242,6 +220,7 @@ exports.accept_pedidoViagemCliente = async (req, res) => {
     if (io) {
       io.to(String(id)).emit('pedido:clientConfirmed', updated);
       io.to(String(id)).emit('pedido:updated', updated);
+      io.emit('pedido:updated', updated);
     }
     res.status(200).json(updated);
   } catch (err) {
@@ -250,9 +229,9 @@ exports.accept_pedidoViagemCliente = async (req, res) => {
   }
 };
 
-exports.reject_pedidoViagem = async (req, res) => {
+exports.rejectRideRequest = async (req, res) => {
   const { id } = req.params;
-  const driverId = req.body.driverId ?? req.body.motoristaId;
+  const { driverId } = req.body;
   const update = {
     $set: {
       driverId: null,
@@ -267,7 +246,7 @@ exports.reject_pedidoViagem = async (req, res) => {
   }
 
   try {
-    const updated = await PedidoViagem.findByIdAndUpdate(
+    const updated = await RideRequest.findByIdAndUpdate(
       id,
       update,
       { new: true }
@@ -286,22 +265,113 @@ exports.reject_pedidoViagem = async (req, res) => {
   }
 };
 
-exports.update_pedidoViagem = async (req, res) => {
+exports.updateRideRequest = async (req, res) => {
   const { id } = req.params;
   try {
-    const updated = await PedidoViagem.findByIdAndUpdate(
+    const updated = await RideRequest.findByIdAndUpdate(
       id,
       { $set: req.body },
       { new: true }
     ).populate('client');
-    if (!updated) return res.status(404).json({error: 'Ride request not found'});
+    if (!updated) return res.status(404).json({ error: 'Ride request not found' });
     const io = getIO();
     if (io) {
       io.to(String(id)).emit('pedido:updated', updated);
+      io.emit('pedido:updated', updated);
     }
     res.status(200).json(updated);
   } catch (err) {
     console.error('Error updating ride request:', err);
     res.status(500).json({ error: 'Error updating ride request' });
+  }
+};
+
+exports.createShareLink = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rideRequest = await RideRequest.findById(id).populate('client');
+    if (!rideRequest) {
+      return res.status(404).json({ error: 'Ride request not found' });
+    }
+
+    if (
+      req.user &&
+      req.user.role === 'client' &&
+      req.user.id &&
+      rideRequest.client &&
+      String(rideRequest.client._id) !== String(req.user.id)
+    ) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (rideRequest.endTime) {
+      return res.status(400).json({ error: 'Cannot share a trip that has already ended.' });
+    }
+
+    if (!rideRequest.shareToken) {
+      rideRequest.shareToken = crypto.randomBytes(16).toString('hex');
+      await rideRequest.save();
+    }
+
+    res.status(200).json({ shareToken: rideRequest.shareToken });
+  } catch (err) {
+    console.error('Error creating share link:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+exports.getSharedTrip = async (req, res) => {
+  try {
+    const { shareToken } = req.params;
+    if (!shareToken || !/^[a-f0-9]{32}$/i.test(shareToken)) {
+      return res.status(404).json({ expired: true, error: 'Shared trip link not found or expired.' });
+    }
+
+    const rideRequest = await RideRequest.findOne({ shareToken });
+    if (!rideRequest) {
+      return res.status(404).json({ expired: true, error: 'Shared trip link not found or expired.' });
+    }
+
+    if (rideRequest.endTime) {
+      return res.status(410).json({
+        expired: true,
+        error: 'This shared trip link has expired because the trip has ended.',
+        endTime: rideRequest.endTime
+      });
+    }
+
+    let driverName = null;
+    if (rideRequest.driverId) {
+      const driver = await Driver.findById(rideRequest.driverId).select('name');
+      driverName = driver ? driver.name : null;
+    }
+
+    let taxi = null;
+    if (rideRequest.taxi) {
+      const taxiDoc = await Taxi.findById(rideRequest.taxi).select('licensePlate brand model');
+      if (taxiDoc) {
+        taxi = {
+          licensePlate: taxiDoc.licensePlate,
+          brand: taxiDoc.brand,
+          model: taxiDoc.model
+        };
+      }
+    }
+
+    res.status(200).json({
+      trackingRoom: String(rideRequest._id),
+      entryAddress: rideRequest.entryAddress,
+      exitAddress: rideRequest.exitAddress,
+      confort: rideRequest.confort,
+      distanceKmToDriver: rideRequest.distanceKmToDriver,
+      startTime: rideRequest.startTime,
+      endTime: rideRequest.endTime,
+      driverName,
+      taxi,
+      taxiLocation: getLastDriverLocation(rideRequest._id)
+    });
+  } catch (err) {
+    console.error('Error fetching shared trip:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

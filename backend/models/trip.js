@@ -5,7 +5,7 @@ require('./driver');
 require('./shift');
 require('./client');
 
-const viagemSchema = new mongoose.Schema({
+const tripSchema = new mongoose.Schema({
   shift: { type: mongoose.Schema.Types.ObjectId, ref: 'Shift', required: true },
   numberOfPeople: { type: Number, required: true },
   distanceKm: { type: Number, required: true, min: 0 },
@@ -22,16 +22,18 @@ const viagemSchema = new mongoose.Schema({
   },
   entryAddress: { type: String, required: true },
   exitAddress: { type: String, required: true },
+  entryAddressLabel: { type: String, default: null },
+  exitAddressLabel: { type: String, default: null },
   sequenceNumber: { type: Number, min: 1 },
   driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', required: true },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
   price: { type: Number, required: true, min: 0 },
 }, { timestamps: true });
 
-viagemSchema.index({ shift: 1, sequenceNumber: 1 }, { unique: true });
+tripSchema.index({ shift: 1, sequenceNumber: 1 }, { unique: true });
 
 // Auto-increment sequenceNumber per shift
-viagemSchema.pre('save', async function (next) {
+tripSchema.pre('save', async function (next) {
   if (this.isNew) {
     const Trip = mongoose.model('Trip');
     const lastTrip = await Trip.findOne({ shift: this.shift }).sort({ sequenceNumber: -1 });
@@ -40,6 +42,6 @@ viagemSchema.pre('save', async function (next) {
   next();
 });
 
-const Viagem = mongoose.model('Trip', viagemSchema);
+const Trip = mongoose.model('Trip', tripSchema);
 
-module.exports = { Viagem, Trip: Viagem };
+module.exports = { Trip };

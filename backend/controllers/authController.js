@@ -1,5 +1,5 @@
-const { Motorista } = require('../models/driver');
-const { Cliente } = require('../models/client');
+const { Driver } = require('../models/driver');
+const { Client } = require('../models/client');
 const { signToken } = require('../utils/jwt');
 const { hashPassword, verifyPassword, safeCompareStrings } = require('../utils/password');
 
@@ -25,24 +25,24 @@ exports.loginDriver = async (req, res) => {
       return res.status(400).json({ error: 'Driver NIF and password are required' });
     }
 
-    const motorista = await Motorista.findOne({ NIF: String(nif).trim() }).select('+passwordHash');
-    if (!motorista || !verifyPassword(password, motorista.passwordHash)) {
+    const driver = await Driver.findOne({ NIF: String(nif).trim() }).select('+passwordHash');
+    if (!driver || !verifyPassword(password, driver.passwordHash)) {
       return res.status(401).json({ error: 'Invalid NIF or password' });
     }
 
     const token = signToken({
       role: 'driver',
-      nif: motorista.NIF,
-      driverId: String(motorista._id),
-      name: motorista.name
+      nif: driver.NIF,
+      driverId: String(driver._id),
+      name: driver.name
     });
 
     res.status(200).json({
       token,
       role: 'driver',
-      nif: motorista.NIF,
-      driverId: motorista._id,
-      name: motorista.name
+      nif: driver.NIF,
+      driverId: driver._id,
+      name: driver.name
     });
   } catch (error) {
     console.error('Error authenticating driver:', error);
@@ -57,7 +57,7 @@ exports.loginClient = async (req, res) => {
       return res.status(400).json({ error: 'Client NIF and password are required' });
     }
 
-    const clients = await Cliente.find({ NIF: String(nif).trim() }).select('+passwordHash');
+    const clients = await Client.find({ NIF: String(nif).trim() }).select('+passwordHash');
     const matchedClient = clients.find((c) => verifyPassword(password, c.passwordHash));
 
     if (!matchedClient) {
@@ -97,7 +97,7 @@ exports.registerClient = async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    const existingWithPassword = await Cliente.findOne({ NIF: String(NIF).trim() }).select('+passwordHash');
+    const existingWithPassword = await Client.findOne({ NIF: String(NIF).trim() }).select('+passwordHash');
     if (existingWithPassword && existingWithPassword.passwordHash) {
       return res.status(409).json({ error: 'A client account with this NIF already exists. Please sign in.' });
     }
@@ -109,7 +109,7 @@ exports.registerClient = async (req, res) => {
       existingWithPassword.passwordHash = hashPassword(password);
       clientDoc = await existingWithPassword.save();
     } else {
-      clientDoc = await Cliente.create({
+      clientDoc = await Client.create({
         NIF: String(NIF).trim(),
         name,
         gender,
@@ -154,13 +154,13 @@ exports.changeDriverPassword = async (req, res) => {
       return res.status(400).json({ error: 'New password must be at least 6 characters' });
     }
 
-    const motorista = await Motorista.findById(req.user.driverId).select('+passwordHash');
-    if (!motorista || !verifyPassword(currentPassword, motorista.passwordHash)) {
+    const driver = await Driver.findById(req.user.driverId).select('+passwordHash');
+    if (!driver || !verifyPassword(currentPassword, driver.passwordHash)) {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
 
-    motorista.passwordHash = hashPassword(newPassword);
-    await motorista.save();
+    driver.passwordHash = hashPassword(newPassword);
+    await driver.save();
 
     res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {

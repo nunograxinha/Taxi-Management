@@ -1,74 +1,72 @@
-const { Cliente } = require('../models/client');
+const { Client } = require('../models/client');
 const { hashPassword } = require('../utils/password');
 
 module.exports = {
-
-    getClientes: async () => {
+  getClients: async () => {
     try {
-      const clientes = await Cliente.find();
-      return clientes;
+      const clients = await Client.find();
+      return clients;
     } catch (error) {
       throw error;
     }
   },
-  
-  createCliente: async (body) => {
+
+  createClient: async (body) => {
     try {
-      const existingCliente = await Cliente.findOne({
+      const existingClient = await Client.findOne({
         NIF: body.NIF,
         name: body.name,
         gender: body.gender,
       });
-  
-      if (existingCliente) {
-        return existingCliente;
+
+      if (existingClient) {
+        return existingClient;
       }
-  
+
       const data = { ...body };
       if (data.password) {
         data.passwordHash = hashPassword(data.password);
         delete data.password;
       }
 
-      const cliente = new Cliente(data);
-      const savedCliente = await cliente.save();
-      const result = savedCliente.toObject();
+      const client = new Client(data);
+      const savedClient = await client.save();
+      const result = savedClient.toObject();
       delete result.passwordHash;
       return result;
     } catch (error) {
       throw error;
     }
   },
-  
-  
-  getClienteBy_id: async (id) => {
+
+  getClientById: async (id) => {
     try {
-      const clientes = await Cliente.findOne({ _id: id });
-      return clientes;
+      const client = await Client.findOne({ _id: id });
+      return client;
     } catch (error) {
       throw error;
     }
   },
-  
-  updateClienteBy_id: async (id, updateData) => {
+
+  updateClientById: async (id, updateData) => {
     try {
-      const updatedCliente = await Cliente.findOneAndUpdate(
-        { _id: id }, 
+      const updatedClient = await Client.findOneAndUpdate(
+        { _id: id },
         { $set: updateData },
         { new: true, runValidators: true }
       );
-      return updatedCliente;
+      return updatedClient;
     } catch (error) {
       throw error;
     }
   },
-  
-  deleteClienteBy_id: async (id) => {
+
+  deleteClientById: async (id) => {
     try {
-      const deletedCliente = await Cliente.findOneAndDelete({ _id: id });
-      return deletedCliente;
+      const deletedClient = await Client.findOneAndDelete({ _id: id });
+      return deletedClient;
     } catch (error) {
       throw error;
     }
   },
-}
+};

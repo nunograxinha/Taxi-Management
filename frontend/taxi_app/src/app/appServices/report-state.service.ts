@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, forkJoin, Observable, of } from 'rxjs';
-import { Viagem } from '../trips/trip.interface';
-import { ViagemService } from '../appServices/trip.service';
-import { Motorista } from '../drivers/driver.interface';
-import { MotoristaService } from './driver.service';
+import { Trip } from '../trips/trip.interface';
+import { TripService } from '../appServices/trip.service';
+import { Driver } from '../drivers/driver.interface';
+import { DriverService } from './driver.service';
 import { Taxi } from '../taxis/taxi.interface';
 import { TaxiService } from './taxi.service';
-import { Turno } from '../shifts/shift.interface';
-import { TurnoService } from './shift.service';
-import { Cliente } from '../client/client.interface';
-import { ClienteService } from './client.service';
+import { Shift } from '../shifts/shift.interface';
+import { ShiftService } from './shift.service';
+import { Client } from '../client/client.interface';
+import { ClientService } from './client.service';
 
 export interface DateRange {
   startDate: string; // YYYY-MM-DD
@@ -22,32 +22,32 @@ export interface SubtotalGroup {
   id: string;
   label: string;
   sublabel?: string;
-  driver?: Motorista;
+  driver?: Driver;
   taxi?: Taxi;
-  client?: Cliente;
-  viagens: Viagem[];
+  client?: Client;
+  viagens: Trip[];
   subtotalValue: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class RelatorioStateService {
-  private _todasViagens: Viagem[] = [];
+export class ReportStateService {
+  private _todasViagens: Trip[] = [];
   private _dateRange$: BehaviorSubject<DateRange>;
-  private _viagensHoje$: BehaviorSubject<Viagem[]> = new BehaviorSubject<Viagem[]>([]);
-  private _viagensPorMotoristaHoje$: BehaviorSubject<Map<string, Viagem[]>> = new BehaviorSubject(new Map());
-  private _motoristasMap: Map<string, Motorista> = new Map();
+  private _viagensHoje$: BehaviorSubject<Trip[]> = new BehaviorSubject<Trip[]>([]);
+  private _viagensPorMotoristaHoje$: BehaviorSubject<Map<string, Trip[]>> = new BehaviorSubject(new Map());
+  private _motoristasMap: Map<string, Driver> = new Map();
   private _taxisMap: Map<string, Taxi> = new Map();
-  private _turnosMap: Map<string, Turno> = new Map();
-  private _clientesMap: Map<string, Cliente> = new Map();
+  private _turnosMap: Map<string, Shift> = new Map();
+  private _clientesMap: Map<string, Client> = new Map();
 
   constructor(
-    private viagemService: ViagemService,
-    private motoristaService: MotoristaService,
+    private viagemService: TripService,
+    private motoristaService: DriverService,
     private taxiService: TaxiService,
-    private turnoService: TurnoService,
-    private clienteService: ClienteService
+    private turnoService: ShiftService,
+    private clienteService: ClientService
   ) {
     const today = this.getTodayDateString();
     this._dateRange$ = new BehaviorSubject<DateRange>({ startDate: today, endDate: today });
@@ -95,11 +95,11 @@ export class RelatorioStateService {
 
   atualizarViagens(): void {
     forkJoin({
-      motoristas: this.motoristaService.obterMotoristas().pipe(catchError(() => of([] as Motorista[]))),
+      motoristas: this.motoristaService.getDrivers().pipe(catchError(() => of([] as Driver[]))),
       taxis: this.taxiService.getTaxis().pipe(catchError(() => of([] as Taxi[]))),
-      turnos: this.turnoService.getTurnos().pipe(catchError(() => of([] as Turno[]))),
-      clientes: this.clienteService.getClients().pipe(catchError(() => of([] as Cliente[]))),
-      viagens: this.viagemService.listarTodasViagens().pipe(catchError(() => of([] as Viagem[])))
+      turnos: this.turnoService.getShifts().pipe(catchError(() => of([] as Shift[]))),
+      clientes: this.clienteService.getClients().pipe(catchError(() => of([] as Client[]))),
+      viagens: this.viagemService.getAllTrips().pipe(catchError(() => of([] as Trip[])))
     }).subscribe({
       next: ({ motoristas, taxis, turnos, clientes, viagens }) => {
         this._motoristasMap.clear();
@@ -137,7 +137,7 @@ export class RelatorioStateService {
     this._viagensPorMotoristaHoje$.next(this.gerarMapa(viagensFiltradas));
   }
 
-  private filtrarViagensPorPeriodo(viagens: Viagem[], range: DateRange): Viagem[] {
+  private filtrarViagensPorPeriodo(viagens: Trip[], range: DateRange): Trip[] {
     const [sYear, sMonth, sDay] = range.startDate.split('-').map(Number);
     const [eYear, eMonth, eDay] = range.endDate.split('-').map(Number);
     if (!sYear || !sMonth || !sDay || !eYear || !eMonth || !eDay) {
@@ -153,8 +153,8 @@ export class RelatorioStateService {
     });
   }
 
-  private gerarMapa(viagens: Viagem[]): Map<string, Viagem[]> {
-    const mapa = new Map<string, Viagem[]>();
+  private gerarMapa(viagens: Trip[]): Map<string, Trip[]> {
+    const mapa = new Map<string, Trip[]>();
     for (const viagem of viagens) {
       const driverId = this.extractDriverId(viagem);
       if (!driverId) continue;
@@ -165,12 +165,12 @@ export class RelatorioStateService {
     return mapa;
   }
 
-  extractDriverId(viagem: Viagem): string {
+  extractDriverId(viagem: Trip): string {
     if (!viagem.driver) return '';
     return typeof viagem.driver === 'object' ? (viagem.driver as any)._id || '' : String(viagem.driver);
   }
 
-  extractTaxiId(viagem: Viagem): string {
+  extractTaxiId(viagem: Trip): string {
     if (!viagem.shift) return '';
     if (typeof viagem.shift === 'object') {
       const shiftObj = viagem.shift as any;
@@ -190,15 +190,15 @@ export class RelatorioStateService {
     return typeof turno.taxi === 'object' ? (turno.taxi as any)._id || '' : String(turno.taxi);
   }
 
-  getViagensHoje$(): Observable<Viagem[]> {
+  getViagensHoje$(): Observable<Trip[]> {
     return this._viagensHoje$.asObservable();
   }
 
-  getViagensPorMotoristaHoje$(): Observable<Map<string, Viagem[]>> {
+  getViagensPorMotoristaHoje$(): Observable<Map<string, Trip[]>> {
     return this._viagensPorMotoristaHoje$.asObservable();
   }
 
-  getMotorista(id: string): Motorista | undefined {
+  getDriver(id: string): Driver | undefined {
     return this._motoristasMap.get(id);
   }
 
@@ -206,31 +206,31 @@ export class RelatorioStateService {
     return this._taxisMap.get(id);
   }
 
-  getMotoristaForViagem(viagem: Viagem): Motorista | undefined {
+  getMotoristaForViagem(viagem: Trip): Driver | undefined {
     if (typeof viagem.driver === 'object' && viagem.driver !== null && (viagem.driver as any).name) {
-      return viagem.driver as Motorista;
+      return viagem.driver as Driver;
     }
     return this._motoristasMap.get(this.extractDriverId(viagem));
   }
 
-  getTaxiForViagem(viagem: Viagem): Taxi | undefined {
+  getTaxiForViagem(viagem: Trip): Taxi | undefined {
     const taxiId = this.extractTaxiId(viagem);
     return taxiId ? this._taxisMap.get(taxiId) : undefined;
   }
 
-  extractClientId(viagem: Viagem): string {
+  extractClientId(viagem: Trip): string {
     if (!viagem.client) return '';
     return typeof viagem.client === 'object' ? (viagem.client as any)._id || '' : String(viagem.client);
   }
 
-  getClientForViagem(viagem: Viagem): Cliente | undefined {
+  getClientForViagem(viagem: Trip): Client | undefined {
     if (typeof viagem.client === 'object' && viagem.client !== null && (viagem.client as any).name) {
-      return viagem.client as Cliente;
+      return viagem.client as Client;
     }
     return this._clientesMap.get(this.extractClientId(viagem));
   }
 
-  getDurationHours(viagem: Viagem): number {
+  getDurationHours(viagem: Trip): number {
     const entrada = new Date(viagem.entryTime).getTime();
     const saida = new Date(viagem.exitTime).getTime();
     const horas = Math.max(0, (saida - entrada) / (1000 * 60 * 60));
@@ -244,7 +244,7 @@ export class RelatorioStateService {
     return `${hours}h ${minutes}min`;
   }
 
-  calcularTotalHoras(viagens: Viagem[]): number {
+  calcularTotalHoras(viagens: Trip[]): number {
     let totalMs = 0;
     for (const viagem of viagens) {
       const entrada = new Date(viagem.entryTime).getTime();
@@ -255,17 +255,17 @@ export class RelatorioStateService {
     return parseFloat(totalHoras.toFixed(2));
   }
 
-  calcularTotalKm(viagens: Viagem[]): number {
+  calcularTotalKm(viagens: Trip[]): number {
     const totalKm = viagens.reduce((soma, viagem) => soma + (viagem.distanceKm || 0), 0);
     return parseFloat(totalKm.toFixed(2));
   }
 
-  calcularTotalEuros(viagens: Viagem[]): number {
+  calcularTotalEuros(viagens: Trip[]): number {
     const totalEuros = viagens.reduce((soma, viagem) => soma + (viagem.price || 0), 0);
     return parseFloat(totalEuros.toFixed(2));
   }
 
-  getSubtotalGroups(metric: ReportMetric, groupBy: 'driver' | 'taxi' | 'client', viagens: Viagem[]): SubtotalGroup[] {
+  getSubtotalGroups(metric: ReportMetric, groupBy: 'driver' | 'taxi' | 'client', viagens: Trip[]): SubtotalGroup[] {
     const groupsMap = new Map<string, SubtotalGroup>();
 
     for (const viagem of viagens) {
