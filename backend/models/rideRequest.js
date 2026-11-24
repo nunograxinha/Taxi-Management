@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+const chatMessageSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  pedidoId: { type: String, required: true },
+  senderRole: { type: String, enum: ['client', 'driver'], required: true },
+  senderName: { type: String, required: true, maxlength: 80 },
+  text: { type: String, required: true, maxlength: 300 },
+  timestamp: { type: String, required: true }
+}, { _id: false });
+
 const rideRequestSchema = new mongoose.Schema({
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
   numberOfPeople: { type: Number, required: true, min:1},
@@ -26,6 +35,7 @@ const rideRequestSchema = new mongoose.Schema({
   rating: { type: Number, min: 1, max: 5, default: null },
   ratingComment: { type: String, default: '', maxlength: 500 },
   shareToken: { type: String, default: null, index: true },
+  chatMessages: { type: [chatMessageSchema], default: [] },
 }, { timestamps: true });
 
 const RideRequest = mongoose.model('RideRequest', rideRequestSchema);

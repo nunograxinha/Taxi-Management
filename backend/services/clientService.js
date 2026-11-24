@@ -16,7 +16,36 @@ function sanitizeCoords(raw) {
   return `${lat},${lon}`;
 }
 
+function sanitizeFavoritePlaces(places) {
+  if (!Array.isArray(places)) {
+    const err = new Error('favoritePlaces must be an array.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const sanitized = [];
+  for (const entry of places.slice(0, 10)) {
+    const label = typeof entry?.label === 'string' ? entry.label.trim().slice(0, 40) : '';
+    const address = typeof entry?.address === 'string' ? entry.address.trim().slice(0, 200) : '';
+    const coords = sanitizeCoords(entry?.coords);
+    const icon = VALID_FAVORITE_ICONS.has(entry?.icon) ? entry.icon : 'star';
+
+    if (!label || !address || !coords) {
+      const err = new Error('Each favorite place requires a label, address, and valid coordinates.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    sanitized.push({ label, icon, address, coords });
+  }
+
+  return sanitized;
+}
+
 module.exports = {
+  sanitizeCoords,
+  sanitizeFavoritePlaces,
+
   getClients: async () => {
     try {
       const clients = await Client.find();
@@ -94,27 +123,7 @@ module.exports = {
 
   updateFavoritePlaces: async (id, places) => {
     if (!mongoose.Types.ObjectId.isValid(id)) return null;
-    if (!Array.isArray(places)) {
-      const err = new Error('favoritePlaces must be an array.');
-      err.statusCode = 400;
-      throw err;
-    }
-
-    const sanitized = [];
-    for (const entry of places.slice(0, 10)) {
-      const label = typeof entry?.label === 'string' ? entry.label.trim().slice(0, 40) : '';
-      const address = typeof entry?.address === 'string' ? entry.address.trim().slice(0, 200) : '';
-      const coords = sanitizeCoords(entry?.coords);
-      const icon = VALID_FAVORITE_ICONS.has(entry?.icon) ? entry.icon : 'star';
-
-      if (!label || !address || !coords) {
-        const err = new Error('Each favorite place requires a label, address, and valid coordinates.');
-        err.statusCode = 400;
-        throw err;
-      }
-
-      sanitized.push({ label, icon, address, coords });
-    }
+    const sanitized = sanitizeFavoritePlaces(places);
 
     const updated = await Client.findByIdAndUpdate(
       id,
