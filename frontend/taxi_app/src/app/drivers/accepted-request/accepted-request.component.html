@@ -4,6 +4,7 @@
       <mat-icon>local_taxi</mat-icon>
       <h2 class="navbar-title">Accepted Request</h2>
     </div>
+    <app-alert-toggle></app-alert-toggle>
   </div>
 
   <div class="page-container">
@@ -175,3 +176,11 @@
     </div>
   </div>
 </div>
+
+<app-trip-chat
+  *ngIf="pedido && pedidoId && !endTimeLocal"
+  [pedidoId]="pedidoId"
+  role="driver"
+  [senderName]="nomeMotorista || 'Driver'"
+  [counterpartName]="nomeCliente"
+></app-trip-chat>

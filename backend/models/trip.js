@@ -28,6 +28,8 @@ const tripSchema = new mongoose.Schema({
   driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', required: true },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
   price: { type: Number, required: true, min: 0 },
+  rating: { type: Number, min: 1, max: 5, default: null },
+  ratingComment: { type: String, default: '', maxlength: 500 },
 }, { timestamps: true });
 
 tripSchema.index({ shift: 1, sequenceNumber: 1 }, { unique: true });

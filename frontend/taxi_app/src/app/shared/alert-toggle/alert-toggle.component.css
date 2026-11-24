@@ -1,0 +1,89 @@
+.alert-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alert-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.16);
+  background: rgba(255, 255, 255, 0.88);
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.alert-pill-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.alert-pill-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.alert-pill-btn.muted {
+  background: rgba(17, 24, 39, 0.12);
+  color: #374151;
+  border-color: rgba(17, 24, 39, 0.2);
+}
+
+.desktop-alert-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(17, 24, 39, 0.16);
+  background: rgba(255, 255, 255, 0.88);
+  color: #111827;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+}
+
+.desktop-alert-btn:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.desktop-alert-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.desktop-alert-btn.granted {
+  background: #111827;
+  color: #facc15;
+  border-color: #111827;
+}
+
+.desktop-alert-btn.granted:hover {
+  background: #1f2937;
+}
+
+.desktop-alert-btn.denied {
+  opacity: 0.55;
+}
+
+@media (max-width: 560px) {
+  .alert-pill-label {
+    display: none;
+  }
+
+  .alert-pill-btn {
+    padding: 0 9px;
+  }
+}

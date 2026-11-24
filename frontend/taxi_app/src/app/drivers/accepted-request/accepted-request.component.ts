@@ -12,6 +12,7 @@ import { TaxiService } from '../../appServices/taxi.service';
 import { ShiftService } from '../../appServices/shift.service';
 import { TripService } from '../../appServices/trip.service';
 import { SocketService } from '../../appServices/socket.service';
+import { AlertNotificationService } from '../../appServices/alert-notification.service';
 import { RideRequest } from '../../client/ride-request.interface';
 import { Price } from '../../manage-prices/price.interface';
 import { Shift } from '../../shifts/shift.interface';
@@ -34,6 +35,7 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
   isEndingTrip: boolean = false;
   duracaoViagem: number | null = null;
   nomeCliente: string ='';
+  nomeMotorista: string = '';
   startLocal: string = '';
   endLocal: string = '';
   requestedDestination: string = '';
@@ -74,7 +76,8 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
     private geolocationService: GeolocationService,
     private clienteService: ClientService,
     private snackBar: MatSnackBar,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private alertService: AlertNotificationService
   ) {}
 
   ngOnInit(): void {
@@ -98,6 +101,24 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
       this.socketService.onEvent<RideRequest>('pedido:clientRejected').subscribe((ev) => {
         if (ev && String(ev._id) === String(this.pedidoId)) {
           this.handleRideCancelledByClient();
+        }
+      })
+    );
+
+    this.socketSub.add(
+      this.socketService.onEvent<RideRequest>('pedido:updated').subscribe((ev) => {
+        if (ev && String(ev._id) === String(this.pedidoId) && this.pedido) {
+          const prevRating = this.pedido.rating;
+          if (ev.rating !== undefined) this.pedido.rating = ev.rating;
+          if (ev.ratingComment !== undefined) this.pedido.ratingComment = ev.ratingComment;
+          if (!prevRating && ev.rating && ev.rating >= 1) {
+            this.alertService.notify({
+              title: 'New Trip Rating',
+              body: `The passenger rated this trip ${ev.rating}/5 ★.`,
+              sound: 'trip-update',
+              tag: `driver-rated-${this.pedidoId}`
+            });
+          }
         }
       })
     );
@@ -148,6 +169,16 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
           this.nomeCliente = (pedido.client as any).name || '';
         } else {
           this.nomeCliente = '';
+        }
+        if (pedido.driverId) {
+          this.motoristaService.getDriverById(pedido.driverId).subscribe({
+            next: (drv) => {
+              if (drv?.name) {
+                this.nomeMotorista = drv.name;
+              }
+            },
+            error: () => {}
+          });
         }
 
         if (pedido.numberOfPeople) {
@@ -383,8 +414,17 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
           startTimeISO,
           startTimeISO
         ).subscribe({
-          next: (turnos) => {
+          next: async (turnos) => {
             const turno = turnos[0];
+            try {
+              const latest = await firstValueFrom(this.pedidoViagemService.getRideRequestById(this.pedidoId));
+              if (latest) {
+                this.pedido!.rating = latest.rating ?? this.pedido!.rating;
+                this.pedido!.ratingComment = latest.ratingComment ?? this.pedido!.ratingComment;
+              }
+            } catch {
+              // Use the latest rating already synced via socket if fetch fails
+            }
             const novaViagem = {
               shift: turno?._id,
               numberOfPeople: this.pedido!.numberOfPeople,
@@ -397,7 +437,9 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
               exitAddressLabel: this.isResolvedLabel(this.endLocal) ? this.endLocal : undefined,
               driver: this.pedido!.driverId,
               client: this.pedido!.client,
-              price: this.precoFinal
+              price: this.precoFinal,
+              rating: this.pedido!.rating ?? null,
+              ratingComment: this.pedido!.ratingComment || ''
             };
             console.log('Data sent to createTrip:', novaViagem);
             this.viagemService.createTrip(novaViagem).subscribe({
@@ -469,6 +511,12 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
     if (this.isCompletingTrip || this.endTimeLocal) return;
     this.isCompletingTrip = true;
     this.stopCheckCancelledInterval();
+    this.alertService.notify({
+      title: 'Ride Cancelled',
+      body: 'The client cancelled this ride request.',
+      sound: 'warning',
+      tag: `driver-cancelled-${this.pedidoId}`
+    });
     if (this.pedidoId) {
       localStorage.removeItem(`numPessoasConfirmado_${this.pedidoId}`);
     }

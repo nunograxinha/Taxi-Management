@@ -52,6 +52,9 @@ import { TotalHoursComponent } from './reports/total-hours/total-hours.component
 import { TotalKmsComponent } from './reports/total-kms/total-kms.component';
 import { TotalRevenueComponent } from './reports/total-revenue/total-revenue.component';
 import { ReportBreakdownComponent } from './reports/report-breakdown/report-breakdown.component';
+import { TripChatComponent } from './shared/trip-chat/trip-chat.component';
+import { AlertToggleComponent } from './shared/alert-toggle/alert-toggle.component';
+import { DriverReviewsModalComponent } from './shared/driver-reviews-modal/driver-reviews-modal.component';
 
 @NgModule({
   declarations: [
@@ -89,6 +92,9 @@ import { ReportBreakdownComponent } from './reports/report-breakdown/report-brea
     TotalKmsComponent,
     TotalRevenueComponent,
     ReportBreakdownComponent,
+    TripChatComponent,
+    AlertToggleComponent,
+    DriverReviewsModalComponent,
   ],
   imports: [
     BrowserModule,

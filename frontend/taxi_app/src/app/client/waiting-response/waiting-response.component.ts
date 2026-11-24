@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { RideRequestService } from '../../appServices/ride-request.service';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import { SocketService } from '../../appServices/socket.service';
+import { AlertNotificationService } from '../../appServices/alert-notification.service';
 import { RideRequest } from '../../client/ride-request.interface';
 import { Driver } from '../../drivers/driver.interface';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -25,6 +26,7 @@ export class WaitingResponseComponent implements OnInit, OnDestroy {
   isCancelling: boolean = false;
   private subscriptions = new Subscription();
   private fallbackPollTimer: any = null;
+  private hasAlertedDriverFound = false;
   private readonly onVisibilityOrOnline = () => {
     if (!document.hidden && this.pedidoId) {
       this.socketService.joinPedido(this.pedidoId);
@@ -38,7 +40,8 @@ export class WaitingResponseComponent implements OnInit, OnDestroy {
     private geolocationService: GeolocationService,
     private socketService: SocketService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private alertService: AlertNotificationService
   ) { }
 
   ngOnInit(): void {
@@ -56,6 +59,7 @@ export class WaitingResponseComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.socketService.onEvent<RideRequest>('pedido:driverAccepted').subscribe((pedidoAtualizado) => {
         if (pedidoAtualizado && pedidoAtualizado.driverId) {
+          this.alertDriverFound();
           this.router.navigate(['/client/confirm-trip', this.pedidoId]);
         }
       })
@@ -68,6 +72,12 @@ export class WaitingResponseComponent implements OnInit, OnDestroy {
           const msg = ev.reason === 'expired'
             ? 'Your ride request expired after 5 minutes without a driver.'
             : 'Your ride request was cancelled.';
+          this.alertService.notify({
+            title: ev.reason === 'expired' ? 'Ride Request Expired' : 'Ride Request Cancelled',
+            body: msg,
+            sound: 'warning',
+            tag: `client-deleted-${this.pedidoId}`
+          });
           this.snackBar.open(msg, 'Close', { duration: 4500 });
           this.router.navigate(['/client']);
         }
@@ -110,6 +120,7 @@ export class WaitingResponseComponent implements OnInit, OnDestroy {
         this.pedido = pedido ? pedido : null;
         this.loading = false;
         if (pedido && pedido.driverId) {
+          this.alertDriverFound();
           this.router.navigate(['/client/confirm-trip', this.pedidoId]);
           return;
         }
@@ -153,6 +164,17 @@ export class WaitingResponseComponent implements OnInit, OnDestroy {
       console.error('Error cancelling ride request:', error);
       this.erro = 'Error cancelling ride request.';
     }
+  }
+
+  private alertDriverFound(): void {
+    if (this.hasAlertedDriverFound) return;
+    this.hasAlertedDriverFound = true;
+    this.alertService.notify({
+      title: 'Driver Found!',
+      body: 'A driver accepted your ride request. Please review and confirm.',
+      sound: 'accepted',
+      tag: `client-driver-found-${this.pedidoId}`
+    });
   }
 
   private async resolveAddress(coords?: string): Promise<string> {

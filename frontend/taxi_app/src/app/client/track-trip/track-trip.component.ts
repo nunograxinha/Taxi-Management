@@ -3,11 +3,14 @@ import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { RideRequestService } from '../../appServices/ride-request.service';
 import { SocketService } from '../../appServices/socket.service';
+import { AlertNotificationService } from '../../appServices/alert-notification.service';
 import { RideRequest } from '../ride-request.interface';
 import { ActivatedRoute } from '@angular/router';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import { DriverService } from '../../appServices/driver.service';
 import { TaxiService } from '../../appServices/taxi.service';
+import { TripService } from '../../appServices/trip.service';
+import { Trip } from '../../trips/trip.interface';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { getTaxiCarImage } from '../../appServices/taxi-icon.util';
@@ -25,6 +28,14 @@ export class TrackTripComponent implements OnInit, OnDestroy {
   partidaNome: string = '';
   destinoNome: string = '';
   motoristaNome: string = '';
+  motoristaRatingAverage: number = 0;
+  motoristaRatingCount: number = 0;
+  selectedRating: number = 0;
+  hoverRating: number = 0;
+  ratingComment: string = '';
+  isSubmittingRating: boolean = false;
+  ratingSubmitted: boolean = false;
+  readonly starValues: number[] = [1, 2, 3, 4, 5];
   taxiMatricula: string = '';
   taxiMarca: string = '';
   taxiModelo: string = '';
@@ -61,6 +72,7 @@ export class TrackTripComponent implements OnInit, OnDestroy {
   hasLiveTaxiLocation: boolean = false;
   showCancelModal: boolean = false;
   isCancelling: boolean = false;
+  private hasInitializedStatus: boolean = false;
 
 
   constructor(
@@ -70,8 +82,10 @@ export class TrackTripComponent implements OnInit, OnDestroy {
     private geolocationService: GeolocationService,
     private motoristaService: DriverService,
     private taxiService: TaxiService,
+    private tripService: TripService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private alertService: AlertNotificationService
   ){}
 
   ngOnInit() {
@@ -131,7 +145,14 @@ export class TrackTripComponent implements OnInit, OnDestroy {
     if (res.driverId && !this.motoristaNome) {
       this.motoristaService.getDriverById(res.driverId).subscribe(motorista => {
         this.motoristaNome = motorista.name;
+        this.motoristaRatingAverage = motorista.ratingAverage || 0;
+        this.motoristaRatingCount = motorista.ratingCount || 0;
       });
+    }
+    if (res.rating && res.rating >= 1 && res.rating <= 5 && !this.ratingSubmitted) {
+      this.selectedRating = res.rating;
+      this.ratingComment = res.ratingComment || '';
+      this.ratingSubmitted = true;
     }
     if (res.taxi && !this.taxiMatricula) {
       this.taxiService.getTaxiById(res.taxi).subscribe(taxi => {
@@ -159,6 +180,25 @@ export class TrackTripComponent implements OnInit, OnDestroy {
       this.stopPolling();
       this.destroyTrackMap();
     }
+
+    if (this.hasInitializedStatus) {
+      if (prevStatus === 'aguardando' && this.status === 'emCurso') {
+        this.alertService.notify({
+          title: 'Trip Started',
+          body: 'Your driver has started the trip. Have a safe ride!',
+          sound: 'trip-update',
+          tag: `client-trip-started-${this.pedidoId}`
+        });
+      } else if (prevStatus !== 'finalizada' && this.status === 'finalizada') {
+        this.alertService.notify({
+          title: 'Trip Completed',
+          body: `You have arrived! Final fare: €${this.preco.toFixed(2)}`,
+          sound: 'trip-update',
+          tag: `client-trip-finished-${this.pedidoId}`
+        });
+      }
+    }
+    this.hasInitializedStatus = true;
 
     if (this.status !== 'finalizada' && res.entryAddress && res.exitAddress) {
       const entryChanged = res.entryAddress !== this.lastProcessedEntryAddress;
@@ -633,12 +673,107 @@ export class TrackTripComponent implements OnInit, OnDestroy {
     return Math.floor((fim - inicio) / 60000); // minutes
   }
 
+  setRating(stars: number): void {
+    if (this.ratingSubmitted || this.isSubmittingRating) return;
+    this.selectedRating = stars;
+  }
+
+  submitRating(): void {
+    if (this.selectedRating < 1 || this.isSubmittingRating || this.ratingSubmitted || !this.pedidoId) {
+      return;
+    }
+
+    this.isSubmittingRating = true;
+    const comment = this.ratingComment.trim().slice(0, 500);
+
+    this.pedidoViagemService.updateRideRequest(this.pedidoId, {
+      rating: this.selectedRating,
+      ratingComment: comment
+    }).subscribe({
+      next: () => {
+        this.ratingSubmitted = true;
+        this.isSubmittingRating = false;
+        this.snackBar.open('Thank you for rating your driver!', 'Close', { duration: 3500 });
+      },
+      error: () => {
+        // RideRequest may have been converted into a Trip already; fall back to Trip rating
+        this.rateCompletedTripFallback(comment);
+      }
+    });
+  }
+
+  private rateCompletedTripFallback(comment: string): void {
+    const clientId = typeof this.pedido?.client === 'object' && this.pedido?.client !== null
+      ? (this.pedido.client as any)._id
+      : this.pedido?.client;
+    const driverId = this.pedido?.driverId;
+    const targetStartMs = this.pedido?.startTime ? new Date(this.pedido.startTime).getTime() : null;
+
+    this.tripService.getAllTrips().subscribe({
+      next: (trips: Trip[]) => {
+        const candidates = (trips || []).filter((t) => {
+          const tClientId = typeof t.client === 'object' && t.client !== null ? (t.client as any)._id : t.client;
+          const tDriverId = typeof t.driver === 'object' && t.driver !== null ? (t.driver as any)._id : t.driver;
+          return (!clientId || String(tClientId) === String(clientId)) &&
+            (!driverId || String(tDriverId) === String(driverId));
+        });
+
+        let matchedTrip = candidates[0];
+        if (candidates.length > 1 && targetStartMs !== null) {
+          matchedTrip = [...candidates].sort(
+            (a, b) =>
+              Math.abs(new Date(a.entryTime).getTime() - targetStartMs) -
+              Math.abs(new Date(b.entryTime).getTime() - targetStartMs)
+          )[0];
+        }
+
+        if (!matchedTrip?._id) {
+          this.isSubmittingRating = false;
+          this.snackBar.open('Could not submit rating. You can rate this trip from Trip History.', 'Close', {
+            duration: 4000
+          });
+          return;
+        }
+
+        this.tripService.rateTrip(matchedTrip._id, this.selectedRating, comment).subscribe({
+          next: (res) => {
+            this.ratingSubmitted = true;
+            this.isSubmittingRating = false;
+            if (typeof res?.ratingAverage === 'number') {
+              this.motoristaRatingAverage = res.ratingAverage;
+              this.motoristaRatingCount = res.ratingCount;
+            }
+            this.snackBar.open('Thank you for rating your driver!', 'Close', { duration: 3500 });
+          },
+          error: (err) => {
+            this.isSubmittingRating = false;
+            this.snackBar.open(
+              err?.error?.error || 'Could not submit rating. Please try again.',
+              'Close',
+              { duration: 3500 }
+            );
+          }
+        });
+      },
+      error: () => {
+        this.isSubmittingRating = false;
+        this.snackBar.open('Could not submit rating. Please try again.', 'Close', { duration: 3500 });
+      }
+    });
+  }
+
   voltarClientePage() {
     this.router.navigate(['/client']);
   }
 
   get taxiCarImage(): string {
     return getTaxiCarImage(this.taxiMarca, this.taxiModelo);
+  }
+
+  get clientSenderName(): string {
+    return this.pedido?.client && typeof this.pedido.client === 'object'
+      ? (this.pedido.client as any).name || 'Client'
+      : 'Client';
   }
 
   shareTrip() {

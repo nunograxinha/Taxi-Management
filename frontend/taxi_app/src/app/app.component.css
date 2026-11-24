@@ -29,9 +29,15 @@
   overflow-x: hidden;
 }
 
+.toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
 .home-btn {
   cursor: pointer;
-  margin-left: auto;
   color: #212121;
 }
 

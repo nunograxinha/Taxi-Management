@@ -9,9 +9,122 @@
 <!-- Ride Request Form -->
 <form *ngIf="clienteData" [formGroup]="form" (ngSubmit)="submeterPedido()">
     <h3>Ride Request Details</h3>
-    
-    <!-- Client Pickup Location -->
-    <div>
+
+    <ng-template #saveFavoriteForm let-cand="cand">
+        <div class="save-favorite-box">
+            <div class="save-fav-target-preview">
+                Saving {{ cand.target }}: <strong>{{ cand.address }}</strong>
+            </div>
+            <div class="preset-chips-row">
+                <button
+                    type="button"
+                    class="preset-chip-btn"
+                    [class.active]="saveFavoriteLabel === 'Home'"
+                    (click)="selectFavoritePreset('Home')"
+                >
+                    <mat-icon>home</mat-icon>
+                    <span>Home</span>
+                </button>
+                <button
+                    type="button"
+                    class="preset-chip-btn"
+                    [class.active]="saveFavoriteLabel === 'Work'"
+                    (click)="selectFavoritePreset('Work')"
+                >
+                    <mat-icon>work</mat-icon>
+                    <span>Work</span>
+                </button>
+            </div>
+            <div class="save-fav-input-row">
+                <input
+                    type="text"
+                    class="fav-label-input"
+                    name="saveFavoriteLabel"
+                    [(ngModel)]="saveFavoriteLabel"
+                    [ngModelOptions]="{ standalone: true }"
+                    maxlength="40"
+                    placeholder="Label (e.g. Home, Work, Gym)..."
+                />
+                <button
+                    type="button"
+                    class="fav-save-btn"
+                    [disabled]="!saveFavoriteLabel.trim() || isSavingFavorite"
+                    (click)="confirmSaveFavorite()"
+                >
+                    {{ isSavingFavorite ? 'Saving...' : 'Save' }}
+                </button>
+                <button
+                    type="button"
+                    class="fav-cancel-btn"
+                    [disabled]="isSavingFavorite"
+                    (click)="cancelSaveFavorite()"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #quickStrip let-target="target">
+        <div class="quick-strip" *ngIf="favoritePlaces.length > 0">
+            <div class="quick-strip-group">
+                <span class="quick-strip-label">Favorites</span>
+                <div class="quick-chips-wrap">
+                    <button
+                        *ngFor="let fav of favoritePlaces"
+                        type="button"
+                        class="quick-chip-btn favorite-chip"
+                        [title]="fav.address"
+                        (click)="applyQuickPlace(fav, target)"
+                    >
+                        <mat-icon>{{ fav.icon }}</mat-icon>
+                        <span class="chip-label">{{ fav.label }}</span>
+                        <span
+                            class="chip-remove-action"
+                            role="button"
+                            tabindex="0"
+                            title="Remove favorite"
+                            (click)="removeFavorite(fav, $event)"
+                            (keydown.enter)="removeFavorite(fav, $event)"
+                        >
+                            <mat-icon>close</mat-icon>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
+    <!-- Card 1: Pickup Location -->
+    <div class="location-section-card pickup-card">
+        <div class="location-card-header">
+            <div class="location-card-title">
+                <div class="location-icon-badge pickup">
+                    <mat-icon>my_location</mat-icon>
+                </div>
+                <div>
+                    <h4>Pickup Location</h4>
+                    <span class="location-card-sub">Use GPS, search a street, pick a quick place, or tap the map</span>
+                </div>
+            </div>
+            <button
+                type="button"
+                class="save-fav-trigger"
+                [disabled]="!getSaveCandidate('pickup')"
+                (click)="openSaveFavoriteBox('pickup')"
+                title="Save current pickup address as a favorite place"
+            >
+                <mat-icon>bookmark_add</mat-icon>
+                <span>Save favorite</span>
+            </button>
+        </div>
+
+        <ng-container *ngIf="saveFavoriteTarget === 'pickup' && getSaveCandidate('pickup') as cand">
+            <ng-container *ngTemplateOutlet="saveFavoriteForm; context: { cand: cand }"></ng-container>
+        </ng-container>
+
+        <ng-container *ngTemplateOutlet="quickStrip; context: { target: 'pickup' }"></ng-container>
+
         <div class="checkbox-container">
             <input 
                 type="checkbox" 
@@ -31,18 +144,34 @@
                 readonly
                 autocomplete="off"
             />
-            <div id="map"></div>
         </div>
 
         <div *ngIf="!useGeolocation" class="street-search-wrapper">
-            <label for="pickupStreetInput">Pickup Street Name:</label>
+            <label for="pickupStreetInput">Pickup Street Name (or tap the map):</label>
             <input
                 id="pickupStreetInput"
                 formControlName="pickupStreetInput"
                 placeholder="Type street or locality name (min. 3 letters)..."
+                (focus)="onPickupInputFocus()"
+                (blur)="onPickupInputBlur()"
                 (input)="onStreetInput($event)"
                 autocomplete="off"
             />
+            <div
+                class="suggestions-dropdown"
+                *ngIf="showPickupRecentsDropdown && streetSuggestions.length === 0 && getVisibleRecents('pickup').length > 0"
+            >
+                <div class="recents-dropdown-header">Recent Places</div>
+                <button
+                    type="button"
+                    class="suggestion-item recent-suggestion"
+                    *ngFor="let rec of getVisibleRecents('pickup')"
+                    (mousedown)="selectRecentPlace(rec, 'pickup', $event)"
+                >
+                    <mat-icon>history</mat-icon>
+                    <span>{{ rec.address }}</span>
+                </button>
+            </div>
             <div class="suggestions-dropdown" *ngIf="streetSuggestions.length > 0">
                 <button
                     type="button"
@@ -65,72 +194,112 @@
                 </div>
             </div>
         </div>
+
+        <div id="map"></div>
     </div>
 
-
-    <!-- Destination Location -->
-    <div class="street-search-wrapper">
-        <label for="exitStreetInput">Destination Street (or tap the map):</label>
-        <input
-            id="exitStreetInput"
-            formControlName="exitStreetInput"
-            placeholder="Type street or locality name (min. 3 letters)..."
-            (input)="onExitStreetInput($event)"
-            autocomplete="off"
-        />
-        <div class="suggestions-dropdown" *ngIf="exitStreetSuggestions.length > 0">
+    <!-- Card 2: Destination Location -->
+    <div class="location-section-card destination-card">
+        <div class="location-card-header">
+            <div class="location-card-title">
+                <div class="location-icon-badge destination">
+                    <mat-icon>place</mat-icon>
+                </div>
+                <div>
+                    <h4>Destination Location</h4>
+                    <span class="location-card-sub">Search a street, pick a quick place, or tap the map</span>
+                </div>
+            </div>
             <button
                 type="button"
-                class="suggestion-item"
-                *ngFor="let item of exitStreetSuggestions"
-                (click)="selectExitStreetSuggestion(item)"
+                class="save-fav-trigger"
+                [disabled]="!getSaveCandidate('destination')"
+                (click)="openSaveFavoriteBox('destination')"
+                title="Save current destination address as a favorite place"
             >
-                <strong>{{ buildStreetLabel(item) }}</strong>
-                <span>{{ item.nome_localidade }} · {{ getItemPostalCode(item) }}</span>
+                <mat-icon>bookmark_add</mat-icon>
+                <span>Save favorite</span>
             </button>
         </div>
-        <label for="exitAddress">Destination Address: </label>
-        <input
-            type="text"
-            id="exitAddress"
-            [value]="exitAddressDisplay || form.get('exitAddress')?.value || ''"
-            placeholder="Select on map or search above"
-            readonly
-            autocomplete="off"
-        />
-        <div id="mapExit"></div>
-    </div>
-  
-    <!-- Comfort Level -->
-    <div>
-      <label for="confort">Comfort Level:</label>
-      <select id="confort" formControlName="confort">
-        <option value="" disabled hidden>Select Comfort Level</option>
-        <option *ngFor="let option of confortOptions" [value]="option">{{ option }}</option>
-      </select>
-      <div *ngIf="form.get('confort')?.invalid && form.get('confort')?.touched">
-        <small class="error">Comfort Level is required.</small>
-      </div>
+
+        <ng-container *ngIf="saveFavoriteTarget === 'destination' && getSaveCandidate('destination') as cand">
+            <ng-container *ngTemplateOutlet="saveFavoriteForm; context: { cand: cand }"></ng-container>
+        </ng-container>
+
+        <ng-container *ngTemplateOutlet="quickStrip; context: { target: 'destination' }"></ng-container>
+
+        <div class="street-search-wrapper">
+            <label for="exitStreetInput">Destination Address (search or tap the map):</label>
+            <input
+                id="exitStreetInput"
+                formControlName="exitStreetInput"
+                placeholder="Type street or locality name (min. 3 letters)..."
+                (focus)="onExitInputFocus()"
+                (blur)="onExitInputBlur()"
+                (input)="onExitStreetInput($event)"
+                autocomplete="off"
+            />
+            <div
+                class="suggestions-dropdown"
+                *ngIf="showExitRecentsDropdown && exitStreetSuggestions.length === 0 && getVisibleRecents('destination').length > 0"
+            >
+                <div class="recents-dropdown-header">Recent Places</div>
+                <button
+                    type="button"
+                    class="suggestion-item recent-suggestion"
+                    *ngFor="let rec of getVisibleRecents('destination')"
+                    (mousedown)="selectRecentPlace(rec, 'destination', $event)"
+                >
+                    <mat-icon>history</mat-icon>
+                    <span>{{ rec.address }}</span>
+                </button>
+            </div>
+            <div class="suggestions-dropdown" *ngIf="exitStreetSuggestions.length > 0">
+                <button
+                    type="button"
+                    class="suggestion-item"
+                    *ngFor="let item of exitStreetSuggestions"
+                    (click)="selectExitStreetSuggestion(item)"
+                >
+                    <strong>{{ buildStreetLabel(item) }}</strong>
+                    <span>{{ item.nome_localidade }} · {{ getItemPostalCode(item) }}</span>
+                </button>
+            </div>
+            <div id="mapExit"></div>
+        </div>
     </div>
 
-    <!-- Number of Passengers -->
-    <div>
-        <label for="numberOfPeople">Number of Passengers for the Trip</label>
-        <input 
-            id="numberOfPeople" 
-            formControlName="numberOfPeople" 
-            type="number"
-            min="1"
-        />
-        <div *ngIf="form.get('numberOfPeople')?.invalid && form.get('numberOfPeople')?.touched">
-            <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['required']">
-                Number of passengers is required.
-            </small>
-            <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['min']">
-                There must be at least 1 passenger.
-            </small>
+    <!-- Ride Options -->
+    <div class="ride-options-grid">
+        <div>
+          <label for="confort">Comfort Level:</label>
+          <select id="confort" formControlName="confort">
+            <option value="" disabled hidden>Select Comfort Level</option>
+            <option *ngFor="let option of confortOptions" [value]="option">{{ option }}</option>
+          </select>
+          <div *ngIf="form.get('confort')?.invalid && form.get('confort')?.touched">
+            <small class="error">Comfort Level is required.</small>
+          </div>
         </div>
-    </div> 
+
+        <div>
+            <label for="numberOfPeople">Number of Passengers</label>
+            <input 
+                id="numberOfPeople" 
+                formControlName="numberOfPeople" 
+                type="number"
+                min="1"
+            />
+            <div *ngIf="form.get('numberOfPeople')?.invalid && form.get('numberOfPeople')?.touched">
+                <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['required']">
+                    Number of passengers is required.
+                </small>
+                <small class="error" *ngIf="form.get('numberOfPeople')?.errors?.['min']">
+                    There must be at least 1 passenger.
+                </small>
+            </div>
+        </div> 
+    </div>
 
     <div class="estimate-preview-card" *ngIf="estimatedDistanceKm !== null && estimatedDurationMin !== null">
         <div class="estimate-header">

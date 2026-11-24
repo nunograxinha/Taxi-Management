@@ -66,4 +66,15 @@ export class TripService {
       catchError(this.handleError<Trip>('rejectTrip'))
     );
   }
+
+  rateTrip(
+    tripId: string,
+    rating: number,
+    ratingComment: string = ''
+  ): Observable<{ trip: Trip; ratingAverage: number; ratingCount: number }> {
+    return this.http.patch<{ trip: Trip; ratingAverage: number; ratingCount: number }>(
+      `${this.url}/${tripId}/rate`,
+      { rating, ratingComment }
+    );
+  }
 }

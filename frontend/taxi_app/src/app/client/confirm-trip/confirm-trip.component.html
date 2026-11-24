@@ -48,6 +48,15 @@
               <span class="kv-value">{{ motorista.name }}</span>
             </div>
             <div class="kv-row">
+              <span class="kv-label">Rating</span>
+              <span class="rating-pill" *ngIf="(motorista.ratingCount || 0) > 0; else newDriverBadge">
+                ★ {{ motorista.ratingAverage | number:'1.1-1' }} ({{ motorista.ratingCount }})
+              </span>
+              <ng-template #newDriverBadge>
+                <span class="new-driver-label">New driver</span>
+              </ng-template>
+            </div>
+            <div class="kv-row">
               <span class="kv-label">Distance to you</span>
               <span class="kv-value">{{ pedido.distanceKmToDriver | number:'1.1-1' }} km</span>
             </div>

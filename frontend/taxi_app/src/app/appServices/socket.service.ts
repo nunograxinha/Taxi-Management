@@ -2,6 +2,23 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 
+export interface ChatMessage {
+  id: string;
+  pedidoId: string;
+  senderRole: 'client' | 'driver';
+  senderName: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface FleetDriverLocation {
+  pedidoId: string;
+  lat: number;
+  lon: number;
+  heading?: number;
+  updatedAt?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -39,6 +56,27 @@ export class SocketService {
     if (payload?.pedidoId) {
       this.socket.emit('driverLocation', payload);
     }
+  }
+
+  sendChatMessage(payload: {
+    pedidoId: string;
+    senderRole: 'client' | 'driver';
+    senderName: string;
+    text: string;
+  }): void {
+    if (payload?.pedidoId && payload?.text?.trim()) {
+      this.socket.emit('chat:send', payload);
+    }
+  }
+
+  requestChatHistory(pedidoId: string): void {
+    if (pedidoId) {
+      this.socket.emit('chat:getHistory', pedidoId);
+    }
+  }
+
+  requestFleetLocations(): void {
+    this.socket.emit('fleet:getLocations');
   }
 
   onEvent<T>(eventName: string): Observable<T> {

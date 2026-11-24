@@ -13,6 +13,10 @@
         <mat-icon>notifications</mat-icon>
         <span>Pending Requests</span>
       </a>
+      <a mat-list-item (click)="sidenav.close(); openReviewsModal()">
+        <mat-icon>star_rate</mat-icon>
+        <span>My Reviews</span>
+      </a>
       <a mat-list-item (click)="sidenav.close(); openPasswordModal()">
         <mat-icon>lock</mat-icon>
         <span>Change Password</span>
@@ -28,9 +32,22 @@
 
       <span class="toolbar-title">Hello, {{ motorista?.name }}</span>
 
-      <button mat-icon-button class="logout-btn" routerLink="/driver" title="Sign Out">
-        <mat-icon>logout</mat-icon>
+      <button
+        type="button"
+        class="driver-rating-pill"
+        *ngIf="motorista && (motorista.ratingCount || 0) > 0"
+        (click)="openReviewsModal()"
+        title="View my reviews & passenger comments"
+      >
+        ★ {{ motorista.ratingAverage | number:'1.1-1' }} ({{ motorista.ratingCount }})
       </button>
+
+      <div class="toolbar-actions">
+        <app-alert-toggle></app-alert-toggle>
+        <button mat-icon-button class="logout-btn" routerLink="/driver" title="Sign Out">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
     </mat-toolbar>
 
     <div class="main-content" *ngIf="!hasChildRoute">
@@ -102,4 +119,14 @@
     </form>
   </div>
 </div>
+
+<app-driver-reviews-modal
+  *ngIf="showReviewsModal && motorista?._id"
+  [driverId]="motorista!._id!"
+  [driverName]="motorista!.name"
+  title="My Reviews"
+  [ratingAverage]="motorista!.ratingAverage || 0"
+  [ratingCount]="motorista!.ratingCount || 0"
+  (close)="closeReviewsModal()"
+></app-driver-reviews-modal>
   

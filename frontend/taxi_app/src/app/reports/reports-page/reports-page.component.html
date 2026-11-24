@@ -76,6 +76,206 @@
         <div class="card-number">€{{ calcularTotalEuros().toFixed(2) }}</div>
       </div>
     </div>
+
+    <div class="analytics-charts-section">
+      <div class="charts-top-grid">
+        <!-- Chart 1: Hourly / Daily Trend -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-header-top">
+              <h3>{{ isSingleDay() ? 'Hourly Activity' : 'Daily Activity' }}</h3>
+              <div class="chart-toggle-group">
+                <button
+                  type="button"
+                  class="chart-toggle-btn"
+                  [class.active]="trendMetric === 'revenue'"
+                  (click)="setTrendMetric('revenue')"
+                >
+                  Revenue
+                </button>
+                <button
+                  type="button"
+                  class="chart-toggle-btn"
+                  [class.active]="trendMetric === 'trips'"
+                  (click)="setTrendMetric('trips')"
+                >
+                  Trips
+                </button>
+                <button
+                  type="button"
+                  class="chart-toggle-btn"
+                  [class.active]="trendMetric === 'kms'"
+                  (click)="setTrendMetric('kms')"
+                >
+                  Distance
+                </button>
+              </div>
+            </div>
+            <p class="chart-sub" *ngIf="!hoveredBucket">
+              Hover any bar to inspect exact period details
+            </p>
+            <p class="chart-sub active-readout" *ngIf="hoveredBucket">
+              <strong>{{ hoveredBucket.label }}:</strong>
+              €{{ hoveredBucket.revenue.toFixed(2) }} ·
+              {{ hoveredBucket.trips }} {{ hoveredBucket.trips === 1 ? 'trip' : 'trips' }} ·
+              {{ hoveredBucket.kms.toFixed(1) }} km
+            </p>
+          </div>
+
+          <div class="bar-chart-scroll">
+            <div class="bar-chart-area">
+              <div
+                class="bar-col"
+                *ngFor="let bucket of trendBuckets"
+                (mouseenter)="setHoveredBucket(bucket)"
+                (mouseleave)="setHoveredBucket(null)"
+              >
+                <span class="bar-top-val" *ngIf="getBucketValue(bucket) > 0">
+                  {{ trendMetric === 'revenue' ? '€' + bucket.revenue.toFixed(0) : (trendMetric === 'kms' ? bucket.kms.toFixed(1) : bucket.trips) }}
+                </span>
+                <div class="bar-track">
+                  <div
+                    class="bar-fill"
+                    [class.zero]="getBucketValue(bucket) === 0"
+                    [style.height.%]="getBucketHeightPct(bucket)"
+                    [title]="bucket.label + ': ' + formatBucketValue(bucket)"
+                  ></div>
+                </div>
+                <span class="bar-label">{{ bucket.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart 2: Basic vs Luxury Breakdown -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-header-top">
+              <h3>Basic vs Luxury</h3>
+              <div class="chart-toggle-group">
+                <button
+                  type="button"
+                  class="chart-toggle-btn"
+                  [class.active]="comfortMetric === 'revenue'"
+                  (click)="setComfortMetric('revenue')"
+                >
+                  Revenue
+                </button>
+                <button
+                  type="button"
+                  class="chart-toggle-btn"
+                  [class.active]="comfortMetric === 'trips'"
+                  (click)="setComfortMetric('trips')"
+                >
+                  Trips
+                </button>
+              </div>
+            </div>
+            <p class="chart-sub">Fleet tier share across selected period</p>
+          </div>
+
+          <div class="donut-layout">
+            <div class="donut-svg-wrap">
+              <svg viewBox="0 0 140 140" class="donut-svg">
+                <circle
+                  cx="70"
+                  cy="70"
+                  [attr.r]="donutRadius"
+                  fill="none"
+                  stroke="#e2e8f0"
+                  stroke-width="18"
+                />
+                <circle
+                  *ngIf="basicStats.pct > 0"
+                  cx="70"
+                  cy="70"
+                  [attr.r]="donutRadius"
+                  fill="none"
+                  stroke="#eab308"
+                  stroke-width="18"
+                  [attr.stroke-dasharray]="basicDashLength + ' ' + donutCircumference"
+                  stroke-dashoffset="0"
+                  transform="rotate(-90 70 70)"
+                  class="donut-segment"
+                />
+                <circle
+                  *ngIf="luxuryStats.pct > 0"
+                  cx="70"
+                  cy="70"
+                  [attr.r]="donutRadius"
+                  fill="none"
+                  stroke="#1e293b"
+                  stroke-width="18"
+                  [attr.stroke-dasharray]="luxuryDashLength + ' ' + donutCircumference"
+                  [attr.stroke-dashoffset]="-basicDashLength"
+                  transform="rotate(-90 70 70)"
+                  class="donut-segment"
+                />
+              </svg>
+              <div class="donut-center">
+                <span class="donut-center-val">{{ comfortCenterTotal }}</span>
+                <span class="donut-center-sub">{{ comfortCenterSub }}</span>
+              </div>
+            </div>
+
+            <div class="donut-legend">
+              <div class="legend-row">
+                <div class="legend-title">
+                  <span class="legend-dot basic"></span>
+                  <span>Basic</span>
+                </div>
+                <div class="legend-metrics">
+                  <strong>{{ basicStats.pct }}%</strong>
+                  <span class="legend-sub">{{ basicStats.trips }} trips · €{{ basicStats.revenue.toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <div class="legend-row">
+                <div class="legend-title">
+                  <span class="legend-dot luxury"></span>
+                  <span>Luxury</span>
+                </div>
+                <div class="legend-metrics">
+                  <strong>{{ luxuryStats.pct }}%</strong>
+                  <span class="legend-sub">{{ luxuryStats.trips }} trips · €{{ luxuryStats.revenue.toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 3: Top Drivers Ranking -->
+      <div class="chart-card" *ngIf="topDrivers.length > 0">
+        <div class="chart-card-header">
+          <div class="chart-header-top">
+            <h3>Top Drivers in Period</h3>
+          </div>
+          <p class="chart-sub">Ranked by completed trip revenue</p>
+        </div>
+
+        <div class="driver-rank-list">
+          <div class="driver-rank-row" *ngFor="let drv of topDrivers; let i = index">
+            <div class="driver-rank-info">
+              <span class="rank-index">#{{ i + 1 }}</span>
+              <span class="driver-rank-name">{{ drv.name }}</span>
+              <span class="driver-rating-pill" *ngIf="drv.ratingCount > 0">
+                ★ {{ drv.ratingAverage | number:'1.1-1' }}
+              </span>
+              <span class="driver-rank-meta">
+                {{ drv.trips }} {{ drv.trips === 1 ? 'trip' : 'trips' }}
+              </span>
+            </div>
+            <div class="driver-rank-bar-wrap">
+              <div class="driver-rank-track">
+                <div class="driver-rank-fill" [style.width.%]="drv.widthPct"></div>
+              </div>
+              <span class="driver-rank-val">€{{ drv.revenue.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <ng-template #semViagens>

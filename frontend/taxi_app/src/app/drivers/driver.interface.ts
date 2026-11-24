@@ -9,6 +9,8 @@ export interface Driver extends Person {
     street: string;
     doorNumber: string;
   };
+  ratingAverage?: number;
+  ratingCount?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

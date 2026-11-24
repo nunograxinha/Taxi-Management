@@ -13,6 +13,7 @@ import { Price } from '../../manage-prices/price.interface';
 import { Shift } from '../../shifts/shift.interface';
 import { ShiftService } from '../../appServices/shift.service';
 import { AuthService } from '../../appServices/auth.service';
+import { AlertNotificationService } from '../../appServices/alert-notification.service';
 
 @Component({
   selector: 'app-pedidos-pendentes',
@@ -38,6 +39,8 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
   totalTimes: Map<string, number> = new Map();
   private subscriptions = new Subscription();
   private activeRequestId: string | null = null;
+  private knownPendingIds = new Set<string>();
+  private hasLoadedInitialRequests = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -50,7 +53,8 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
     private turnoService: ShiftService,
     private socketService: SocketService,
     private snackBar: MatSnackBar,
-    private authService: AuthService
+    private authService: AuthService,
+    private alertService: AlertNotificationService
   ) { }
 
   ngOnInit() {
@@ -100,6 +104,12 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.socketService.onEvent<{ id: string }>('pedido:deleted').subscribe((data) => {
         if (this.activeRequestId && data?.id === this.activeRequestId) {
+          this.alertService.notify({
+            title: 'Ride Request Cancelled',
+            body: 'The client cancelled the ride request.',
+            sound: 'warning',
+            tag: 'driver-cancelled'
+          });
           this.snackBar.open('The client cancelled the request.', 'Close', { duration: 4000 });
           this.socketService.leavePedido(this.activeRequestId);
           this.activeRequestId = null;
@@ -113,6 +123,12 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.socketService.onEvent<RideRequest>('pedido:clientConfirmed').subscribe((confirmedRequest) => {
         if (confirmedRequest && confirmedRequest._id) {
+          this.alertService.notify({
+            title: 'Ride Confirmed!',
+            body: 'The passenger confirmed your taxi. Starting navigation.',
+            sound: 'accepted',
+            tag: `driver-confirmed-${confirmedRequest._id}`
+          });
           this.router.navigate([`/driver/accepted-request/${confirmedRequest._id}`]);
         }
       })
@@ -120,6 +136,12 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(
       this.socketService.onEvent<RideRequest>('pedido:clientRejected').subscribe(() => {
+        this.alertService.notify({
+          title: 'Ride Request Cancelled',
+          body: 'The client rejected or cancelled the ride request.',
+          sound: 'warning',
+          tag: 'driver-cancelled'
+        });
         this.snackBar.open('The client rejected or cancelled the request.', 'Close', { duration: 4000 });
         if (this.activeRequestId) {
           this.socketService.leavePedido(this.activeRequestId);
@@ -296,6 +318,26 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
         const distB = b._id ? (this.clientDistances.get(b._id) || 0) : 0;
         return distA - distB;
       });
+
+      const nextIds = new Set(
+        this.pendingRequests.map((r) => String(r._id || '')).filter(Boolean)
+      );
+      if (this.hasLoadedInitialRequests) {
+        const newCount = Array.from(nextIds).filter((id) => !this.knownPendingIds.has(id)).length;
+        if (newCount > 0) {
+          this.alertService.notify({
+            title: 'New Ride Request',
+            body:
+              newCount === 1
+                ? 'A new ride request is available nearby.'
+                : `${newCount} new ride requests are available.`,
+            sound: 'new-request',
+            tag: 'driver-new-request'
+          });
+        }
+      }
+      this.knownPendingIds = nextIds;
+      this.hasLoadedInitialRequests = true;
 
       this.loading = false;
     } catch (error) {

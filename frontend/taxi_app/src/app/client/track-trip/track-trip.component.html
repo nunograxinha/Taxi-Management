@@ -4,16 +4,19 @@
       <mat-icon>location_on</mat-icon>
       <span class="navbar-title">Track Trip in Real Time</span>
     </div>
-    <button
-      *ngIf="pedido && status !== 'finalizada'"
-      type="button"
-      class="share-btn"
-      (click)="shareTrip()"
-      title="Generate a public read-only tracking link"
-    >
-      <mat-icon>share</mat-icon>
-      <span>Share Trip</span>
-    </button>
+    <div class="navbar-actions">
+      <app-alert-toggle></app-alert-toggle>
+      <button
+        *ngIf="pedido && status !== 'finalizada'"
+        type="button"
+        class="share-btn"
+        (click)="shareTrip()"
+        title="Generate a public read-only tracking link"
+      >
+        <mat-icon>share</mat-icon>
+        <span>Share Trip</span>
+      </button>
+    </div>
   </div>
 
   <div class="page-container">
@@ -25,7 +28,12 @@
           </div>
           <div>
             <span class="tile-label">Driver</span>
-            <span class="tile-value">{{ motoristaNome }}</span>
+            <div class="driver-name-row">
+              <span class="tile-value">{{ motoristaNome }}</span>
+              <span class="driver-rating-badge" *ngIf="motoristaRatingCount > 0">
+                ★ {{ motoristaRatingAverage | number:'1.1-1' }} ({{ motoristaRatingCount }})
+              </span>
+            </div>
           </div>
         </div>
 
@@ -167,6 +175,66 @@
           </div>
         </div>
 
+        <div class="rating-card">
+          <ng-container *ngIf="!ratingSubmitted; else ratingThankYou">
+            <div class="rating-card-header">
+              <div>
+                <h3>Rate Your Driver</h3>
+                <p>Share how your ride with {{ motoristaNome || 'your driver' }} went.</p>
+              </div>
+              <div class="stars-row" (mouseleave)="hoverRating = 0">
+                <button
+                  *ngFor="let star of starValues"
+                  type="button"
+                  class="star-btn"
+                  [class.active]="star <= (hoverRating || selectedRating)"
+                  (mouseenter)="hoverRating = star"
+                  (click)="setRating(star)"
+                  [attr.aria-label]="'Rate ' + star + ' out of 5 stars'"
+                >
+                  <mat-icon>{{ star <= (hoverRating || selectedRating) ? 'star' : 'star_border' }}</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <textarea
+              class="rating-comment-input"
+              [(ngModel)]="ratingComment"
+              maxlength="500"
+              rows="2"
+              placeholder="Add an optional comment about your ride..."
+            ></textarea>
+
+            <div class="rating-submit-row">
+              <span class="rating-hint" *ngIf="selectedRating > 0">
+                Selected: <strong>{{ selectedRating }}/5</strong>
+              </span>
+              <span class="rating-hint muted" *ngIf="selectedRating === 0">
+                Select a star rating (1–5)
+              </span>
+              <button
+                type="button"
+                class="submit-rating-btn"
+                [disabled]="selectedRating < 1 || isSubmittingRating"
+                (click)="submitRating()"
+              >
+                <mat-icon>send</mat-icon>
+                <span>{{ isSubmittingRating ? 'Submitting...' : 'Submit Rating' }}</span>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #ratingThankYou>
+            <div class="rating-confirmed">
+              <div class="rating-confirmed-stars">
+                <span class="confirmed-badge">★ {{ selectedRating }}/5</span>
+                <strong>Thank you for your feedback!</strong>
+              </div>
+              <p class="rating-confirmed-comment" *ngIf="ratingComment">“{{ ratingComment }}”</p>
+            </div>
+          </ng-template>
+        </div>
+
         <div class="card-actions">
           <button type="button" class="done-btn" (click)="voltarClientePage()">
             <mat-icon>check_circle</mat-icon>
@@ -195,3 +263,11 @@
     </div>
   </div>
 </div>
+
+<app-trip-chat
+  *ngIf="pedido && pedidoId && status !== 'finalizada'"
+  [pedidoId]="pedidoId"
+  role="client"
+  [senderName]="clientSenderName"
+  [counterpartName]="motoristaNome"
+></app-trip-chat>

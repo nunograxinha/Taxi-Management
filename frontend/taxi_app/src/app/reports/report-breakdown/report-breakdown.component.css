@@ -464,3 +464,28 @@
   object-fit: contain;
   mix-blend-mode: multiply;
 }
+
+.rating-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #b45309;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rating-muted {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.rating-comment-text {
+  margin-left: 8px;
+  font-style: italic;
+  font-weight: 400;
+  color: #475569;
+}

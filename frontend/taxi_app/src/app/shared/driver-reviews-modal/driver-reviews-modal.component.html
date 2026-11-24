@@ -1,0 +1,117 @@
+<div class="reviews-backdrop" (click)="onClose()">
+  <div class="reviews-modal" (click)="$event.stopPropagation()">
+    <div class="reviews-header">
+      <div class="reviews-title-wrap">
+        <div class="reviews-icon">
+          <mat-icon>star_rate</mat-icon>
+        </div>
+        <div class="reviews-title-text">
+          <h3>{{ title }}</h3>
+          <p *ngIf="driverName">{{ driverName }}</p>
+        </div>
+      </div>
+      <button type="button" class="reviews-close-btn" (click)="onClose()" aria-label="Close reviews">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="reviews-body">
+      <div *ngIf="isLoading" class="reviews-state">Loading reviews...</div>
+      <div *ngIf="!isLoading && loadError" class="reviews-state error">{{ loadError }}</div>
+
+      <ng-container *ngIf="!isLoading && !loadError">
+        <div class="reviews-summary" *ngIf="ratedTrips.length > 0">
+          <div class="summary-score">
+            <span class="score-number">{{ computedAverage | number:'1.1-1' }}</span>
+            <div class="score-stars">
+              <span class="star-wrap" *ngFor="let pct of getStarFillPercentages(computedAverage)">
+                <svg class="star-svg base" viewBox="0 0 20 20" aria-hidden="true">
+                  <polygon points="10,1 12.9,6.8 19.5,7.7 14.7,12.3 15.9,18.9 10,15.7 4.1,18.9 5.3,12.3 0.5,7.7 7.1,6.8" />
+                </svg>
+                <span class="star-fill-overlay" [style.width.%]="pct">
+                  <svg class="star-svg filled" viewBox="0 0 20 20" aria-hidden="true">
+                    <polygon points="10,1 12.9,6.8 19.5,7.7 14.7,12.3 15.9,18.9 10,15.7 4.1,18.9 5.3,12.3 0.5,7.7 7.1,6.8" />
+                  </svg>
+                </span>
+              </span>
+            </div>
+            <span class="score-count">
+              {{ totalReviewsCount }} {{ totalReviewsCount === 1 ? 'review' : 'reviews' }}
+            </span>
+          </div>
+
+          <div class="summary-bars">
+            <div class="bar-row" *ngFor="let level of starLevels">
+              <span class="bar-level">{{ level }} ★</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.width.%]="getStarPct(level)"></div>
+              </div>
+              <span class="bar-count">{{ getStarCount(level) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-row" *ngIf="ratedTrips.length > 0">
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="filterMode === 'all'"
+            (click)="setFilter('all')"
+          >
+            All ({{ ratedTrips.length }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="filterMode === 'comments'"
+            (click)="setFilter('comments')"
+          >
+            With comments ({{ commentsCount }})
+          </button>
+        </div>
+
+        <div *ngIf="visibleReviews.length === 0" class="reviews-state">
+          {{ ratedTrips.length === 0 ? 'No ratings received yet.' : 'No written comments yet.' }}
+        </div>
+
+        <div class="reviews-list" *ngIf="visibleReviews.length > 0">
+          <div class="review-card" *ngFor="let trip of visibleReviews">
+            <div class="review-card-top">
+              <div class="review-author-group">
+                <div class="review-stars">
+                  <span class="star-wrap" *ngFor="let pct of getStarFillPercentages(trip.rating || 0)">
+                    <svg class="star-svg base" viewBox="0 0 20 20" aria-hidden="true">
+                      <polygon points="10,1 12.9,6.8 19.5,7.7 14.7,12.3 15.9,18.9 10,15.7 4.1,18.9 5.3,12.3 0.5,7.7 7.1,6.8" />
+                    </svg>
+                    <span class="star-fill-overlay" [style.width.%]="pct">
+                      <svg class="star-svg filled" viewBox="0 0 20 20" aria-hidden="true">
+                        <polygon points="10,1 12.9,6.8 19.5,7.7 14.7,12.3 15.9,18.9 10,15.7 4.1,18.9 5.3,12.3 0.5,7.7 7.1,6.8" />
+                      </svg>
+                    </span>
+                  </span>
+                </div>
+                <span class="review-passenger">{{ getPassengerName(trip) }}</span>
+              </div>
+              <span class="review-date">{{ (trip.exitTime || trip.entryTime) | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+
+            <div class="review-comment" *ngIf="trip.ratingComment && trip.ratingComment.trim(); else noComment">
+              “{{ trip.ratingComment }}”
+            </div>
+            <ng-template #noComment>
+              <div class="review-no-comment">No written comment.</div>
+            </ng-template>
+
+            <div class="review-footer">
+              <span class="review-route">
+                {{ trip.entryAddressLabel || formatAddress(trip.entryAddress) }} →
+                {{ trip.exitAddressLabel || formatAddress(trip.exitAddress) }}
+              </span>
+              <span class="review-price">€{{ trip.price.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 import { Client } from '../client.interface';
 import { RideRequest } from '../ride-request.interface';
@@ -30,6 +31,12 @@ export class ClientPageComponent implements OnInit, OnDestroy {
   activeRideRequest: RideRequest | null = null;
   selectedReceiptTrip: Trip | null = null;
   receiptTaxi: Taxi | null = null;
+  ratingModalTrip: Trip | null = null;
+  selectedRating: number = 0;
+  hoverRating: number = 0;
+  ratingComment: string = '';
+  isSubmittingRating: boolean = false;
+  readonly starValues: number[] = [1, 2, 3, 4, 5];
   private taxiCache = new Map<string, Taxi>();
   private socketSub = new Subscription();
 
@@ -40,7 +47,8 @@ export class ClientPageComponent implements OnInit, OnDestroy {
     private taxiService: TaxiService,
     private geolocationService: GeolocationService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -101,6 +109,7 @@ export class ClientPageComponent implements OnInit, OnDestroy {
     this.activeRideRequest = null;
     this.selectedReceiptTrip = null;
     this.receiptTaxi = null;
+    this.ratingModalTrip = null;
     localStorage.removeItem(CLIENT_STORAGE_KEY);
     if (this.authService.getRole() === 'client') {
       this.authService.logout();
@@ -265,6 +274,61 @@ export class ClientPageComponent implements OnInit, OnDestroy {
     this.receiptTaxi = null;
   }
 
+  openRateModal(trip: Trip): void {
+    this.ratingModalTrip = trip;
+    this.selectedRating = 0;
+    this.hoverRating = 0;
+    this.ratingComment = '';
+    this.isSubmittingRating = false;
+  }
+
+  closeRateModal(): void {
+    if (!this.isSubmittingRating) {
+      this.ratingModalTrip = null;
+    }
+  }
+
+  setModalRating(stars: number): void {
+    if (!this.isSubmittingRating) {
+      this.selectedRating = stars;
+    }
+  }
+
+  submitTripRating(): void {
+    if (!this.ratingModalTrip?._id || this.selectedRating < 1 || this.isSubmittingRating) {
+      return;
+    }
+    this.isSubmittingRating = true;
+    const comment = this.ratingComment.trim().slice(0, 500);
+    const targetTrip = this.ratingModalTrip;
+
+    this.viagemService.rateTrip(targetTrip._id!, this.selectedRating, comment).subscribe({
+      next: (res) => {
+        targetTrip.rating = this.selectedRating;
+        targetTrip.ratingComment = comment;
+        if (
+          typeof targetTrip.driver === 'object' &&
+          targetTrip.driver !== null &&
+          typeof res?.ratingAverage === 'number'
+        ) {
+          targetTrip.driver.ratingAverage = res.ratingAverage;
+          targetTrip.driver.ratingCount = res.ratingCount;
+        }
+        this.isSubmittingRating = false;
+        this.ratingModalTrip = null;
+        this.snackBar.open('Thank you for rating your trip!', 'Close', { duration: 3500 });
+      },
+      error: (err) => {
+        this.isSubmittingRating = false;
+        this.snackBar.open(
+          err?.error?.error || 'Could not submit rating. Please try again.',
+          'Close',
+          { duration: 3500 }
+        );
+      }
+    });
+  }
+
   getReceiptDriverName(trip: Trip): string {
     return (trip.driver as any)?.name || 'Assigned Driver';
   }
@@ -331,6 +395,9 @@ export class ClientPageComponent implements OnInit, OnDestroy {
     const taxiLine = this.receiptTaxi
       ? `${this.escapeHtml(this.receiptTaxi.brand)} ${this.escapeHtml(this.receiptTaxi.model)} · ${this.escapeHtml(this.receiptTaxi.licensePlate)} (${this.escapeHtml(this.receiptTaxi.confort)})`
       : '';
+    const ratingLine = trip.rating
+      ? `<div class="section"><div class="label">Rating</div><div class="val">★ ${trip.rating}/5</div>${trip.ratingComment ? `<div style="font-size:13px;color:#4b5563;font-style:italic;">“${this.escapeHtml(trip.ratingComment)}”</div>` : ''}</div>`
+      : '';
 
     win.document.write(`<!doctype html>
 <html>
@@ -375,6 +442,7 @@ export class ClientPageComponent implements OnInit, OnDestroy {
     <div class="val">${driverName}${driverNif ? ` · NIF: ${driverNif}` : ''}</div>
     ${taxiLine ? `<div class="label">Taxi</div><div class="val">${taxiLine}</div>` : ''}
   </div>
+  ${ratingLine}
   <div class="total">
     <span>Total Paid</span>
     <span class="total-price">€${price}</span>

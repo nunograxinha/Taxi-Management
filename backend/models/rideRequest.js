@@ -23,6 +23,8 @@ const rideRequestSchema = new mongoose.Schema({
   startTime: { type: Date, default: null },
   endTime: { type: Date, default: null },
   price: { type: Number, default: null },
+  rating: { type: Number, min: 1, max: 5, default: null },
+  ratingComment: { type: String, default: '', maxlength: 500 },
   shareToken: { type: String, default: null, index: true },
 }, { timestamps: true });
 

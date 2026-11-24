@@ -22,6 +22,8 @@ const driverSchema = new mongoose.Schema({
         city: { type: String },
     },
     drivingLicenseNumber: { type: String, required: true, unique: true, match: [/^\d+$/, 'Driving license number must contain digits only'] },
+    ratingAverage: { type: Number, default: 0, min: 0, max: 5 },
+    ratingCount: { type: Number, default: 0, min: 0 },
     passwordHash: { type: String, select: false },
 }, { timestamps: true });
 

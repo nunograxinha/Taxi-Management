@@ -66,6 +66,7 @@
 .item-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.6rem;
   margin-bottom: 0.3rem;
 }
@@ -82,6 +83,30 @@
   border-radius: 999px;
   background: #f1f5f9;
   color: #334155;
+}
+
+.rating-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #b45309;
+}
+
+.rating-pill.clickable {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.rating-pill.clickable:hover {
+  background: #fde68a;
+  transform: translateY(-1px);
 }
 
 .item-meta {
@@ -106,6 +131,15 @@
   background: #f1f5f9;
   color: #334155;
   transition: background-color 0.2s ease;
+}
+
+.icon-button .material-icons {
+  font-size: 20px;
+}
+
+.icon-button.reviews:hover {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .icon-button.edit:hover {

@@ -13,6 +13,8 @@ export interface Trip {
   exitAddressLabel?: string;
   sequenceNumber: number;
   driver: string | Driver;
-  client: string;
+  client: string | { _id?: string; name?: string };
   price: number;
+  rating?: number | null;
+  ratingComment?: string;
 }

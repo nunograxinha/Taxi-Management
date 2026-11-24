@@ -2,9 +2,12 @@
   <mat-toolbar style="background-color: #FFEB3B; color: #212121;">
     <span class="toolbar-title" routerLink="/manager">Taxi App Manager</span>
 
-    <button mat-icon-button class="home-btn" routerLink="/manager" title="Manager Dashboard">
-      <mat-icon>home</mat-icon>
-    </button>
+    <div class="toolbar-actions">
+      <app-alert-toggle></app-alert-toggle>
+      <button mat-icon-button class="home-btn" routerLink="/manager" title="Manager Dashboard">
+        <mat-icon>home</mat-icon>
+      </button>
+    </div>
   </mat-toolbar>
 
   <div class="main-content">

@@ -1,0 +1,65 @@
+<div class="chat-widget" *ngIf="pedidoId">
+  <div class="chat-drawer" *ngIf="isOpen">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        <mat-icon>chat</mat-icon>
+        <span>Chat with {{ counterpartName || (role === 'client' ? 'Driver' : 'Client') }}</span>
+      </div>
+      <button type="button" class="chat-close-btn" (click)="toggleChat()" aria-label="Close chat">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="chat-messages" #messagesContainer>
+      <div class="chat-empty" *ngIf="messages.length === 0">
+        No messages yet. Use a quick reply or type a message below.
+      </div>
+
+      <div
+        class="chat-bubble-row"
+        *ngFor="let msg of messages; trackBy: trackById"
+        [class.mine]="msg.senderRole === role"
+        [class.theirs]="msg.senderRole !== role"
+      >
+        <div class="chat-bubble">
+          <div class="bubble-meta">
+            <span class="bubble-sender">{{ msg.senderRole === role ? 'You' : msg.senderName }}</span>
+            <span class="bubble-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+          </div>
+          <div class="bubble-text">{{ msg.text }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-replies">
+      <button
+        type="button"
+        class="quick-chip"
+        *ngFor="let reply of quickReplies"
+        (click)="sendMessage(reply)"
+      >
+        {{ reply }}
+      </button>
+    </div>
+
+    <form class="chat-input-bar" (ngSubmit)="sendMessage()">
+      <input
+        type="text"
+        name="draftMessage"
+        [(ngModel)]="draftMessage"
+        maxlength="300"
+        placeholder="Type a message..."
+        autocomplete="off"
+      />
+      <button type="submit" class="send-btn" [disabled]="!draftMessage.trim()" aria-label="Send message">
+        <mat-icon>send</mat-icon>
+      </button>
+    </form>
+  </div>
+
+  <button type="button" class="chat-fab" (click)="toggleChat()">
+    <mat-icon>{{ isOpen ? 'close' : 'chat' }}</mat-icon>
+    <span>Chat</span>
+    <span class="unread-badge" *ngIf="!isOpen && unreadCount > 0">{{ unreadCount }}</span>
+  </button>
+</div>

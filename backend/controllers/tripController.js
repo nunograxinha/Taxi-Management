@@ -62,6 +62,22 @@ exports.deleteTrip = async (req, res) => {
   }
 };
 
+// PATCH /trip/:id/rate
+exports.rateTrip = async (req, res) => {
+  const { id } = req.params;
+  const { rating, ratingComment } = req.body || {};
+  try {
+    const result = await tripService.rateTrip(id, rating, ratingComment, req.user);
+    res.status(200).json(result);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    if (status === 500) {
+      console.error('Error rating trip:', error);
+    }
+    res.status(status).json({ error: error.message || 'Internal Server Error' });
+  }
+};
+
 exports.getTripsByDriver = async (req, res) => {
   const { id } = req.params;
   try {

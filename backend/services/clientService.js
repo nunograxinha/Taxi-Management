@@ -1,5 +1,20 @@
+const mongoose = require('mongoose');
 const { Client } = require('../models/client');
 const { hashPassword } = require('../utils/password');
+
+const VALID_FAVORITE_ICONS = new Set(['home', 'work', 'star', 'place']);
+
+function sanitizeCoords(raw) {
+  if (typeof raw !== 'string') return null;
+  const parts = raw.split(',').map((s) => s.trim());
+  if (parts.length !== 2) return null;
+  const lat = Number(parts[0]);
+  const lon = Number(parts[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+    return null;
+  }
+  return `${lat},${lon}`;
+}
 
 module.exports = {
   getClients: async () => {
@@ -68,5 +83,45 @@ module.exports = {
     } catch (error) {
       throw error;
     }
+  },
+
+  getFavoritePlaces: async (id) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) return null;
+    const client = await Client.findById(id).select('favoritePlaces');
+    if (!client) return null;
+    return client.favoritePlaces || [];
+  },
+
+  updateFavoritePlaces: async (id, places) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) return null;
+    if (!Array.isArray(places)) {
+      const err = new Error('favoritePlaces must be an array.');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const sanitized = [];
+    for (const entry of places.slice(0, 10)) {
+      const label = typeof entry?.label === 'string' ? entry.label.trim().slice(0, 40) : '';
+      const address = typeof entry?.address === 'string' ? entry.address.trim().slice(0, 200) : '';
+      const coords = sanitizeCoords(entry?.coords);
+      const icon = VALID_FAVORITE_ICONS.has(entry?.icon) ? entry.icon : 'star';
+
+      if (!label || !address || !coords) {
+        const err = new Error('Each favorite place requires a label, address, and valid coordinates.');
+        err.statusCode = 400;
+        throw err;
+      }
+
+      sanitized.push({ label, icon, address, coords });
+    }
+
+    const updated = await Client.findByIdAndUpdate(
+      id,
+      { $set: { favoritePlaces: sanitized } },
+      { new: true, runValidators: true }
+    ).select('favoritePlaces');
+
+    return updated ? updated.favoritePlaces || [] : null;
   },
 };

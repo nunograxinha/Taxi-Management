@@ -3,7 +3,7 @@ const rideRequestService = require('../services/rideRequestService');
 const { RideRequest } = require('../models/rideRequest');
 const { Driver } = require('../models/driver');
 const { Taxi } = require('../models/taxi');
-const { getIO, getLastDriverLocation } = require('../socket');
+const { getIO, getLastDriverLocation, clearTripChat } = require('../socket');
 
 exports.getRideRequests = async (req, res) => {
   try {
@@ -18,6 +18,7 @@ exports.deleteRideRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedRequest = await rideRequestService.deleteRideRequest(id);
+    clearTripChat(id);
     const io = getIO();
     if (io) {
       io.to(String(id)).emit('pedido:deleted', { id });
@@ -268,6 +269,17 @@ exports.rejectRideRequest = async (req, res) => {
 exports.updateRideRequest = async (req, res) => {
   const { id } = req.params;
   try {
+    if (req.body && req.body.rating !== undefined && req.body.rating !== null) {
+      const parsedRating = Number(req.body.rating);
+      if (!Number.isInteger(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+        return res.status(400).json({ error: 'Rating must be an integer between 1 and 5.' });
+      }
+      req.body.rating = parsedRating;
+    }
+    if (req.body && typeof req.body.ratingComment === 'string') {
+      req.body.ratingComment = req.body.ratingComment.trim().slice(0, 500);
+    }
+
     const updated = await RideRequest.findByIdAndUpdate(
       id,
       { $set: req.body },

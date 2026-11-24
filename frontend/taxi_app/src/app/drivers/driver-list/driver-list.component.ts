@@ -1,27 +1,51 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, NgZone, OnInit, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DriverService } from '../../appServices/driver.service';
+import { SocketService } from '../../appServices/socket.service';
 
 @Component({
   selector: 'app-motorista-list',
   templateUrl: './driver-list.component.html',
   styleUrls: ['./driver-list.component.css']
 })
-export class DriverListComponent implements OnInit, OnChanges {
+export class DriverListComponent implements OnInit, OnChanges, OnDestroy {
   @Input() refreshTrigger!: number;
 
   drivers: any[] = [];
   searchTerm: string = '';
   isLoading: boolean = false;
   loadError: string = '';
+  selectedReviewsDriver: any = null;
+  private socketSub = new Subscription();
 
   constructor(
     private readonly motoristaService: DriverService,
-    private readonly snackBar: MatSnackBar
+    private readonly snackBar: MatSnackBar,
+    private readonly socketService: SocketService,
+    private readonly ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
     this.loadDrivers();
+    this.socketSub.add(
+      this.socketService
+        .onEvent<{ driverId: string; ratingAverage: number; ratingCount: number }>('driver:ratingUpdated')
+        .subscribe((ev) => {
+          this.ngZone.run(() => {
+            if (!ev) return;
+            const match = this.drivers.find((d) => String(d._id) === String(ev.driverId));
+            if (match) {
+              match.ratingAverage = ev.ratingAverage;
+              match.ratingCount = ev.ratingCount;
+            }
+          });
+        })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.socketSub.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -54,6 +78,14 @@ export class DriverListComponent implements OnInit, OnChanges {
       (driver.NIF || '').toLowerCase().includes(query) ||
       (driver.drivingLicenseNumber || '').toLowerCase().includes(query)
     );
+  }
+
+  openDriverReviews(driver: any): void {
+    this.selectedReviewsDriver = driver;
+  }
+
+  closeDriverReviews(): void {
+    this.selectedReviewsDriver = null;
   }
 
   removeDriver(driver: any): void {

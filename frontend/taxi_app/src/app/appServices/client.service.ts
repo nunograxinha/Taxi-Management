@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
-import { Client } from '../client/client.interface';
+import { Client, FavoritePlace } from '../client/client.interface';
 import { API_BASE_URL } from './api.config';
 
 @Injectable({
@@ -36,6 +36,20 @@ export class ClientService {
         console.error('Error fetching client:', error);
         return throwError(() => new Error('Error fetching client'));
       })
+    );
+  }
+
+  getFavoritePlaces(clientId: string): Observable<{ favoritePlaces: FavoritePlace[] }> {
+    return this.http.get<{ favoritePlaces: FavoritePlace[] }>(`${this.apiUrl}/${clientId}/favorites`);
+  }
+
+  updateFavoritePlaces(
+    clientId: string,
+    favoritePlaces: FavoritePlace[]
+  ): Observable<{ favoritePlaces: FavoritePlace[] }> {
+    return this.http.put<{ favoritePlaces: FavoritePlace[] }>(
+      `${this.apiUrl}/${clientId}/favorites`,
+      { favoritePlaces }
     );
   }
 }

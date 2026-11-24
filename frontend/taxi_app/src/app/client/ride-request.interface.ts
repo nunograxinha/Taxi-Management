@@ -16,5 +16,7 @@ export interface RideRequest {
   startTime?: Date;
   endTime?: Date;
   price?: number;
+  rating?: number | null;
+  ratingComment?: string;
   rejectedDrivers?: string[];
 }

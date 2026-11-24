@@ -1,10 +1,13 @@
 <!-- Navigation Bar -->
 <div class="navbar">
   <p class="navbar-title">Client Portal</p>
-  <button class="home-button" routerLink="/">
-    <mat-icon>home</mat-icon>
-    Back to Home
-  </button>
+  <div class="navbar-actions">
+    <app-alert-toggle></app-alert-toggle>
+    <button class="home-button" routerLink="/">
+      <mat-icon>home</mat-icon>
+      Back to Home
+    </button>
+  </div>
 </div>
 
 <div class="cliente-page-container">
@@ -97,13 +100,24 @@
               {{ isSameDay(trip.entryTime, trip.exitTime) ? (trip.exitTime | date:'HH:mm') : (trip.exitTime | date:'dd/MM/yyyy HH:mm') }}
             </span>
             <span>{{ trip.distanceKm.toFixed(2) }} Km · {{ trip.numberOfPeople }} passenger(s)</span>
+            <span>Driver: {{ getReceiptDriverName(trip) }}</span>
+            <span class="history-rating-badge" *ngIf="trip.rating">★ {{ trip.rating }}/5</span>
+          </div>
+          <div class="history-comment" *ngIf="trip.rating && trip.ratingComment">
+            “{{ trip.ratingComment }}”
           </div>
           <div class="history-right">
             <div class="history-price">€{{ trip.price.toFixed(2) }}</div>
-            <button type="button" class="receipt-btn" (click)="openReceipt(trip)">
-              <mat-icon>receipt_long</mat-icon>
-              <span>Receipt</span>
-            </button>
+            <div class="history-actions-row">
+              <button type="button" class="rate-btn" *ngIf="!trip.rating" (click)="openRateModal(trip)">
+                <mat-icon>star_outline</mat-icon>
+                <span>Rate</span>
+              </button>
+              <button type="button" class="receipt-btn" (click)="openReceipt(trip)">
+                <mat-icon>receipt_long</mat-icon>
+                <span>Receipt</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -187,6 +201,16 @@
       </div>
     </div>
 
+    <div class="receipt-rating-box" *ngIf="selectedReceiptTrip.rating">
+      <div class="receipt-rating-header">
+        <span class="receipt-label">Your Rating</span>
+        <span class="history-rating-badge">★ {{ selectedReceiptTrip.rating }}/5</span>
+      </div>
+      <span class="receipt-rating-comment" *ngIf="selectedReceiptTrip.ratingComment">
+        “{{ selectedReceiptTrip.ratingComment }}”
+      </span>
+    </div>
+
     <div class="receipt-total-row">
       <span>Total Paid</span>
       <span class="receipt-total-value">€{{ selectedReceiptTrip.price.toFixed(2) }}</span>
@@ -199,6 +223,61 @@
       </button>
       <button type="button" class="receipt-close-btn" (click)="closeReceipt()">
         Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="rate-backdrop" *ngIf="ratingModalTrip" (click)="closeRateModal()">
+  <div class="rate-modal" (click)="$event.stopPropagation()">
+    <div class="rate-modal-header">
+      <div>
+        <h3>Rate Your Trip</h3>
+        <p>{{ getReceiptDriverName(ratingModalTrip) }}</p>
+      </div>
+      <button type="button" class="receipt-close-icon" (click)="closeRateModal()" [disabled]="isSubmittingRating" aria-label="Close rating modal">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="rate-route-summary">
+      {{ ratingModalTrip.entryAddressLabel || formatAddress(ratingModalTrip.entryAddress) }} →
+      {{ ratingModalTrip.exitAddressLabel || formatAddress(ratingModalTrip.exitAddress) }}
+    </div>
+
+    <div class="rate-stars-row" (mouseleave)="hoverRating = 0">
+      <button
+        *ngFor="let star of starValues"
+        type="button"
+        class="modal-star-btn"
+        [class.active]="star <= (hoverRating || selectedRating)"
+        (mouseenter)="hoverRating = star"
+        (click)="setModalRating(star)"
+        [attr.aria-label]="'Rate ' + star + ' out of 5 stars'"
+      >
+        <mat-icon>{{ star <= (hoverRating || selectedRating) ? 'star' : 'star_border' }}</mat-icon>
+      </button>
+    </div>
+
+    <textarea
+      class="rate-comment-input"
+      [(ngModel)]="ratingComment"
+      maxlength="500"
+      rows="3"
+      placeholder="Add an optional comment about your ride..."
+    ></textarea>
+
+    <div class="rate-modal-actions">
+      <button type="button" class="receipt-close-btn" (click)="closeRateModal()" [disabled]="isSubmittingRating">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="rate-submit-btn"
+        [disabled]="selectedRating < 1 || isSubmittingRating"
+        (click)="submitTripRating()"
+      >
+        {{ isSubmittingRating ? 'Submitting...' : 'Submit Rating' }}
       </button>
     </div>
   </div>

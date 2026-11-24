@@ -75,8 +75,20 @@
               <span>{{ formatDate(viagem.entryTime) }} → {{ isSameDay(viagem.entryTime, viagem.exitTime) ? formatTimeOnly(viagem.exitTime) : formatDate(viagem.exitTime) }}</span>
               <span>{{ (viagem.distanceKm || 0).toFixed(2) }} Km · {{ viagem.numberOfPeople }} passenger(s)</span>
             </div>
+            <div class="trip-rating-comment" *ngIf="viagem.rating && viagem.ratingComment">
+              “{{ viagem.ratingComment }}”
+            </div>
           </div>
-          <span class="trip-price">{{ viagem.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <div class="trip-right">
+            <span
+              class="trip-rating-badge"
+              *ngIf="viagem.rating"
+              [title]="viagem.ratingComment || ''"
+            >
+              ★ {{ viagem.rating }}
+            </span>
+            <span class="trip-price">{{ viagem.price | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
         </li>
       </ul>
     </div>

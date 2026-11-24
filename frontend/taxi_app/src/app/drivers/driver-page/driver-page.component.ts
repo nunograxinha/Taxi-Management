@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../appServices/auth.service';
 import { DriverService } from '../../appServices/driver.service';
+import { SocketService } from '../../appServices/socket.service';
+import { AlertNotificationService } from '../../appServices/alert-notification.service';
 import { Driver } from '../driver.interface';
 
 @Component({
@@ -11,39 +14,80 @@ import { Driver } from '../driver.interface';
   templateUrl: './driver-page.component.html',
   styleUrls: ['./driver-page.component.css']
 })
-export class DriverPageComponent implements OnInit {
+export class DriverPageComponent implements OnInit, OnDestroy {
   nifMotorista!: string;
   motorista?: Driver;
 
   showPasswordModal = false;
+  showReviewsModal = false;
   currentPassword = '';
   newPassword = '';
   confirmPassword = '';
   passwordError = '';
   isUpdatingPassword = false;
   hasChildRoute = false;
+  private subscriptions = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private readonly motoristaService: DriverService,
     private readonly authService: AuthService,
-    private readonly snackBar: MatSnackBar
+    private readonly socketService: SocketService,
+    private readonly snackBar: MatSnackBar,
+    private readonly ngZone: NgZone,
+    private readonly alertService: AlertNotificationService
   ) {}
 
   ngOnInit() {
     this.hasChildRoute = this.route.firstChild !== null;
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.hasChildRoute = this.route.firstChild !== null;
-      });
+    this.subscriptions.add(
+      this.router.events
+        .pipe(filter((event) => event instanceof NavigationEnd))
+        .subscribe(() => {
+          this.hasChildRoute = this.route.firstChild !== null;
+          if (!this.hasChildRoute && this.nifMotorista) {
+            this.loadDriverProfile();
+          }
+        })
+    );
 
     this.nifMotorista =
       this.authService.getDriverNif() ||
       this.route.snapshot.paramMap.get('nif') ||
       '';
 
+    this.loadDriverProfile();
+
+    this.subscriptions.add(
+      this.socketService
+        .onEvent<{ driverId: string; ratingAverage: number; ratingCount: number }>('driver:ratingUpdated')
+        .subscribe((ev) => {
+          this.ngZone.run(() => {
+            if (ev && this.motorista && String(ev.driverId) === String(this.motorista._id)) {
+              const prevCount = this.motorista.ratingCount || 0;
+              this.motorista.ratingAverage = ev.ratingAverage;
+              this.motorista.ratingCount = ev.ratingCount;
+              if (ev.ratingCount > prevCount) {
+                this.alertService.notify({
+                  title: 'New Driver Rating',
+                  body: `Your average rating is now ${Number(ev.ratingAverage || 0).toFixed(1)} ★ (${ev.ratingCount} reviews).`,
+                  sound: 'trip-update',
+                  tag: 'driver-rating-updated'
+                });
+              }
+            }
+          });
+        })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  private loadDriverProfile(): void {
+    if (!this.nifMotorista) return;
     this.motoristaService.getDriverByNIF(this.nifMotorista).subscribe({
       next: (motorista) => {
         this.motorista = motorista;
@@ -66,6 +110,14 @@ export class DriverPageComponent implements OnInit {
   closePasswordModal(): void {
     this.showPasswordModal = false;
     this.passwordError = '';
+  }
+
+  openReviewsModal(): void {
+    this.showReviewsModal = true;
+  }
+
+  closeReviewsModal(): void {
+    this.showReviewsModal = false;
   }
 
   submitPasswordChange(): void {

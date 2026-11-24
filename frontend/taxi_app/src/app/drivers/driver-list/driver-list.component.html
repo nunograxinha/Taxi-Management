@@ -21,6 +21,15 @@
           <div class="item-header">
             <strong class="driver-name">{{ driver.name }}</strong>
             <span class="nif-pill">NIF {{ driver.NIF }}</span>
+            <button
+              type="button"
+              class="rating-pill clickable"
+              *ngIf="(driver.ratingCount || 0) > 0"
+              (click)="openDriverReviews(driver)"
+              title="View passenger reviews & comments"
+            >
+              ★ {{ driver.ratingAverage | number:'1.1-1' }} ({{ driver.ratingCount }})
+            </button>
           </div>
           <div class="item-meta">
             License: {{ driver.drivingLicenseNumber }} · Birth year: {{ driver.birthYear }}
@@ -30,6 +39,15 @@
           </div>
         </div>
         <div class="item-actions">
+          <button
+            *ngIf="(driver.ratingCount || 0) > 0"
+            type="button"
+            class="icon-button reviews"
+            (click)="openDriverReviews(driver)"
+            title="View Reviews"
+          >
+            <span class="material-icons">rate_review</span>
+          </button>
           <button class="icon-button edit" [routerLink]="['/manager/edit-driver', driver.NIF]" title="Edit">
             <span class="material-symbols-outlined">person_edit</span>
           </button>
@@ -46,4 +64,14 @@
       {{ drivers.length === 0 ? 'No drivers registered.' : 'No drivers match your search.' }}
     </p>
   </ng-template>
+
+  <app-driver-reviews-modal
+    *ngIf="selectedReviewsDriver && selectedReviewsDriver._id"
+    [driverId]="selectedReviewsDriver._id"
+    [driverName]="selectedReviewsDriver.name"
+    title="Driver Reviews"
+    [ratingAverage]="selectedReviewsDriver.ratingAverage || 0"
+    [ratingCount]="selectedReviewsDriver.ratingCount || 0"
+    (close)="closeDriverReviews()"
+  ></app-driver-reviews-modal>
 </div>

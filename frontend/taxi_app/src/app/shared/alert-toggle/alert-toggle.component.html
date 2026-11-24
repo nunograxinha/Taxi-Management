@@ -1,0 +1,27 @@
+<div class="alert-toggle-group">
+  <button
+    type="button"
+    class="alert-pill-btn"
+    [class.muted]="isMuted"
+    (click)="onToggleMute()"
+    [attr.aria-pressed]="isMuted"
+    [title]="isMuted ? 'Unmute alert sounds & notifications' : 'Mute alert sounds & notifications'"
+  >
+    <mat-icon>{{ isMuted ? 'volume_off' : 'volume_up' }}</mat-icon>
+    <span class="alert-pill-label">{{ isMuted ? 'Muted' : 'Sound' }}</span>
+  </button>
+
+  <button
+    *ngIf="supportsDesktopNotifications && !isMuted"
+    type="button"
+    class="desktop-alert-btn"
+    [class.granted]="desktopPermission === 'granted'"
+    [class.denied]="desktopPermission === 'denied'"
+    (click)="onToggleDesktopAlerts()"
+    [title]="desktopButtonTitle"
+  >
+    <mat-icon>
+      {{ desktopPermission === 'granted' ? 'notifications_active' : (desktopPermission === 'denied' ? 'notifications_off' : 'notifications_none') }}
+    </mat-icon>
+  </button>
+</div>

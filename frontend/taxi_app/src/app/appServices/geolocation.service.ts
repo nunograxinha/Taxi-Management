@@ -194,4 +194,43 @@ export class GeolocationService {
       }
   }
 
+  async snapToNearestRoad(
+    lat: number,
+    lon: number,
+    maxDistanceMeters: number = 500
+  ): Promise<{ lat: number; lon: number; snapped: boolean }> {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return { lat, lon, snapped: false };
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    try {
+      const url = `https://router.project-osrm.org/nearest/v1/driving/${lon},${lat}?number=1`;
+      const resp = await fetch(url, { signal: controller.signal });
+      if (!resp.ok) {
+        return { lat, lon, snapped: false };
+      }
+      const data = await resp.json();
+      const waypoint = data?.waypoints?.[0];
+      const loc = waypoint?.location;
+      const dist = typeof waypoint?.distance === 'number' ? waypoint.distance : Infinity;
+      if (
+        Array.isArray(loc) &&
+        loc.length >= 2 &&
+        Number.isFinite(Number(loc[1])) &&
+        Number.isFinite(Number(loc[0])) &&
+        dist <= maxDistanceMeters
+      ) {
+        return { lat: Number(loc[1]), lon: Number(loc[0]), snapped: true };
+      }
+    } catch {
+      // Fallback silently to original coordinates if OSRM is unavailable
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    return { lat, lon, snapped: false };
+  }
+
 }

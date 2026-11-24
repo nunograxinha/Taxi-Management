@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DriverService } from '../../appServices/driver.service';
 import { ShiftService } from '../../appServices/shift.service';
@@ -43,6 +43,7 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
     private geolocationService: GeolocationService,
     private pedidoViagemService: RideRequestService,
     private socketService: SocketService,
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit() {
@@ -55,6 +56,17 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
     this.socketSub.add(this.socketService.onEvent('pedido:updated').subscribe(refreshCounter));
     this.socketSub.add(this.socketService.onEvent('pedido:deleted').subscribe(refreshCounter));
     this.socketSub.add(this.socketService.onEvent('pedido:clientRejected').subscribe(refreshCounter));
+    this.socketSub.add(
+      this.socketService
+        .onEvent<{ driverId: string; ratingAverage: number; ratingCount: number }>('driver:ratingUpdated')
+        .subscribe((ev) => {
+          if (ev && this.motorista?._id && String(ev.driverId) === String(this.motorista._id)) {
+            this.ngZone.run(() => {
+              this.loadDriverTrips(this.motorista!._id!);
+            });
+          }
+        })
+    );
 
     this.subscription = this.motoristaService.driver$.subscribe((m) => {
       if (m) {
@@ -84,17 +96,21 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
           }
         });
 
-        this.viagemService.getTripsByDriver(m._id!).subscribe({
-          next: (viagens) => {
-          this.viagens = viagens.sort((a, b) =>
-            new Date(b.entryTime!).getTime() - new Date(a.entryTime!).getTime()
-          );
-          this.atualizarViagensDoTurnoAtual();
-          },
-          error: (err) => {
-            console.error('Error fetching trips:', err);
-          }
-        });
+        this.loadDriverTrips(m._id!);
+      }
+    });
+  }
+
+  private loadDriverTrips(driverId: string): void {
+    this.viagemService.getTripsByDriver(driverId).subscribe({
+      next: (viagens) => {
+        this.viagens = viagens.sort((a, b) =>
+          new Date(b.entryTime!).getTime() - new Date(a.entryTime!).getTime()
+        );
+        this.atualizarViagensDoTurnoAtual();
+      },
+      error: (err) => {
+        console.error('Error fetching trips:', err);
       }
     });
   }
