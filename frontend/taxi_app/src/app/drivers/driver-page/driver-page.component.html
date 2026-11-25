@@ -1,33 +1,116 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #sidenav mode="over" disableClose="false">
-    <mat-nav-list>
-      <a mat-list-item [routerLink]="['/driver/portal']" (click)="sidenav.close()">
-        <mat-icon>dashboard</mat-icon>
-        <span>Current Shift</span>
-      </a>
-      <a mat-list-item [routerLink]="['/driver/portal', 'shifts']" (click)="sidenav.close()">
-        <mat-icon>local_taxi</mat-icon>
-        <span>Manage Shifts</span>
-      </a>
-      <a mat-list-item [routerLink]="['/driver/portal', 'pending-requests']" (click)="sidenav.close()">
-        <mat-icon>notifications</mat-icon>
-        <span>Pending Requests</span>
-      </a>
-      <a mat-list-item (click)="sidenav.close(); openReviewsModal()">
-        <mat-icon>star_rate</mat-icon>
-        <span>My Reviews</span>
-      </a>
-      <a mat-list-item (click)="sidenav.close(); openPasswordModal()">
-        <mat-icon>lock</mat-icon>
-        <span>Change Password</span>
-      </a>
-    </mat-nav-list>
+  <mat-sidenav #sidenav mode="over" disableClose="false" class="driver-sidenav">
+    <div class="sidenav-inner">
+      <div class="sidenav-header">
+        <div class="sidenav-brand">
+          <button
+            type="button"
+            class="sidenav-brand-icon sidenav-avatar-btn"
+            (click)="sidenav.close(); openPhotoModal()"
+            title="Update profile photo"
+          >
+            <img
+              *ngIf="motorista?.profilePhoto"
+              [src]="motorista!.profilePhoto"
+              [alt]="motorista!.name"
+              class="sidenav-avatar-img"
+            />
+            <mat-icon *ngIf="!motorista?.profilePhoto">local_taxi</mat-icon>
+          </button>
+          <div class="sidenav-brand-text">
+            <strong>Driver Portal</strong>
+            <span>{{ motorista?.name || 'Driver' }}</span>
+          </div>
+        </div>
+        <button type="button" class="sidenav-close-btn" (click)="sidenav.close()" aria-label="Close menu">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <nav class="sidenav-nav">
+        <div class="sidenav-section-label">Navigation</div>
+        <a
+          class="sidenav-link"
+          [routerLink]="['/driver/portal']"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="sidenav.close()"
+        >
+          <mat-icon>dashboard</mat-icon>
+          <span>Current Shift</span>
+        </a>
+        <a
+          class="sidenav-link"
+          [routerLink]="['/driver/portal', 'shifts']"
+          routerLinkActive="active"
+          (click)="sidenav.close()"
+        >
+          <mat-icon>schedule</mat-icon>
+          <span>Manage Shifts</span>
+        </a>
+        <a
+          class="sidenav-link"
+          [routerLink]="['/driver/portal', 'pending-requests']"
+          routerLinkActive="active"
+          (click)="sidenav.close()"
+        >
+          <mat-icon>notifications</mat-icon>
+          <span>Pending Requests</span>
+        </a>
+        <a
+          class="sidenav-link"
+          [routerLink]="['/driver/portal', 'earnings']"
+          routerLinkActive="active"
+          (click)="sidenav.close()"
+        >
+          <mat-icon>payments</mat-icon>
+          <span>My Earnings</span>
+        </a>
+
+        <div class="sidenav-divider"></div>
+        <div class="sidenav-section-label">Account</div>
+
+        <button type="button" class="sidenav-link" (click)="sidenav.close(); openPhotoModal()">
+          <mat-icon>photo_camera</mat-icon>
+          <span>Profile Photo</span>
+        </button>
+        <button type="button" class="sidenav-link" (click)="sidenav.close(); openReviewsModal()">
+          <mat-icon>star_rate</mat-icon>
+          <span>My Reviews</span>
+        </button>
+        <button type="button" class="sidenav-link" (click)="sidenav.close(); openPasswordModal()">
+          <mat-icon>lock</mat-icon>
+          <span>Change Password</span>
+        </button>
+      </nav>
+
+      <div class="sidenav-footer">
+        <a class="sidenav-signout" routerLink="/driver" (click)="sidenav.close()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </div>
   </mat-sidenav>
 
   <mat-sidenav-content>
     <mat-toolbar style="background-color: #FFEB3B; color: #212121;">
       <button mat-icon-button (click)="sidenav.toggle()">
         <mat-icon>menu</mat-icon>
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-avatar-btn"
+        (click)="openPhotoModal()"
+        title="Update profile photo"
+      >
+        <img
+          *ngIf="motorista?.profilePhoto"
+          [src]="motorista!.profilePhoto"
+          [alt]="motorista!.name"
+        />
+        <mat-icon *ngIf="!motorista?.profilePhoto">person</mat-icon>
       </button>
 
       <span class="toolbar-title">Hello, {{ motorista?.name }}</span>
@@ -43,6 +126,7 @@
       </button>
 
       <div class="toolbar-actions">
+        <app-theme-toggle></app-theme-toggle>
         <app-alert-toggle></app-alert-toggle>
         <button mat-icon-button class="logout-btn" routerLink="/driver" title="Sign Out">
           <mat-icon>logout</mat-icon>
@@ -56,6 +140,10 @@
         <button type="button" class="back-btn" routerLink="/driver">
           <mat-icon>arrow_back</mat-icon>
           <span>Back</span>
+        </button>
+        <button type="button" class="back-btn" [routerLink]="['/driver/portal', 'earnings']">
+          <mat-icon>payments</mat-icon>
+          <span>My Earnings</span>
         </button>
         <button type="button" class="back-btn" (click)="openPasswordModal()">
           <mat-icon>lock</mat-icon>
@@ -129,4 +217,37 @@
   [ratingCount]="motorista!.ratingCount || 0"
   (close)="closeReviewsModal()"
 ></app-driver-reviews-modal>
+
+<div class="modal-backdrop" *ngIf="showPhotoModal" (click)="closePhotoModal()">
+  <div class="password-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <mat-icon>photo_camera</mat-icon>
+      </div>
+      <div>
+        <h3>Profile Photo</h3>
+        <p>Update the photo passengers see during your rides.</p>
+      </div>
+    </div>
+
+    <app-photo-picker
+      [photo]="draftPhoto"
+      label="Your Driver Photo"
+      hint="JPG, PNG or WebP · Automatically cropped &amp; resized"
+      [disabled]="isUpdatingPhoto"
+      (photoChange)="draftPhoto = $event"
+    ></app-photo-picker>
+
+    <div *ngIf="photoError" class="modal-error">{{ photoError }}</div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closePhotoModal()" [disabled]="isUpdatingPhoto">
+        Cancel
+      </button>
+      <button type="button" class="btn-submit" (click)="submitPhotoUpdate()" [disabled]="isUpdatingPhoto">
+        {{ isUpdatingPhoto ? 'Saving...' : 'Save Photo' }}
+      </button>
+    </div>
+  </div>
+</div>
   

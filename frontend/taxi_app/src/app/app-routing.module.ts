@@ -14,6 +14,7 @@ import { DriverLoginComponent } from './drivers/driver-login/driver-login.compon
 import { WaitingResponseComponent } from './client/waiting-response/waiting-response.component';
 import { ConfirmTripComponent } from './client/confirm-trip/confirm-trip.component';
 import { PendingRequestsComponent } from './drivers/pending-requests/pending-requests.component';
+import { DriverEarningsComponent } from './drivers/driver-earnings/driver-earnings.component';
 import { ShiftFormComponent } from './shifts/shift-form/shift-form.component';
 import { AcceptedRequestComponent } from './drivers/accepted-request/accepted-request.component';
 import { TrackTripComponent } from './client/track-trip/track-trip.component';
@@ -51,7 +52,8 @@ const routes: Routes = [
     children: [
       { path: 'pending-requests', component: PendingRequestsComponent },
       { path: 'shifts', component: ManageShiftsComponent },
-      { path: 'shifts/register-shift', component: ShiftFormComponent }
+      { path: 'shifts/register-shift', component: ShiftFormComponent },
+      { path: 'earnings', component: DriverEarningsComponent }
     ]
   },
 

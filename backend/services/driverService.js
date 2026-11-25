@@ -1,5 +1,6 @@
 const { Driver } = require('../models/driver');
 const { hashPassword } = require('../utils/password');
+const { sanitizeProfilePhoto } = require('../utils/photoValidation');
 
 module.exports = {
   getDrivers: async () => {
@@ -22,6 +23,13 @@ module.exports = {
       }
       delete data.password;
       data.passwordHash = hashPassword(plainPassword);
+
+      const sanitizedPhoto = sanitizeProfilePhoto(data.profilePhoto);
+      if (sanitizedPhoto !== undefined) {
+        data.profilePhoto = sanitizedPhoto;
+      } else {
+        delete data.profilePhoto;
+      }
 
       const driver = new Driver(data);
       const savedDriver = await driver.save();
@@ -53,15 +61,33 @@ module.exports = {
 
   updateDriverByNIF: async (nif, updateData) => {
     try {
+      const payload = { ...updateData };
+      if (Object.prototype.hasOwnProperty.call(payload, 'profilePhoto')) {
+        const sanitizedPhoto = sanitizeProfilePhoto(payload.profilePhoto);
+        if (sanitizedPhoto === undefined) {
+          delete payload.profilePhoto;
+        } else {
+          payload.profilePhoto = sanitizedPhoto;
+        }
+      }
       const updatedDriver = await Driver.findOneAndUpdate(
         { NIF: nif },
-        { $set: updateData },
+        { $set: payload },
         { new: true, runValidators: true }
       );
       return updatedDriver;
     } catch (error) {
       throw error;
     }
+  },
+
+  updateDriverPhoto: async (nif, rawPhoto) => {
+    const profilePhoto = sanitizeProfilePhoto(rawPhoto ?? null);
+    return await Driver.findOneAndUpdate(
+      { NIF: nif },
+      { $set: { profilePhoto } },
+      { new: true }
+    );
   },
 
   deleteDriverByNIF: async (nif) => {

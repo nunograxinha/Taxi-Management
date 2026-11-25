@@ -4,6 +4,7 @@
       <mat-icon>local_taxi</mat-icon>
       <span class="navbar-title">Confirm Trip</span>
     </div>
+    <app-theme-toggle></app-theme-toggle>
   </div>
 
   <div class="container">
@@ -42,6 +43,16 @@
             <mat-icon>person</mat-icon>
             <h3>Driver</h3>
           </div>
+          <div class="driver-photo-preview">
+            <div class="driver-avatar-circle">
+              <img
+                *ngIf="motorista.profilePhoto"
+                [src]="motorista.profilePhoto"
+                [alt]="motorista.name"
+              />
+              <mat-icon *ngIf="!motorista.profilePhoto">person</mat-icon>
+            </div>
+          </div>
           <div class="kv-list">
             <div class="kv-row">
               <span class="kv-label">Name</span>
@@ -62,7 +73,7 @@
             </div>
             <div class="kv-row">
               <span class="kv-label">Estimated arrival</span>
-              <span class="kv-value">{{ (pedido.distanceKmToDriver ?? 0) * 4 | number:'1.0-0' }} min</span>
+              <span class="kv-value">{{ etaMotoristaMin }} min</span>
             </div>
           </div>
         </div>
@@ -129,8 +140,12 @@
 
       <div class="estimates-grid">
         <div class="estimate-tile">
+          <span class="kv-label">Estimated Distance</span>
+          <span class="estimate-value">{{ distanciaEstimadaKm | number:'1.2-2' }} km</span>
+        </div>
+        <div class="estimate-tile">
           <span class="kv-label">Estimated Trip Time</span>
-          <span class="estimate-value">{{ tempoEstimadoMin }} min</span>
+          <span class="estimate-value">~{{ tempoEstimadoMin }} min</span>
         </div>
         <div class="estimate-tile highlight">
           <span class="kv-label">Estimated Cost</span>
@@ -140,7 +155,7 @@
 
       <div *ngIf="showNightWarning" class="night-warning">
         <mat-icon>nights_stay</mat-icon>
-        <span>Between 21:00 and 06:00 a night surcharge of {{ nightSurcharge }}% may apply to the displayed price.</span>
+        <span>Night tariff active (21:00–06:00): a {{ nightSurcharge }}% night surcharge is included in the estimated price.</span>
       </div>
 
       <div class="action-buttons">

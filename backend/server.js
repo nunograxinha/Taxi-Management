@@ -23,6 +23,8 @@ const priceService = require('./services/priceService');
 const initController = require('./controllers/initController');
 
 const cors = require('cors');
+const { buildCorsOptions } = require('./utils/corsConfig');
+const { createHealthHandler } = require('./utils/healthCheck');
 const app = express();
 const server = http.createServer(app);
 initSocket(server);
@@ -30,8 +32,8 @@ initSocket(server);
 const mongoDB = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/taxi_app';
 const PORT = process.env.PORT || 3073;
 
-app.use(bodyParser.json());
-app.use(cors());
+app.use(bodyParser.json({ limit: '1mb' }));
+app.use(cors(buildCorsOptions()));
 
 mongoose.set('strictQuery', false);
 main().catch((err) => console.log(err));
@@ -75,6 +77,9 @@ async function cancelExpiredRideRequests() {
   console.log(`Auto-cancelled ${ids.length} expired pending ride request(s).`);
 }
 
+const handleHealth = createHealthHandler(() => mongoose.connection.readyState);
+app.get('/health', handleHealth);
+
 // Root routes
 app.use('/', initRoutes);
 app.use('/auth', authRoutes);
@@ -89,6 +94,7 @@ app.use('/client', clientRoutes);
 
 // Unified /api prefix for reverse-proxy / HTTPS tunnel setups
 const apiRouter = express.Router();
+apiRouter.get('/health', handleHealth);
 apiRouter.use('/', initRoutes);
 apiRouter.use('/auth', authRoutes);
 apiRouter.use('/invoice', invoiceRoutes);
@@ -100,6 +106,17 @@ apiRouter.use('/price', priceRoutes);
 apiRouter.use('/rideRequest', rideRequestRoutes);
 apiRouter.use('/client', clientRoutes);
 app.use('/api', apiRouter);
+
+app.use((err, _req, res, _next) => {
+  if (err?.type === 'entity.too.large' || err?.status === 413) {
+    return res.status(413).json({ error: 'Request payload is too large.' });
+  }
+  if (err && err.message === 'Origin not allowed by CORS') {
+    return res.status(403).json({ error: err.message });
+  }
+  console.error('Unhandled request error:', err);
+  return res.status(err?.statusCode || 500).json({ error: err?.message || 'Internal Server Error' });
+});
 
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

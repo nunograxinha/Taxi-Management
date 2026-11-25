@@ -1,0 +1,15 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN NODE_OPTIONS="--max-old-space-size=1536" npx ng build --configuration production
+
+FROM caddy:2-alpine
+
+COPY --from=builder /usr/src/app/dist/taxi_app /usr/share/caddy
+
+EXPOSE 80 443

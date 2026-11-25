@@ -39,6 +39,9 @@ exports.createClient = async (req, res) => {
     const client = await clientService.createClient(req.body);
     res.status(201).json(client);
   } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -108,6 +111,27 @@ exports.updateFavoritePlaces = async (req, res) => {
     const status = error.statusCode || 500;
     if (status === 500) {
       console.error('Error updating favorite places:', error);
+    }
+    res.status(status).json({ error: error.message || 'Internal Server Error' });
+  }
+};
+
+// PUT /client/:id/photo
+exports.updateClientPhoto = async (req, res) => {
+  const { id } = req.params;
+  if (!canAccessClient(req, id)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    const updatedClient = await clientService.updateClientPhoto(id, req.body?.profilePhoto);
+    if (!updatedClient) {
+      return res.status(404).json({ error: `Client with ID ${id} not found` });
+    }
+    res.status(200).json(updatedClient);
+  } catch (error) {
+    const status = error.statusCode || 500;
+    if (status === 500) {
+      console.error('Error updating client photo:', error);
     }
     res.status(status).json({ error: error.message || 'Internal Server Error' });
   }

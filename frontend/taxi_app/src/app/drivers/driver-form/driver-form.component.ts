@@ -22,6 +22,7 @@ export class DriverFormComponent implements OnInit, OnChanges{
 
   @Input() motoristaParaEditar: any;
   @Output() motoristaEditado = new EventEmitter<void>();
+  profilePhoto: string | null = null;
 
   birthYearValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value;
@@ -117,6 +118,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
       this.motoristaForm.get('password')?.clearValidators();
       this.motoristaForm.get('password')?.updateValueAndValidity();
       // Populate the form with the driver data to edit
+      this.profilePhoto = this.motoristaParaEditar.profilePhoto || null;
       this.motoristaForm.patchValue({
         name: this.motoristaParaEditar.name,
         birthYear: this.motoristaParaEditar.birthYear,
@@ -166,6 +168,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
           street: formData.street, 
           doorNumber: formData.doorNumber
         },
+        profilePhoto: this.profilePhoto
       };
   
 
@@ -177,6 +180,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
       ).subscribe({
         next: () => {
           this.motoristaForm.reset();
+          this.profilePhoto = null;
           this.motoristaEditado.emit();
           this.mensagemSucesso = 'Driver updated successfully!';
           setTimeout(() => { this.mensagemSucesso = ''; }, 3000);
@@ -192,6 +196,7 @@ doorNumberValidator(control: AbstractControl): ValidationErrors | null {
         next: (res: any) => {
           console.log('Driver created successfully:', res);
           this.motoristaForm.reset();
+          this.profilePhoto = null;
           this.motoristaCriado.emit();
           this.mensagemSucesso = 'Driver registered successfully!';
           setTimeout(() => {

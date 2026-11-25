@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Client } = require('../models/client');
 const { hashPassword } = require('../utils/password');
+const { sanitizeProfilePhoto } = require('../utils/photoValidation');
 
 const VALID_FAVORITE_ICONS = new Set(['home', 'work', 'star', 'place']);
 
@@ -73,6 +74,13 @@ module.exports = {
         delete data.password;
       }
 
+      const sanitizedPhoto = sanitizeProfilePhoto(data.profilePhoto);
+      if (sanitizedPhoto !== undefined) {
+        data.profilePhoto = sanitizedPhoto;
+      } else {
+        delete data.profilePhoto;
+      }
+
       const client = new Client(data);
       const savedClient = await client.save();
       const result = savedClient.toObject();
@@ -132,5 +140,15 @@ module.exports = {
     ).select('favoritePlaces');
 
     return updated ? updated.favoritePlaces || [] : null;
+  },
+
+  updateClientPhoto: async (id, rawPhoto) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) return null;
+    const profilePhoto = sanitizeProfilePhoto(rawPhoto ?? null);
+    return await Client.findByIdAndUpdate(
+      id,
+      { $set: { profilePhoto } },
+      { new: true }
+    );
   },
 };

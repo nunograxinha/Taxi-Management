@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="theme-toggle-btn"
+  [class.with-label]="showLabel"
+  [class.dark]="isDark"
+  (click)="toggle()"
+  [attr.aria-pressed]="isDark"
+  [attr.aria-label]="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+  [title]="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+>
+  <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  <span *ngIf="showLabel" class="theme-label">{{ isDark ? 'Light Mode' : 'Dark Mode' }}</span>
+</button>

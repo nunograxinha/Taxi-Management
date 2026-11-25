@@ -33,6 +33,7 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
   private allRequests: RideRequest[] = [];
   private subscription?: Subscription;
   private socketSub = new Subscription();
+  private loadedDriverKey: string | null = null;
 
   constructor(
     private motoristaService: DriverService,
@@ -71,6 +72,11 @@ export class ShiftDetailComponent implements OnInit, OnDestroy {
     this.subscription = this.motoristaService.driver$.subscribe((m) => {
       if (m) {
         this.motorista = m;
+        const driverKey = String(m._id || m.NIF || '');
+        if (driverKey && this.loadedDriverKey === driverKey) {
+          return;
+        }
+        this.loadedDriverKey = driverKey;
 
         this.turnoService.getShiftsByDriverNIF(m.NIF!).subscribe({
           next: (turnos) => {

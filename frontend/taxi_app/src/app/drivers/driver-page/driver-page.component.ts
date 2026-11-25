@@ -20,6 +20,10 @@ export class DriverPageComponent implements OnInit, OnDestroy {
 
   showPasswordModal = false;
   showReviewsModal = false;
+  showPhotoModal = false;
+  draftPhoto: string | null = null;
+  photoError = '';
+  isUpdatingPhoto = false;
   currentPassword = '';
   newPassword = '';
   confirmPassword = '';
@@ -118,6 +122,39 @@ export class DriverPageComponent implements OnInit, OnDestroy {
 
   closeReviewsModal(): void {
     this.showReviewsModal = false;
+  }
+
+  openPhotoModal(): void {
+    this.draftPhoto = this.motorista?.profilePhoto || null;
+    this.photoError = '';
+    this.showPhotoModal = true;
+  }
+
+  closePhotoModal(): void {
+    if (!this.isUpdatingPhoto) {
+      this.showPhotoModal = false;
+      this.photoError = '';
+    }
+  }
+
+  submitPhotoUpdate(): void {
+    if (!this.nifMotorista || this.isUpdatingPhoto) return;
+    this.photoError = '';
+    this.isUpdatingPhoto = true;
+
+    this.motoristaService.updateDriverPhoto(this.nifMotorista, this.draftPhoto).subscribe({
+      next: (updated) => {
+        this.isUpdatingPhoto = false;
+        this.motorista = updated;
+        this.motoristaService.setDriver(updated);
+        this.showPhotoModal = false;
+        this.snackBar.open('Profile photo updated!', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        this.isUpdatingPhoto = false;
+        this.photoError = err?.error?.error || 'Could not update profile photo.';
+      }
+    });
   }
 
   submitPasswordChange(): void {

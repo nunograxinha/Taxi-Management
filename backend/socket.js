@@ -1,11 +1,83 @@
 const { Server } = require('socket.io');
 const mongoose = require('mongoose');
 const { RideRequest } = require('./models/rideRequest');
+const { verifyToken } = require('./utils/jwt');
+const { buildCorsOptions } = require('./utils/corsConfig');
 
 let io = null;
 const lastDriverLocations = new Map();
 const tripChats = new Map();
 const MAX_CHAT_HISTORY = 100;
+const VALID_ROLES = new Set(['manager', 'driver', 'client']);
+
+function canSendChatMessage(user) {
+  return Boolean(user && (user.role === 'client' || user.role === 'driver'));
+}
+
+function canEmitDriverLocation(user) {
+  return Boolean(user && user.role === 'driver');
+}
+
+function canRequestFleetLocations(user) {
+  return Boolean(user && user.role === 'manager');
+}
+
+function extractSocketToken(handshake) {
+  const rawAuthToken = handshake?.auth?.token;
+  if (typeof rawAuthToken === 'string' && rawAuthToken.trim()) {
+    const trimmed = rawAuthToken.trim();
+    return trimmed.startsWith('Bearer ') ? trimmed.slice(7).trim() : trimmed;
+  }
+
+  const rawHeader = handshake?.headers?.authorization || handshake?.headers?.Authorization;
+  if (typeof rawHeader === 'string' && rawHeader.startsWith('Bearer ')) {
+    return rawHeader.slice(7).trim() || null;
+  }
+
+  return null;
+}
+
+async function authenticateSocketHandshake(socket, next) {
+  const token = extractSocketToken(socket?.handshake);
+  if (token) {
+    const payload = verifyToken(token);
+    if (!payload || !VALID_ROLES.has(payload.role)) {
+      return next(new Error('Invalid or expired authentication token'));
+    }
+    socket.data = {
+      ...(socket.data || {}),
+      user: payload,
+      isPublicShare: false,
+      sharedRoom: null
+    };
+    return next();
+  }
+
+  const rawShareToken = socket?.handshake?.auth?.shareToken;
+  const shareToken = typeof rawShareToken === 'string' ? rawShareToken.trim() : '';
+  if (shareToken) {
+    if (!/^[a-f0-9]{32}$/i.test(shareToken)) {
+      return next(new Error('Invalid or expired share link'));
+    }
+    try {
+      const rideRequest = await RideRequest.findOne({ shareToken, endTime: null }).select('_id').lean();
+      if (rideRequest && rideRequest._id) {
+        socket.data = {
+          ...(socket.data || {}),
+          user: null,
+          isPublicShare: true,
+          sharedRoom: String(rideRequest._id)
+        };
+        return next();
+      }
+      return next(new Error('Invalid or expired share link'));
+    } catch {
+      return next(new Error('Could not verify share link'));
+    }
+  }
+
+  return next(new Error('Authentication required'));
+}
 
 function buildChatMessage(data) {
   if (!data || !data.pedidoId) return null;
@@ -68,13 +140,38 @@ async function persistChatMessage(room, msg) {
 
 function initSocket(httpServer) {
   io = new Server(httpServer, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE']
-    }
+    cors: buildCorsOptions()
   });
 
+  io.use(authenticateSocketHandshake);
+
   io.on('connection', (socket) => {
+    if (socket.data?.isPublicShare && socket.data?.sharedRoom) {
+      const room = String(socket.data.sharedRoom);
+      socket.join(room);
+      const lastLocation = lastDriverLocations.get(room);
+      if (lastLocation) {
+        socket.emit('driver:location', {
+          pedidoId: room,
+          ...lastLocation
+        });
+      }
+      socket.on('leavePedido', (pedidoId) => {
+        if (String(pedidoId) === room) {
+          socket.leave(room);
+        }
+      });
+      return;
+    }
+
+    const user = socket.data?.user;
+    if (!user) {
+      socket.disconnect(true);
+      return;
+    }
+
+    socket.join(`role:${user.role}`);
+
     socket.on('joinPedido', async (pedidoId) => {
       if (pedidoId) {
         const room = String(pedidoId);
@@ -107,7 +204,13 @@ function initSocket(httpServer) {
     });
 
     socket.on('chat:send', (data) => {
-      const msg = buildChatMessage(data);
+      if (!canSendChatMessage(user)) return;
+
+      const msg = buildChatMessage({
+        ...data,
+        senderRole: user.role,
+        senderName: data?.senderName || user.name
+      });
       if (!msg) return;
 
       const room = msg.pedidoId;
@@ -130,6 +233,7 @@ function initSocket(httpServer) {
     });
 
     socket.on('driverLocation', (data) => {
+      if (!canEmitDriverLocation(user)) return;
       if (data && data.pedidoId && Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lon))) {
         const room = String(data.pedidoId);
         lastDriverLocations.set(room, {
@@ -139,11 +243,12 @@ function initSocket(httpServer) {
           updatedAt: Date.now()
         });
         io.to(room).emit('driver:location', data);
-        io.emit('driver:location', data);
+        io.to('role:manager').emit('driver:location', data);
       }
     });
 
     socket.on('fleet:getLocations', () => {
+      if (!canRequestFleetLocations(user)) return;
       socket.emit('fleet:locations', getAllDriverLocations());
     });
   });
@@ -184,5 +289,10 @@ module.exports = {
   getLastDriverLocation,
   getAllDriverLocations,
   clearTripChat,
-  buildChatMessage
+  buildChatMessage,
+  extractSocketToken,
+  authenticateSocketHandshake,
+  canSendChatMessage,
+  canEmitDriverLocation,
+  canRequestFleetLocations
 };

@@ -3,4 +3,5 @@ export interface Person {
   name: string;
   NIF: string;
   gender: 'Male' | 'Female' | 'Non-binary';
+  profilePhoto?: string | null;
 }

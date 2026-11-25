@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { API_BASE_URL } from './api.config';
 
 export interface AuthResponse {
@@ -14,6 +14,7 @@ export interface AuthResponse {
     NIF: string;
     name: string;
     gender: 'Male' | 'Female' | 'Non-binary';
+    profilePhoto?: string | null;
   };
 }
 
@@ -25,6 +26,8 @@ export class AuthService {
   private readonly TOKEN_KEY = 'taxi_jwt_token';
   private readonly ROLE_KEY = 'taxi_user_role';
   private readonly DRIVER_NIF_KEY = 'taxi_driver_nif';
+  private tokenSubject = new BehaviorSubject<string | null>(this.readValidStoredToken());
+  readonly token$ = this.tokenSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -46,7 +49,7 @@ export class AuthService {
     );
   }
 
-  registerClient(data: { NIF: string; name: string; gender: string; password: string }): Observable<AuthResponse> {
+  registerClient(data: { NIF: string; name: string; gender: string; password: string; profilePhoto?: string | null }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/client/register`, data).pipe(
       tap((res) => this.saveSession(res))
     );
@@ -67,12 +70,36 @@ export class AuthService {
     } else {
       localStorage.removeItem(this.DRIVER_NIF_KEY);
     }
+    this.tokenSubject.next(res.token);
   }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.ROLE_KEY);
     localStorage.removeItem(this.DRIVER_NIF_KEY);
+    this.tokenSubject.next(null);
+  }
+
+  private readValidStoredToken(): string | null {
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    if (!token || !localStorage.getItem(this.ROLE_KEY)) {
+      return null;
+    }
+    try {
+      const payloadBase64 = token.split('.')[1];
+      if (!payloadBase64) return null;
+      const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(normalized));
+      if (payload.exp && Math.floor(Date.now() / 1000) > payload.exp) {
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.ROLE_KEY);
+        localStorage.removeItem(this.DRIVER_NIF_KEY);
+        return null;
+      }
+      return token;
+    } catch {
+      return null;
+    }
   }
 
   getToken(): string | null {

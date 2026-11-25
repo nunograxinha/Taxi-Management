@@ -47,6 +47,10 @@ export class DriverService {
     return this.http.put<Driver>(`${this.apiUrl}/${nif}`, updateData);
   }
 
+  updateDriverPhoto(nif: string, profilePhoto: string | null): Observable<Driver> {
+    return this.http.put<Driver>(`${this.apiUrl}/${nif}/photo`, { profilePhoto });
+  }
+
   sortDriversByUpdatedAt(drivers: Driver[]): Driver[] {
     return [...drivers].sort((a, b) => {
       const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;

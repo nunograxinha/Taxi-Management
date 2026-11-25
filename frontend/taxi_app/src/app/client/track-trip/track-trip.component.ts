@@ -13,6 +13,7 @@ import { TripService } from '../../appServices/trip.service';
 import { Trip } from '../../trips/trip.interface';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouteEstimateService } from '../../appServices/route-estimate.service';
 import { getTaxiCarImage } from '../../appServices/taxi-icon.util';
 
 @Component({
@@ -28,6 +29,7 @@ export class TrackTripComponent implements OnInit, OnDestroy {
   partidaNome: string = '';
   destinoNome: string = '';
   motoristaNome: string = '';
+  motoristaPhoto: string | null = null;
   motoristaRatingAverage: number = 0;
   motoristaRatingCount: number = 0;
   selectedRating: number = 0;
@@ -85,7 +87,8 @@ export class TrackTripComponent implements OnInit, OnDestroy {
     private tripService: TripService,
     private router: Router,
     private snackBar: MatSnackBar,
-    private alertService: AlertNotificationService
+    private alertService: AlertNotificationService,
+    private routeEstimateService: RouteEstimateService
   ){}
 
   ngOnInit() {
@@ -145,6 +148,7 @@ export class TrackTripComponent implements OnInit, OnDestroy {
     if (res.driverId && !this.motoristaNome) {
       this.motoristaService.getDriverById(res.driverId).subscribe(motorista => {
         this.motoristaNome = motorista.name;
+        this.motoristaPhoto = motorista.profilePhoto || null;
         this.motoristaRatingAverage = motorista.ratingAverage || 0;
         this.motoristaRatingCount = motorista.ratingCount || 0;
       });
@@ -161,8 +165,8 @@ export class TrackTripComponent implements OnInit, OnDestroy {
         this.taxiModelo = taxi.model;
       });
     }
-    if (res.distanceKmToDriver && !this.hasLiveTaxiLocation) {
-      this.tempoMotorista = res.distanceKmToDriver;
+    if (typeof res.distanceKmToDriver === 'number' && !this.hasLiveTaxiLocation) {
+      this.tempoMotorista = this.routeEstimateService.estimateArrivalMinutesFromRoadKm(res.distanceKmToDriver);
     }
     this.atualizarNomesLocalidades(res);
     const prevStatus = this.status;

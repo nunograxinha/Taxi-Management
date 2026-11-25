@@ -4,3 +4,672 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+/* =========================================================
+   Dark Mode Theme (toggled via html.dark-theme)
+   ========================================================= */
+html.dark-theme {
+  --dm-bg: #0f172a;
+  --dm-bg-grad: linear-gradient(135deg, #0b1120 0%, #111827 100%);
+  --dm-surface: #1e293b;
+  --dm-surface-alt: #162033;
+  --dm-surface-elevated: #273549;
+  --dm-border: #334155;
+  --dm-text: #f1f5f9;
+  --dm-text-secondary: #cbd5e1;
+  --dm-text-muted: #94a3b8;
+  --dm-accent: #facc15;
+}
+
+html.dark-theme,
+html.dark-theme body {
+  background-color: var(--dm-bg);
+  color: var(--dm-text);
+}
+
+/* Page shells & :host backgrounds */
+html.dark-theme app-home-page,
+html.dark-theme app-cliente-page,
+html.dark-theme app-motorista-login,
+html.dark-theme app-confirmar-viagem,
+html.dark-theme app-acompanhar-viagem,
+html.dark-theme app-share-trip,
+html.dark-theme app-pedidos-pendentes,
+html.dark-theme app-pedido-aceito,
+html.dark-theme app-driver-earnings,
+html.dark-theme app-gerir-taxis,
+html.dark-theme app-gerir-motoristas,
+html.dark-theme app-gerir-precos,
+html.dark-theme app-reports-page,
+html.dark-theme app-manager-page,
+html.dark-theme app-gerir-turno,
+html.dark-theme app-turno-form,
+html.dark-theme app-aguardar-resposta,
+html.dark-theme app-editar-motorista,
+html.dark-theme app-editar-taxi,
+html.dark-theme .sidenav-container,
+html.dark-theme .mat-drawer-content,
+html.dark-theme .manager-shell,
+html.dark-theme .earnings-page,
+html.dark-theme .reports-container,
+html.dark-theme .manager-container {
+  background: var(--dm-bg-grad) !important;
+  color: var(--dm-text);
+}
+
+/* Primary cards, forms, modals, panels */
+html.dark-theme .role-card,
+html.dark-theme .manager-modal,
+html.dark-theme .password-modal,
+html.dark-theme .receipt-modal,
+html.dark-theme .rate-modal,
+html.dark-theme .confirm-modal,
+html.dark-theme .reviews-modal,
+html.dark-theme .chat-drawer,
+html.dark-theme .chat-drawer::after,
+html.dark-theme .signed-in-banner,
+html.dark-theme .history-card,
+html.dark-theme .confirmation-screen,
+html.dark-theme .state-card,
+html.dark-theme .card-centro,
+html.dark-theme .pedido-aceito-container,
+html.dark-theme .pedido-card,
+html.dark-theme .status-banner,
+html.dark-theme .shift-card,
+html.dark-theme .gestor,
+html.dark-theme .fleet-monitor-section,
+html.dark-theme .item-card,
+html.dark-theme .content,
+html.dark-theme .dashboard-card,
+html.dark-theme .action-card,
+html.dark-theme .report-card,
+html.dark-theme .kpi-card,
+html.dark-theme .chart-card,
+html.dark-theme .breakdown-card,
+html.dark-theme .earnings-card,
+html.dark-theme .history-panel,
+html.dark-theme .fleet-card,
+html.dark-theme .fleet-monitor-card,
+html.dark-theme .price-card,
+html.dark-theme .form-card,
+html.dark-theme .section-card,
+html.dark-theme .waiting-card,
+html.dark-theme .photo-picker,
+html.dark-theme app-cliente-form form,
+html.dark-theme app-motorista-form form,
+html.dark-theme app-taxi-form form,
+html.dark-theme app-turno-form form,
+html.dark-theme app-pedido-viagem form,
+html.dark-theme app-gerir-precos form,
+html.dark-theme app-simular-preco form {
+  background-color: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Secondary nested tiles / inner boxes */
+html.dark-theme .info-card,
+html.dark-theme .route-card,
+html.dark-theme .info-tile:not(.taxi-tile),
+html.dark-theme .estimate-tile:not(.highlight),
+html.dark-theme .summary-item:not(.highlight),
+html.dark-theme .trip-stat,
+html.dark-theme .viagem-info,
+html.dark-theme .viagem-end-info,
+html.dark-theme .summary-card,
+html.dark-theme .map-card,
+html.dark-theme .destination-banner,
+html.dark-theme .location-box,
+html.dark-theme .stat-item,
+html.dark-theme .eta-chip:not(.eta-highlight),
+html.dark-theme .rating-card,
+html.dark-theme .receipt-timeline,
+html.dark-theme .receipt-stat,
+html.dark-theme .receipt-person-card,
+html.dark-theme .receipt-taxi-box,
+html.dark-theme .rate-route-summary,
+html.dark-theme .history-item,
+html.dark-theme .history-state:not(.error),
+html.dark-theme .state-msg:not(.error),
+html.dark-theme .live-map-card,
+html.dark-theme .live-map-header,
+html.dark-theme .mode-tabs,
+html.dark-theme .info-item,
+html.dark-theme .motoristaLoginForm,
+html.dark-theme .motoristas-container li,
+html.dark-theme .time-badge,
+html.dark-theme .fleet-rides-panel,
+html.dark-theme .fleet-panel-header,
+html.dark-theme .fleet-search-box,
+html.dark-theme .fleet-ride-card,
+html.dark-theme .fleet-kpi,
+html.dark-theme .driver-profile-card,
+html.dark-theme .no-trips,
+html.dark-theme .painel-controlo li,
+html.dark-theme .reviews-header,
+html.dark-theme .reviews-summary,
+html.dark-theme .review-card,
+html.dark-theme .reviews-state:not(.error),
+html.dark-theme .period-pills,
+html.dark-theme .shift-item,
+html.dark-theme .review-item,
+html.dark-theme .trip-row,
+html.dark-theme .quick-places-box,
+html.dark-theme .location-section-card,
+html.dark-theme .quick-strip,
+html.dark-theme .save-favorite-box,
+html.dark-theme .manual-address,
+html.dark-theme .estimate-preview-card,
+html.dark-theme .estimate-item:not(.highlight),
+html.dark-theme .estimate-box:not(.highlight) {
+  background-color: var(--dm-surface-alt) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .pickup-card {
+  border-left: 4px solid #16a34a !important;
+}
+
+html.dark-theme .destination-card {
+  border-left: 4px solid #dc2626 !important;
+}
+
+html.dark-theme .location-card-header {
+  border-bottom-color: var(--dm-border) !important;
+}
+
+html.dark-theme .quick-strip,
+html.dark-theme .save-favorite-box,
+html.dark-theme .estimate-item:not(.highlight) {
+  background-color: var(--dm-surface) !important;
+}
+
+html.dark-theme .estimate-item.highlight {
+  background-color: rgba(250, 204, 21, 0.14) !important;
+  border-color: rgba(250, 204, 21, 0.4) !important;
+}
+
+html.dark-theme .estimate-item.highlight .estimate-value {
+  color: #fde047 !important;
+}
+
+html.dark-theme .estimate-title {
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .location-card-sub,
+html.dark-theme .quick-strip-label,
+html.dark-theme .recents-dropdown-header,
+html.dark-theme .save-fav-target-preview,
+html.dark-theme .estimate-label {
+  color: var(--dm-text-muted) !important;
+}
+
+html.dark-theme .location-section-card button.quick-chip-btn,
+html.dark-theme .location-section-card button.preset-chip-btn,
+html.dark-theme .location-section-card button.fav-cancel-btn {
+  background-color: var(--dm-surface-elevated) !important;
+  border-color: #475569 !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .location-section-card button.favorite-chip,
+html.dark-theme .location-section-card button.save-fav-trigger:not(:disabled) {
+  background-color: rgba(250, 204, 21, 0.14) !important;
+  border-color: rgba(250, 204, 21, 0.4) !important;
+  color: #fde047 !important;
+}
+
+html.dark-theme .location-section-card button.favorite-chip > mat-icon,
+html.dark-theme .location-section-card button.save-fav-trigger:not(:disabled) mat-icon {
+  color: #facc15 !important;
+}
+
+html.dark-theme .location-section-card button.preset-chip-btn.active,
+html.dark-theme .location-section-card button.fav-save-btn:not(:disabled) {
+  background-color: #FFEB3B !important;
+  border-color: #eab308 !important;
+  color: #111827 !important;
+}
+
+html.dark-theme #map,
+html.dark-theme #mapExit,
+html.dark-theme #miniMap {
+  border-color: var(--dm-border) !important;
+}
+
+/* Highlighted yellow-tinted summary tiles in dark mode */
+html.dark-theme .estimate-tile.highlight,
+html.dark-theme .summary-item.highlight,
+html.dark-theme .receipt-total-row,
+html.dark-theme .active-ride-banner,
+html.dark-theme .eta-chip.eta-highlight,
+html.dark-theme .receipt-rating-box {
+  background-color: rgba(250, 204, 21, 0.14) !important;
+  border-color: rgba(250, 204, 21, 0.4) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .estimate-tile.highlight .estimate-value,
+html.dark-theme .summary-item.highlight .price,
+html.dark-theme .summary-item.highlight .tile-value,
+html.dark-theme .receipt-total-value {
+  color: #fde047 !important;
+}
+
+/* Driver Sidenav in dark mode */
+html.dark-theme .driver-sidenav {
+  background-color: var(--dm-surface) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .sidenav-link {
+  color: var(--dm-text-secondary) !important;
+}
+
+html.dark-theme .sidenav-link mat-icon {
+  color: var(--dm-text-muted) !important;
+}
+
+html.dark-theme .sidenav-link:hover {
+  background-color: var(--dm-surface-elevated) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .sidenav-link:hover mat-icon {
+  color: var(--dm-accent) !important;
+}
+
+html.dark-theme .sidenav-link.active {
+  background-color: #0f172a !important;
+  color: var(--dm-accent) !important;
+}
+
+html.dark-theme .sidenav-link.active mat-icon {
+  color: var(--dm-accent) !important;
+}
+
+html.dark-theme .sidenav-divider {
+  background-color: var(--dm-border) !important;
+}
+
+html.dark-theme .sidenav-footer {
+  border-top-color: var(--dm-border) !important;
+}
+
+/* Headings & text colors */
+html.dark-theme h1,
+html.dark-theme h2,
+html.dark-theme h3,
+html.dark-theme h4,
+html.dark-theme strong,
+html.dark-theme .driver-name,
+html.dark-theme .shift-taxi,
+html.dark-theme .header-title,
+html.dark-theme .card-metric,
+html.dark-theme .ride-driver-line,
+html.dark-theme .score-number,
+html.dark-theme .review-passenger,
+html.dark-theme .bar-level,
+html.dark-theme .client-name,
+html.dark-theme .kv-value,
+html.dark-theme .tile-value,
+html.dark-theme .stat-value,
+html.dark-theme .estimate-value,
+html.dark-theme .receipt-value,
+html.dark-theme .dest-value,
+html.dark-theme .address,
+html.dark-theme .photo-title,
+html.dark-theme .active-ride-route,
+html.dark-theme .history-route,
+html.dark-theme .trip-route,
+html.dark-theme .live-map-title,
+html.dark-theme .map-title,
+html.dark-theme .confirm-title,
+html.dark-theme .info-value,
+html.dark-theme .kpi-value {
+  color: var(--dm-text) !important;
+}
+
+/* Preserve dark text inside yellow brand headers/buttons/badges */
+html.dark-theme .navbar h1,
+html.dark-theme .navbar h2,
+html.dark-theme .navbar h3,
+html.dark-theme .navbar strong,
+html.dark-theme .navbar-title,
+html.dark-theme .mat-toolbar strong,
+html.dark-theme .mat-toolbar span,
+html.dark-theme .sidenav-header strong,
+html.dark-theme .sidenav-header span,
+html.dark-theme .brand-badge,
+html.dark-theme .brand-badge span,
+html.dark-theme .receipt-badge,
+html.dark-theme .confirm-btn,
+html.dark-theme .accept-btn,
+html.dark-theme .done-btn,
+html.dark-theme .btn-submit,
+html.dark-theme .rate-submit-btn,
+html.dark-theme .receipt-print-btn,
+html.dark-theme .active-ride-btn,
+html.dark-theme .primary-btn,
+html.dark-theme .client-tab-btn.active,
+html.dark-theme .tab-btn.active,
+html.dark-theme .picker-btn.primary {
+  color: #111827 !important;
+}
+
+html.dark-theme .driver-rating-pill,
+html.dark-theme .driver-rating-pill span,
+html.dark-theme .submit-rating-btn,
+html.dark-theme .submit-rating-btn span,
+html.dark-theme .rides-count-badge.has-rides {
+  color: #facc15 !important;
+}
+
+/* Muted / secondary text */
+html.dark-theme label,
+html.dark-theme .subtitle,
+html.dark-theme .hero-subtitle,
+html.dark-theme .role-card p,
+html.dark-theme .kv-label,
+html.dark-theme .tile-label,
+html.dark-theme .stat-label,
+html.dark-theme .client-label,
+html.dark-theme .loc-label,
+html.dark-theme .coordinates,
+html.dark-theme .item-meta,
+html.dark-theme .history-meta,
+html.dark-theme .history-comment,
+html.dark-theme .receipt-label,
+html.dark-theme .receipt-sub,
+html.dark-theme .receipt-ref,
+html.dark-theme .receipt-rating-comment,
+html.dark-theme .photo-hint,
+html.dark-theme .status-desc,
+html.dark-theme .confirm-desc,
+html.dark-theme .modal-header p,
+html.dark-theme .rate-modal-header p,
+html.dark-theme .rating-card-header p,
+html.dark-theme .rating-hint,
+html.dark-theme .signed-in-info span,
+html.dark-theme .request-client-name,
+html.dark-theme .banner-text p,
+html.dark-theme .state-card p,
+html.dark-theme .info-label,
+html.dark-theme .kpi-label,
+html.dark-theme .chart-sub,
+html.dark-theme .updated-at,
+html.dark-theme .card-summary,
+html.dark-theme .fleet-subtitle,
+html.dark-theme .ride-taxi-line,
+html.dark-theme .ride-client-line,
+html.dark-theme .ride-route-line,
+html.dark-theme .reviews-title-text p,
+html.dark-theme .score-count,
+html.dark-theme .bar-count,
+html.dark-theme .review-date,
+html.dark-theme .review-footer,
+html.dark-theme .earnings-sub,
+html.dark-theme .map-legend {
+  color: var(--dm-text-muted) !important;
+}
+
+/* Form controls */
+html.dark-theme input:not([type="checkbox"]):not([type="radio"]),
+html.dark-theme select,
+html.dark-theme textarea,
+html.dark-theme .search-input {
+  background-color: var(--dm-bg) !important;
+  color: var(--dm-text) !important;
+  border-color: #475569 !important;
+}
+
+html.dark-theme input::placeholder,
+html.dark-theme textarea::placeholder {
+  color: #64748b !important;
+}
+
+html.dark-theme input[readonly] {
+  background-color: var(--dm-surface-alt) !important;
+  color: var(--dm-text-muted) !important;
+}
+
+html.dark-theme .suggestions-dropdown,
+html.dark-theme .dropdown-menu {
+  background-color: var(--dm-surface) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .suggestion-item,
+html.dark-theme .dropdown-option {
+  background-color: transparent !important;
+  color: var(--dm-text) !important;
+  border-bottom-color: var(--dm-border) !important;
+}
+
+html.dark-theme .suggestion-item:hover,
+html.dark-theme .dropdown-option:hover,
+html.dark-theme .dropdown-option.selected {
+  background-color: var(--dm-surface-elevated) !important;
+}
+
+/* Neutral / secondary buttons & chips */
+html.dark-theme .back-btn,
+html.dark-theme .back-link,
+html.dark-theme .reviews-close-btn,
+html.dark-theme .period-btn:not(.active),
+html.dark-theme .dropdown-trigger,
+html.dark-theme .secondary-btn,
+html.dark-theme .btn-secondary,
+html.dark-theme .btn-sair button,
+html.dark-theme .fleet-ctrl-btn,
+html.dark-theme .card-action,
+html.dark-theme .switch-client-btn,
+html.dark-theme .refresh-btn,
+html.dark-theme .receipt-btn,
+html.dark-theme .receipt-close-btn,
+html.dark-theme .receipt-close-icon,
+html.dark-theme .btn-cancel,
+html.dark-theme .btn-keep,
+html.dark-theme .btn-clear,
+html.dark-theme .client-tab-btn:not(.active),
+html.dark-theme .tab-btn:not(.active),
+html.dark-theme .icon-button,
+html.dark-theme .gmaps-btn,
+html.dark-theme .follow-btn:not(.active),
+html.dark-theme .inline-btn.secondary,
+html.dark-theme .role-action,
+html.dark-theme .nif-pill,
+html.dark-theme .meta-chip,
+html.dark-theme .passengers-chip,
+html.dark-theme .filter-pill:not(.active),
+html.dark-theme .range-btn:not(.active),
+html.dark-theme .quick-chip {
+  background-color: var(--dm-surface-elevated) !important;
+  color: var(--dm-text) !important;
+  border-color: #475569 !important;
+}
+
+html.dark-theme .back-btn:hover,
+html.dark-theme .secondary-btn:hover,
+html.dark-theme .switch-client-btn:hover,
+html.dark-theme .refresh-btn:hover,
+html.dark-theme .receipt-btn:hover,
+html.dark-theme .receipt-close-btn:hover,
+html.dark-theme .btn-cancel:hover,
+html.dark-theme .btn-keep:hover,
+html.dark-theme .gmaps-btn:hover {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+html.dark-theme .role-card:hover .role-action,
+html.dark-theme .dashboard-card:hover .card-action {
+  background-color: #FFEB3B !important;
+  color: #111827 !important;
+}
+
+html.dark-theme .motoristas-container li:hover {
+  background-color: var(--dm-surface-elevated) !important;
+  border-color: var(--dm-accent) !important;
+}
+
+html.dark-theme .motoristas-container li:hover .driver-arrow {
+  color: var(--dm-accent) !important;
+}
+
+html.dark-theme .motoristas-container li.selected-driver,
+html.dark-theme .fleet-ride-card.selected {
+  background-color: rgba(250, 204, 21, 0.16) !important;
+  border-color: var(--dm-accent) !important;
+}
+
+html.dark-theme .shift-card:hover,
+html.dark-theme .item-card:hover {
+  background-color: var(--dm-surface-elevated) !important;
+  border-color: var(--dm-accent) !important;
+}
+
+html.dark-theme .time-badge {
+  background-color: var(--dm-bg) !important;
+  color: var(--dm-text-secondary) !important;
+}
+
+html.dark-theme .reviews-header {
+  background-color: var(--dm-surface) !important;
+  border-bottom-color: var(--dm-border) !important;
+}
+
+html.dark-theme .review-comment {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .review-price,
+html.dark-theme .history-price {
+  color: #4ade80 !important;
+}
+
+html.dark-theme .btns {
+  border-top-color: var(--dm-border) !important;
+}
+
+html.dark-theme .btn-primary,
+html.dark-theme .btn-primary span,
+html.dark-theme .btn-primary mat-icon,
+html.dark-theme .exit-btn {
+  color: #111827 !important;
+}
+
+html.dark-theme button:disabled {
+  background-color: #334155 !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+/* Borders & dividers */
+html.dark-theme .header-section,
+html.dark-theme .card-header,
+html.dark-theme .card-title-row,
+html.dark-theme .route-header,
+html.dark-theme .client-header,
+html.dark-theme .status-panel,
+html.dark-theme .action-buttons {
+  border-color: var(--dm-border) !important;
+}
+
+/* Waiting for Driver (app-aguardar-resposta) tiles, cancel button & cancel modal */
+html.dark-theme .detail-tile {
+  background-color: var(--dm-surface-alt) !important;
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme .cancelar-button {
+  background-color: rgba(239, 68, 68, 0.14) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+html.dark-theme .cancelar-button:hover {
+  background-color: rgba(239, 68, 68, 0.24) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+html.dark-theme .error-banner {
+  background-color: rgba(239, 68, 68, 0.14) !important;
+  color: #fecaca !important;
+}
+
+html.dark-theme .btn-keep {
+  background-color: var(--dm-surface-elevated) !important;
+  color: var(--dm-text) !important;
+  border-color: #475569 !important;
+}
+
+html.dark-theme .btn-keep:hover:enabled {
+  background-color: #334155 !important;
+}
+
+/* Trip Chat drawer in dark mode */
+html.dark-theme .chat-messages {
+  background-color: var(--dm-bg) !important;
+}
+
+html.dark-theme .chat-bubble.incoming {
+  background-color: var(--dm-surface-elevated) !important;
+  color: var(--dm-text) !important;
+  border-color: var(--dm-border) !important;
+}
+
+html.dark-theme .chat-input-row {
+  background-color: var(--dm-surface) !important;
+  border-top-color: var(--dm-border) !important;
+}
+
+/* Charts & tables */
+html.dark-theme .bar-track {
+  background-color: var(--dm-bg) !important;
+}
+
+html.dark-theme table,
+html.dark-theme th,
+html.dark-theme td {
+  border-color: var(--dm-border) !important;
+  color: var(--dm-text) !important;
+}
+
+html.dark-theme thead th {
+  background-color: var(--dm-surface-alt) !important;
+}
+
+/* Car preview images: transparent PNGs float directly on dark cards with subtle drop-shadow */
+html.dark-theme img[src*="/assets/cars/"],
+html.dark-theme .car-thumb,
+html.dark-theme .shift-taxi-thumb,
+html.dark-theme .receipt-taxi-img,
+html.dark-theme .taxi-thumb,
+html.dark-theme .taxi-image {
+  mix-blend-mode: normal !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
+}
+
+/* Gentle night dimming for Leaflet map tiles while keeping routes & pins vivid */
+html.dark-theme .leaflet-tile-pane {
+  filter: brightness(0.84) contrast(1.06) saturate(0.92);
+}
+
+html.dark-theme .leaflet-control-attribution {
+  background: rgba(15, 23, 42, 0.78) !important;
+  color: #cbd5e1 !important;
+}
+
+html.dark-theme .leaflet-control-attribution a {
+  color: #facc15 !important;
+}

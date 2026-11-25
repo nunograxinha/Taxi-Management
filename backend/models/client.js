@@ -9,6 +9,7 @@ const clientSchema = new mongoose.Schema({
       },
     name: { type: String, required: true },
     gender: { type: String, enum: ['Male', 'Female', 'Non-binary'], required: true },
+    profilePhoto: { type: String, default: null },
     passwordHash: { type: String, select: false },
     favoritePlaces: [
       {

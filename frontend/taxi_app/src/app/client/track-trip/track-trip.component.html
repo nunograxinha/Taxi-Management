@@ -5,6 +5,7 @@
       <span class="navbar-title">Track Trip in Real Time</span>
     </div>
     <div class="navbar-actions">
+      <app-theme-toggle></app-theme-toggle>
       <app-alert-toggle></app-alert-toggle>
       <button
         *ngIf="pedido && status !== 'finalizada'"
@@ -23,8 +24,9 @@
     <div class="card-centro" *ngIf="pedido">
       <div class="info-grid">
         <div class="info-tile driver-tile">
-          <div class="tile-icon">
-            <mat-icon>person</mat-icon>
+          <div class="tile-icon driver-avatar-box" [class.has-photo]="!!motoristaPhoto">
+            <img *ngIf="motoristaPhoto" [src]="motoristaPhoto" [alt]="motoristaNome" class="driver-tile-avatar" />
+            <mat-icon *ngIf="!motoristaPhoto">person</mat-icon>
           </div>
           <div>
             <span class="tile-label">Driver</span>

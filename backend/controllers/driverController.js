@@ -53,10 +53,15 @@ exports.createDriver = async (req, res) => {
 // PUT /driver/:nif
 exports.updateDriver = async (req, res) => {
   const { nif } = req.params;
-  const { name, gender, birthYear, address, drivingLicenseNumber } = req.body;
+  const body = req.body || {};
+  const { name, gender, birthYear, address, drivingLicenseNumber } = body;
+  const updatePayload = { name, gender, birthYear, address, drivingLicenseNumber };
+  if (Object.prototype.hasOwnProperty.call(body, 'profilePhoto')) {
+    updatePayload.profilePhoto = body.profilePhoto;
+  }
 
   try {
-    const updatedDriver = await driverService.updateDriverByNIF(nif, { name, gender, birthYear, address, drivingLicenseNumber });
+    const updatedDriver = await driverService.updateDriverByNIF(nif, updatePayload);
     if (!updatedDriver) {
       return res.status(404).json({ error: `Driver with NIF ${nif} not found` });
     }
@@ -65,6 +70,29 @@ exports.updateDriver = async (req, res) => {
     }
     res.status(200).json(updatedDriver);
   } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({ error: error.message });
+    }
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// PUT /driver/:nif/photo
+exports.updateDriverPhoto = async (req, res) => {
+  const { nif } = req.params;
+  if (req.user?.role !== 'manager' && String(req.user?.nif || '') !== String(nif)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  try {
+    const updatedDriver = await driverService.updateDriverPhoto(nif, req.body?.profilePhoto);
+    if (!updatedDriver) {
+      return res.status(404).json({ error: `Driver with NIF ${nif} not found` });
+    }
+    res.status(200).json(updatedDriver);
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };

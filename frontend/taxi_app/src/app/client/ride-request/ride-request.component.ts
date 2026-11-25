@@ -7,6 +7,7 @@ import { GeolocationService } from '../../appServices/geolocation.service';
 import { PriceService } from '../../appServices/price.service';
 import { ClientService } from '../../appServices/client.service';
 import { TripService } from '../../appServices/trip.service';
+import { RouteEstimateService } from '../../appServices/route-estimate.service';
 import { Price } from '../../manage-prices/price.interface';
 import * as Papa from 'papaparse';
 import * as L from 'leaflet';
@@ -83,6 +84,7 @@ export class RideRequestComponent implements OnInit, OnChanges, AfterViewChecked
     private priceService: PriceService,
     private clientService: ClientService,
     private tripService: TripService,
+    private routeEstimateService: RouteEstimateService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {
@@ -974,39 +976,12 @@ export class RideRequestComponent implements OnInit, OnChanges, AfterViewChecked
       this.estimatedPriceLuxury = null;
       this.isNightRateActive = false;
 
-      const applyHaversineFallback = () => {
+      void this.routeEstimateService.getRouteEstimate(pickup, dest).then((est) => {
         if (this.lastEstimatePair !== pairKey) return;
-        const haversineKm = this.pedidoViagemService.calculateDistance(pickup[0], pickup[1], dest[0], dest[1]);
-        const roadKm = Number((haversineKm * 1.3).toFixed(2));
-        this.estimatedDistanceKm = roadKm;
-        this.estimatedDurationMin = Math.max(1, Math.round((roadKm / 35) * 60));
+        this.estimatedDistanceKm = est.distanceKm;
+        this.estimatedDurationMin = est.durationMin;
         this.recalculateFareEstimate();
-      };
-
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${pickup[1]},${pickup[0]};${dest[1]},${dest[0]}?overview=false`;
-      void fetch(osrmUrl)
-        .then((resp) => {
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          return resp.json();
-        })
-        .then((data) => {
-          if (this.lastEstimatePair !== pairKey) return;
-          const route = data?.routes?.[0];
-          if (!route) {
-            applyHaversineFallback();
-            return;
-          }
-          if (typeof route.distance === 'number') {
-            this.estimatedDistanceKm = Number((route.distance / 1000).toFixed(2));
-          }
-          if (typeof route.duration === 'number') {
-            this.estimatedDurationMin = Math.max(1, Math.round(route.duration / 60));
-          }
-          this.recalculateFareEstimate();
-        })
-        .catch(() => {
-          applyHaversineFallback();
-        });
+      });
       return;
     }
 
@@ -1017,28 +992,10 @@ export class RideRequestComponent implements OnInit, OnChanges, AfterViewChecked
     confort: 'Basic' | 'Luxury',
     durationMin: number
   ): { total: number; hasNight: boolean } {
-    const rate =
-      confort === 'Luxury'
-        ? this.currentPrice!.pricePerMinuteLuxury
-        : this.currentPrice!.pricePerMinuteConfort;
-    const surcharge = this.currentPrice!.nightTimeSurcharge || 0;
-    const current = new Date();
-    let nightMinutes = 0;
-
-    for (let i = 0; i < durationMin; i++) {
-      const hora = current.getHours();
-      if (hora >= 21 || hora < 6) {
-        nightMinutes++;
-      }
-      current.setMinutes(current.getMinutes() + 1);
-    }
-
-    const dayMinutes = durationMin - nightMinutes;
-    const dayPrice = rate * dayMinutes;
-    const nightPrice = nightMinutes * (rate * (1 + surcharge / 100));
+    const fare = this.routeEstimateService.computeEstimatedFare(this.currentPrice!, confort, durationMin);
     return {
-      total: Math.round((dayPrice + nightPrice) * 100) / 100,
-      hasNight: nightMinutes > 0 && surcharge > 0
+      total: fare.total,
+      hasNight: fare.hasNight
     };
   }
 

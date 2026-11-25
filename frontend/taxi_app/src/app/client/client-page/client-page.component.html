@@ -2,6 +2,7 @@
 <div class="navbar">
   <p class="navbar-title">Client Portal</p>
   <div class="navbar-actions">
+    <app-theme-toggle></app-theme-toggle>
     <app-alert-toggle></app-alert-toggle>
     <button class="home-button" routerLink="/">
       <mat-icon>home</mat-icon>
@@ -18,16 +19,34 @@
   <div *ngIf="clienteSelecionado" class="pedido-form-container">
     <div class="signed-in-banner">
       <div class="signed-in-info">
-        <mat-icon>person</mat-icon>
+        <button
+          type="button"
+          class="client-avatar-btn"
+          (click)="openPhotoModal()"
+          title="Change profile photo"
+        >
+          <img
+            *ngIf="clienteSelecionado.profilePhoto"
+            [src]="clienteSelecionado.profilePhoto"
+            [alt]="clienteSelecionado.name"
+          />
+          <mat-icon *ngIf="!clienteSelecionado.profilePhoto">person</mat-icon>
+        </button>
         <div>
           <strong>{{ clienteSelecionado.name }}</strong>
           <span>NIF: {{ clienteSelecionado.NIF }}</span>
         </div>
       </div>
-      <button type="button" class="switch-client-btn" (click)="trocarCliente()">
-        <mat-icon>logout</mat-icon>
-        <span>Switch Client</span>
-      </button>
+      <div class="banner-actions">
+        <button type="button" class="photo-btn" (click)="openPhotoModal()">
+          <mat-icon>photo_camera</mat-icon>
+          <span>{{ clienteSelecionado.profilePhoto ? 'Change Photo' : 'Add Photo' }}</span>
+        </button>
+        <button type="button" class="switch-client-btn" (click)="trocarCliente()">
+          <mat-icon>logout</mat-icon>
+          <span>Switch Client</span>
+        </button>
+      </div>
     </div>
 
     <div class="active-ride-banner" *ngIf="activeRideRequest">
@@ -175,13 +194,33 @@
     <div class="receipt-people-grid">
       <div class="receipt-person-card">
         <span class="receipt-label">Client</span>
-        <span class="receipt-value">{{ clienteSelecionado?.name }}</span>
-        <span class="receipt-sub" *ngIf="clienteSelecionado?.NIF">NIF: {{ clienteSelecionado?.NIF }}</span>
+        <div class="receipt-person-row">
+          <img
+            *ngIf="clienteSelecionado?.profilePhoto"
+            [src]="clienteSelecionado!.profilePhoto"
+            [alt]="clienteSelecionado!.name"
+            class="receipt-person-avatar"
+          />
+          <div>
+            <span class="receipt-value">{{ clienteSelecionado?.name }}</span>
+            <span class="receipt-sub" *ngIf="clienteSelecionado?.NIF">NIF: {{ clienteSelecionado?.NIF }}</span>
+          </div>
+        </div>
       </div>
       <div class="receipt-person-card">
         <span class="receipt-label">Driver</span>
-        <span class="receipt-value">{{ getReceiptDriverName(selectedReceiptTrip) }}</span>
-        <span class="receipt-sub" *ngIf="getReceiptDriverNif(selectedReceiptTrip)">NIF: {{ getReceiptDriverNif(selectedReceiptTrip) }}</span>
+        <div class="receipt-person-row">
+          <img
+            *ngIf="getReceiptDriverPhoto(selectedReceiptTrip)"
+            [src]="getReceiptDriverPhoto(selectedReceiptTrip)"
+            [alt]="getReceiptDriverName(selectedReceiptTrip)"
+            class="receipt-person-avatar"
+          />
+          <div>
+            <span class="receipt-value">{{ getReceiptDriverName(selectedReceiptTrip) }}</span>
+            <span class="receipt-sub" *ngIf="getReceiptDriverNif(selectedReceiptTrip)">NIF: {{ getReceiptDriverNif(selectedReceiptTrip) }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -278,6 +317,45 @@
         (click)="submitTripRating()"
       >
         {{ isSubmittingRating ? 'Submitting...' : 'Submit Rating' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="rate-backdrop" *ngIf="showPhotoModal" (click)="closePhotoModal()">
+  <div class="rate-modal" (click)="$event.stopPropagation()">
+    <div class="rate-modal-header">
+      <div>
+        <h3>Profile Photo</h3>
+        <p>Shown to drivers when you request a ride.</p>
+      </div>
+      <button
+        type="button"
+        class="receipt-close-icon"
+        (click)="closePhotoModal()"
+        [disabled]="isUpdatingPhoto"
+        aria-label="Close photo modal"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <app-photo-picker
+      [photo]="draftPhoto"
+      label="Your Client Photo"
+      hint="JPG, PNG or WebP · Automatically cropped &amp; resized"
+      [disabled]="isUpdatingPhoto"
+      (photoChange)="draftPhoto = $event"
+    ></app-photo-picker>
+
+    <div *ngIf="photoError" class="photo-modal-error">{{ photoError }}</div>
+
+    <div class="rate-modal-actions">
+      <button type="button" class="receipt-close-btn" (click)="closePhotoModal()" [disabled]="isUpdatingPhoto">
+        Cancel
+      </button>
+      <button type="button" class="rate-submit-btn" (click)="submitPhotoUpdate()" [disabled]="isUpdatingPhoto">
+        {{ isUpdatingPhoto ? 'Saving...' : 'Save Photo' }}
       </button>
     </div>
   </div>

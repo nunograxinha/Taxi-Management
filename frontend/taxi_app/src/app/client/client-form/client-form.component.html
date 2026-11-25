@@ -51,6 +51,13 @@
   <form *ngIf="mode === 'register'" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
     <h3>Create Client Account</h3>
 
+    <app-photo-picker
+      [photo]="registerPhoto"
+      label="Profile Photo"
+      hint="Optional · Helps your driver recognize you at pickup"
+      (photoChange)="registerPhoto = $event"
+    ></app-photo-picker>
+
     <div>
       <label for="regNIF">Client NIF:</label>
       <input

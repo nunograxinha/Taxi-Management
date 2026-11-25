@@ -2,6 +2,7 @@ const { Driver } = require('../models/driver');
 const { Client } = require('../models/client');
 const { signToken } = require('../utils/jwt');
 const { hashPassword, verifyPassword, safeCompareStrings } = require('../utils/password');
+const { sanitizeProfilePhoto } = require('../utils/photoValidation');
 
 const MANAGER_PASSWORD = process.env.MANAGER_PASSWORD || 'admin123';
 
@@ -78,7 +79,8 @@ exports.loginClient = async (req, res) => {
         _id: matchedClient._id,
         NIF: matchedClient.NIF,
         name: matchedClient.name,
-        gender: matchedClient.gender
+        gender: matchedClient.gender,
+        profilePhoto: matchedClient.profilePhoto || null
       }
     });
   } catch (error) {
@@ -89,12 +91,19 @@ exports.loginClient = async (req, res) => {
 
 exports.registerClient = async (req, res) => {
   try {
-    const { NIF, name, gender, password } = req.body || {};
+    const { NIF, name, gender, password, profilePhoto } = req.body || {};
     if (!NIF || !name || !gender || !password) {
       return res.status(400).json({ error: 'NIF, name, gender, and password are required' });
     }
     if (String(password).length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    let sanitizedPhoto;
+    try {
+      sanitizedPhoto = sanitizeProfilePhoto(profilePhoto);
+    } catch (photoError) {
+      return res.status(photoError.statusCode || 400).json({ error: photoError.message });
     }
 
     const existingWithPassword = await Client.findOne({ NIF: String(NIF).trim() }).select('+passwordHash');
@@ -107,13 +116,17 @@ exports.registerClient = async (req, res) => {
       existingWithPassword.name = name;
       existingWithPassword.gender = gender;
       existingWithPassword.passwordHash = hashPassword(password);
+      if (sanitizedPhoto !== undefined) {
+        existingWithPassword.profilePhoto = sanitizedPhoto;
+      }
       clientDoc = await existingWithPassword.save();
     } else {
       clientDoc = await Client.create({
         NIF: String(NIF).trim(),
         name,
         gender,
-        passwordHash: hashPassword(password)
+        passwordHash: hashPassword(password),
+        ...(sanitizedPhoto !== undefined ? { profilePhoto: sanitizedPhoto } : {})
       });
     }
 
@@ -131,7 +144,8 @@ exports.registerClient = async (req, res) => {
         _id: clientDoc._id,
         NIF: clientDoc.NIF,
         name: clientDoc.name,
-        gender: clientDoc.gender
+        gender: clientDoc.gender,
+        profilePhoto: clientDoc.profilePhoto || null
       }
     });
   } catch (error) {

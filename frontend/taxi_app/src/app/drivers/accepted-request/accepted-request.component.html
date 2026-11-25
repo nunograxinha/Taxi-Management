@@ -4,14 +4,18 @@
       <mat-icon>local_taxi</mat-icon>
       <h2 class="navbar-title">Accepted Request</h2>
     </div>
-    <app-alert-toggle></app-alert-toggle>
+    <div style="display: inline-flex; align-items: center; gap: 8px;">
+      <app-theme-toggle></app-theme-toggle>
+      <app-alert-toggle></app-alert-toggle>
+    </div>
   </div>
 
   <div class="page-container">
     <div class="pedido-aceito-container">
       <div class="client-header">
-        <div class="client-avatar">
-          <mat-icon>person</mat-icon>
+        <div class="client-avatar" [class.has-photo]="!!fotoCliente">
+          <img *ngIf="fotoCliente" [src]="fotoCliente" [alt]="nomeCliente" class="client-avatar-img" />
+          <mat-icon *ngIf="!fotoCliente">person</mat-icon>
         </div>
         <div>
           <span class="client-label">Client</span>

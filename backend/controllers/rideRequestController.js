@@ -353,9 +353,11 @@ exports.getSharedTrip = async (req, res) => {
     }
 
     let driverName = null;
+    let driverPhoto = null;
     if (rideRequest.driverId) {
-      const driver = await Driver.findById(rideRequest.driverId).select('name');
+      const driver = await Driver.findById(rideRequest.driverId).select('name profilePhoto');
       driverName = driver ? driver.name : null;
+      driverPhoto = driver ? (driver.profilePhoto || null) : null;
     }
 
     let taxi = null;
@@ -379,6 +381,7 @@ exports.getSharedTrip = async (req, res) => {
       startTime: rideRequest.startTime,
       endTime: rideRequest.endTime,
       driverName,
+      driverPhoto,
       taxi,
       taxiLocation: getLastDriverLocation(rideRequest._id)
     });

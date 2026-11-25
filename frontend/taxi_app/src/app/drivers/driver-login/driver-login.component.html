@@ -4,6 +4,7 @@
             <mat-icon>local_taxi</mat-icon>
             <h2 class="navbar-title">Driver Sign In</h2>
         </div>
+        <app-theme-toggle></app-theme-toggle>
     </div>
 
     <div class="container">
@@ -70,7 +71,8 @@
                         [class.selected-driver]="driverLoginForm.get('NIF')?.value === driver.NIF"
                         (click)="selectDriver(driver)">
                         <div class="driver-avatar">
-                            <mat-icon>person</mat-icon>
+                            <img *ngIf="driver.profilePhoto" [src]="driver.profilePhoto" [alt]="driver.name" />
+                            <mat-icon *ngIf="!driver.profilePhoto">person</mat-icon>
                         </div>
                         <div class="driver-info">
                             <div class="driver-name">{{ driver.name }}</div>

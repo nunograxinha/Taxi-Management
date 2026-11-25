@@ -1,0 +1,203 @@
+<div class="earnings-page">
+  <div class="earnings-header">
+    <div>
+      <button type="button" class="back-link" [routerLink]="['/driver/portal']">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to Current Shift</span>
+      </button>
+      <h1>My Earnings & History</h1>
+      <p class="earnings-sub" *ngIf="driver">{{ driver.name }} · NIF {{ driver.NIF }}</p>
+    </div>
+
+    <div class="header-controls">
+      <div class="period-pills">
+        <button
+          type="button"
+          class="period-btn"
+          [class.active]="period === 'today'"
+          (click)="setPeriod('today')"
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          class="period-btn"
+          [class.active]="period === '7d'"
+          (click)="setPeriod('7d')"
+        >
+          Last 7 days
+        </button>
+        <button
+          type="button"
+          class="period-btn"
+          [class.active]="period === 'month'"
+          (click)="setPeriod('month')"
+        >
+          This month
+        </button>
+        <button
+          type="button"
+          class="period-btn"
+          [class.active]="period === 'all'"
+          (click)="setPeriod('all')"
+        >
+          All time
+        </button>
+      </div>
+
+      <button
+        *ngIf="periodTrips.length > 0"
+        type="button"
+        class="export-csv-btn"
+        (click)="exportCsv()"
+        title="Download earnings report as CSV"
+      >
+        <mat-icon>download</mat-icon>
+        <span>Export CSV</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="state-card">Loading earnings and completed trips...</div>
+  <div *ngIf="!isLoading && loadError" class="state-card error">{{ loadError }}</div>
+
+  <ng-container *ngIf="!isLoading && !loadError">
+    <div class="kpi-grid">
+      <div class="kpi-card highlight">
+        <span class="kpi-label">Total Earnings</span>
+        <strong class="kpi-value money">€{{ totalEarnings.toFixed(2) }}</strong>
+        <span class="kpi-sub">Avg €{{ averagePerTrip.toFixed(2) }} / trip</span>
+      </div>
+
+      <div class="kpi-card">
+        <span class="kpi-label">Completed Trips</span>
+        <strong class="kpi-value">{{ periodTrips.length }}</strong>
+        <span class="kpi-sub">{{ totalKm.toFixed(1) }} km driven</span>
+      </div>
+
+      <div class="kpi-card">
+        <span class="kpi-label">Time Driving</span>
+        <strong class="kpi-value">{{ totalDurationFormatted }}</strong>
+        <span class="kpi-sub">In completed trips</span>
+      </div>
+
+      <div class="kpi-card">
+        <span class="kpi-label">Period Rating</span>
+        <strong class="kpi-value" *ngIf="periodRatedCount > 0">
+          ★ {{ periodAverageRating | number:'1.1-1' }}
+        </strong>
+        <strong class="kpi-value" *ngIf="periodRatedCount === 0">—</strong>
+        <span class="kpi-sub">
+          {{ periodRatedCount === 0 ? 'No ratings in period' : periodRatedCount + (periodRatedCount === 1 ? ' review' : ' reviews') }}
+        </span>
+      </div>
+    </div>
+
+    <div class="chart-card" *ngIf="trendBuckets.length > 0">
+      <div class="chart-card-header">
+        <div class="chart-header-top">
+          <h3>{{ chartTitle }}</h3>
+          <div class="chart-toggle-group">
+            <button
+              type="button"
+              class="chart-toggle-btn"
+              [class.active]="chartMetric === 'earnings'"
+              (click)="setChartMetric('earnings')"
+            >
+              Earnings
+            </button>
+            <button
+              type="button"
+              class="chart-toggle-btn"
+              [class.active]="chartMetric === 'trips'"
+              (click)="setChartMetric('trips')"
+            >
+              Trips
+            </button>
+          </div>
+        </div>
+        <p class="chart-sub" *ngIf="!hoveredBucket">
+          Hover any bar to inspect exact period details
+        </p>
+        <p class="chart-sub active-readout" *ngIf="hoveredBucket">
+          <strong>{{ hoveredBucket.label }}:</strong>
+          €{{ hoveredBucket.earnings.toFixed(2) }} ·
+          {{ hoveredBucket.trips }} {{ hoveredBucket.trips === 1 ? 'trip' : 'trips' }} ·
+          {{ hoveredBucket.kms.toFixed(1) }} km
+        </p>
+      </div>
+
+      <div class="bar-chart-scroll">
+        <div class="bar-chart-area">
+          <div
+            class="bar-col"
+            *ngFor="let bucket of trendBuckets"
+            (mouseenter)="setHoveredBucket(bucket)"
+            (mouseleave)="setHoveredBucket(null)"
+          >
+            <span class="bar-top-val" *ngIf="getBucketValue(bucket) > 0">
+              {{ formatBucketTopValue(bucket) }}
+            </span>
+            <div class="bar-track">
+              <div
+                class="bar-fill"
+                [class.zero]="getBucketValue(bucket) === 0"
+                [style.height.%]="getBucketHeightPct(bucket)"
+                [title]="formatBucketTooltip(bucket)"
+              ></div>
+            </div>
+            <span class="bar-label">{{ bucket.label }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="history-card">
+      <div class="history-header">
+        <div>
+          <h3>Completed Rides ({{ filteredTrips.length }})</h3>
+          <p class="history-sub">Newest rides first</p>
+        </div>
+        <div class="search-wrap" *ngIf="periodTrips.length > 0">
+          <mat-icon>search</mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search street, passenger, or comment..."
+          />
+        </div>
+      </div>
+
+      <div *ngIf="filteredTrips.length === 0" class="empty-history">
+        {{ periodTrips.length === 0 ? 'No completed trips found for the selected period.' : 'No trips match your search.' }}
+      </div>
+
+      <div class="trip-list" *ngIf="filteredTrips.length > 0">
+        <div class="trip-row" *ngFor="let trip of filteredTrips">
+          <div class="trip-main">
+            <div class="trip-route">
+              <mat-icon class="route-pin">route</mat-icon>
+              <span>{{ trip.entryAddressLabel || formatAddress(trip.entryAddress) }} → {{ trip.exitAddressLabel || formatAddress(trip.exitAddress) }}</span>
+            </div>
+            <div class="trip-meta">
+              <span>
+                {{ trip.entryTime | date:'dd/MM/yyyy HH:mm' }} →
+                {{ isSameDay(trip.entryTime, trip.exitTime) ? (trip.exitTime | date:'HH:mm') : (trip.exitTime | date:'dd/MM/yyyy HH:mm') }}
+              </span>
+              <span>{{ getTripDurationMinutes(trip) }} min · {{ (trip.distanceKm || 0).toFixed(2) }} km</span>
+              <span>Passenger: {{ getPassengerName(trip) }}</span>
+            </div>
+            <div class="trip-comment" *ngIf="trip.rating && trip.ratingComment">
+              “{{ trip.ratingComment }}”
+            </div>
+          </div>
+
+          <div class="trip-right">
+            <span class="rating-badge" *ngIf="trip.rating">★ {{ trip.rating }}</span>
+            <span class="fare-val">€{{ (trip.price || 0).toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

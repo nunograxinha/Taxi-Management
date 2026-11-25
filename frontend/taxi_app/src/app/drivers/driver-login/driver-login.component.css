@@ -18,6 +18,8 @@
     height: 64px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -270,21 +272,30 @@
 }
 
 .driver-avatar {
-    width: 42px;
-    height: 42px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background-color: #FFF9C4;
+    border: 2px solid #fde047;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
     flex-shrink: 0;
+}
+
+.driver-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .driver-avatar mat-icon {
     color: #b45309;
-    font-size: 22px;
-    width: 22px;
-    height: 22px;
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
 }
 
 .driver-info {

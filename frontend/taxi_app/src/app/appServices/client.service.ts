@@ -52,4 +52,8 @@ export class ClientService {
       { favoritePlaces }
     );
   }
+
+  updateClientPhoto(clientId: string, profilePhoto: string | null): Observable<Client> {
+    return this.http.put<Client>(`${this.apiUrl}/${clientId}/photo`, { profilePhoto });
+  }
 }

@@ -4,6 +4,7 @@
       <mat-icon>share_location</mat-icon>
       <span class="navbar-title">Shared Trip (Read-Only)</span>
     </div>
+    <app-theme-toggle></app-theme-toggle>
   </div>
 
   <div class="page-container">
@@ -25,8 +26,9 @@
 
       <div class="info-grid">
         <div class="info-tile driver-tile" *ngIf="trip.driverName">
-          <div class="tile-icon">
-            <mat-icon>person</mat-icon>
+          <div class="tile-icon driver-avatar-box" [class.has-photo]="!!trip.driverPhoto">
+            <img *ngIf="trip.driverPhoto" [src]="trip.driverPhoto" [alt]="trip.driverName" class="driver-tile-avatar" />
+            <mat-icon *ngIf="!trip.driverPhoto">person</mat-icon>
           </div>
           <div>
             <span class="tile-label">Driver</span>

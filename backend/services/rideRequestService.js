@@ -50,6 +50,7 @@ module.exports = {
       }
       const request = new RideRequest(payload);
       const savedRequest = await request.save();
+      await savedRequest.populate('client');
       return savedRequest;
     } catch (error) {
       console.error('Error creating ride request:', error);

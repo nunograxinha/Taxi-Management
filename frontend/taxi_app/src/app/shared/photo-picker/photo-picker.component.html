@@ -1,0 +1,44 @@
+<div class="photo-picker">
+  <div class="photo-preview">
+    <img *ngIf="photo" [src]="photo" [alt]="label" class="preview-img" />
+    <mat-icon *ngIf="!photo" class="preview-fallback">{{ fallbackIcon }}</mat-icon>
+  </div>
+
+  <div class="photo-details">
+    <div class="photo-title">{{ label }}</div>
+    <div class="photo-hint">{{ hint }}</div>
+
+    <div class="photo-actions">
+      <button
+        type="button"
+        class="picker-btn primary"
+        (click)="openFilePicker()"
+        [disabled]="disabled || isProcessing"
+      >
+        <mat-icon>photo_camera</mat-icon>
+        <span>{{ isProcessing ? 'Processing...' : (photo ? 'Change Photo' : 'Upload Photo') }}</span>
+      </button>
+
+      <button
+        *ngIf="photo"
+        type="button"
+        class="picker-btn remove"
+        (click)="removePhoto()"
+        [disabled]="disabled || isProcessing"
+      >
+        <mat-icon>delete_outline</mat-icon>
+        <span>Remove</span>
+      </button>
+    </div>
+
+    <div *ngIf="errorMessage" class="photo-error">{{ errorMessage }}</div>
+  </div>
+
+  <input
+    #fileInput
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    class="hidden-file-input"
+    (change)="onFileSelected($event)"
+  />
+</div>

@@ -12,6 +12,7 @@ import { Trip } from '../../trips/trip.interface';
 import { Taxi } from '../../taxis/taxi.interface';
 import { GeolocationService } from '../../appServices/geolocation.service';
 import { AuthService } from '../../appServices/auth.service';
+import { ClientService } from '../../appServices/client.service';
 import { getTaxiCarImage } from '../../appServices/taxi-icon.util';
 
 const CLIENT_STORAGE_KEY = 'clienteAtual';
@@ -36,6 +37,10 @@ export class ClientPageComponent implements OnInit, OnDestroy {
   hoverRating: number = 0;
   ratingComment: string = '';
   isSubmittingRating: boolean = false;
+  showPhotoModal: boolean = false;
+  draftPhoto: string | null = null;
+  photoError: string = '';
+  isUpdatingPhoto: boolean = false;
   readonly starValues: number[] = [1, 2, 3, 4, 5];
   private taxiCache = new Map<string, Taxi>();
   private socketSub = new Subscription();
@@ -47,6 +52,7 @@ export class ClientPageComponent implements OnInit, OnDestroy {
     private taxiService: TaxiService,
     private geolocationService: GeolocationService,
     private authService: AuthService,
+    private clientService: ClientService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
@@ -61,6 +67,20 @@ export class ClientPageComponent implements OnInit, OnDestroy {
       try {
         this.clienteSelecionado = JSON.parse(savedClient);
         this.loadActiveRideRequest();
+        if (this.clienteSelecionado?._id) {
+          this.clientService.getClient(this.clienteSelecionado._id).subscribe({
+            next: (fresh) => {
+              if (fresh && this.clienteSelecionado && String(fresh._id) === String(this.clienteSelecionado._id)) {
+                this.clienteSelecionado = {
+                  ...this.clienteSelecionado,
+                  profilePhoto: fresh.profilePhoto || null
+                };
+                localStorage.setItem(CLIENT_STORAGE_KEY, JSON.stringify(this.clienteSelecionado));
+              }
+            },
+            error: () => {}
+          });
+        }
       } catch {
         localStorage.removeItem(CLIENT_STORAGE_KEY);
       }
@@ -335,6 +355,47 @@ export class ClientPageComponent implements OnInit, OnDestroy {
 
   getReceiptDriverNif(trip: Trip): string {
     return (trip.driver as any)?.NIF || '';
+  }
+
+  getReceiptDriverPhoto(trip: Trip): string | null {
+    return (trip.driver as any)?.profilePhoto || null;
+  }
+
+  openPhotoModal(): void {
+    if (!this.clienteSelecionado) return;
+    this.draftPhoto = this.clienteSelecionado.profilePhoto || null;
+    this.photoError = '';
+    this.showPhotoModal = true;
+  }
+
+  closePhotoModal(): void {
+    if (!this.isUpdatingPhoto) {
+      this.showPhotoModal = false;
+      this.photoError = '';
+    }
+  }
+
+  submitPhotoUpdate(): void {
+    if (!this.clienteSelecionado?._id || this.isUpdatingPhoto) return;
+    this.photoError = '';
+    this.isUpdatingPhoto = true;
+
+    this.clientService.updateClientPhoto(this.clienteSelecionado._id, this.draftPhoto).subscribe({
+      next: (updated) => {
+        this.isUpdatingPhoto = false;
+        this.clienteSelecionado = {
+          ...this.clienteSelecionado!,
+          profilePhoto: updated?.profilePhoto || null
+        };
+        localStorage.setItem(CLIENT_STORAGE_KEY, JSON.stringify(this.clienteSelecionado));
+        this.showPhotoModal = false;
+        this.snackBar.open('Profile photo updated!', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        this.isUpdatingPhoto = false;
+        this.photoError = err?.error?.error || 'Could not update profile photo.';
+      }
+    });
   }
 
   getTripDurationMin(trip: Trip): number {

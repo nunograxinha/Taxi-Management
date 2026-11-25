@@ -1,0 +1,62 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: taxi-fleet-mongodb
+    restart: unless-stopped
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.25"]
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taxi-fleet-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3073
+      - MONGO_URI=${MONGO_URI:-mongodb://mongodb:27017/psi}
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-env-prod}
+      - MANAGER_PASSWORD=${MANAGER_PASSWORD:-admin123}
+      - CORS_ORIGIN=${CORS_ORIGIN:-https://${APP_DOMAIN}}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3073/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: ./frontend/taxi_app
+      dockerfile: Dockerfile.prod
+    container_name: taxi-fleet-web
+    restart: unless-stopped
+    environment:
+      - APP_DOMAIN=${APP_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mongodb_data:
+  caddy_data:
+  caddy_config:

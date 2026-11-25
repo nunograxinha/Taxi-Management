@@ -14,6 +14,7 @@ export interface SharedTripInfo {
   startTime?: Date | string | null;
   endTime?: Date | string | null;
   driverName?: string | null;
+  driverPhoto?: string | null;
   taxi?: {
     licensePlate: string;
     brand: string;

@@ -2,6 +2,13 @@
 <p *ngIf="mensagemErro"  id="mensagemErro">{{ mensagemErro }}</p>
 
 <form [formGroup]="motoristaForm" (ngSubmit)="onSubmit()">
+  <app-photo-picker
+    [photo]="profilePhoto"
+    label="Driver Photo"
+    hint="Optional · Shown to clients on active rides"
+    (photoChange)="profilePhoto = $event"
+  ></app-photo-picker>
+
   <div>
     <label for="name">Name:</label>
     <input id="name" formControlName="name">

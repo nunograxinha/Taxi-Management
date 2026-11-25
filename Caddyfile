@@ -1,0 +1,23 @@
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	@api path /api /api/*
+	handle @api {
+		reverse_proxy backend:3073
+	}
+
+	@socket path /socket.io /socket.io/*
+	handle @socket {
+		reverse_proxy backend:3073
+	}
+
+	handle /health {
+		reverse_proxy backend:3073
+	}
+
+	handle {
+		root * /usr/share/caddy
+		try_files {path} /index.html
+		file_server
+	}
+}

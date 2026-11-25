@@ -14,6 +14,7 @@ import { Shift } from '../../shifts/shift.interface';
 import { ShiftService } from '../../appServices/shift.service';
 import { AuthService } from '../../appServices/auth.service';
 import { AlertNotificationService } from '../../appServices/alert-notification.service';
+import { RouteEstimateService } from '../../appServices/route-estimate.service';
 
 @Component({
   selector: 'app-pedidos-pendentes',
@@ -41,6 +42,9 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
   private activeRequestId: string | null = null;
   private knownPendingIds = new Set<string>();
   private hasLoadedInitialRequests = false;
+  private loadSeq = 0;
+  private osrmEnrichSeq = 0;
+  private lastRequests: RideRequest[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -54,7 +58,8 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
     private socketService: SocketService,
     private snackBar: MatSnackBar,
     private authService: AuthService,
-    private alertService: AlertNotificationService
+    private alertService: AlertNotificationService,
+    private routeEstimateService: RouteEstimateService
   ) { }
 
   ngOnInit() {
@@ -161,26 +166,47 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
             longitude: parseFloat(position.longitude)
           };
           if (this.currentShift && this.taxi) {
-            this.loadPendingRequests();
+            if (this.lastRequests.length > 0) {
+              this.applyPendingRequests(this.lastRequests);
+            } else {
+              this.loadPendingRequests();
+            }
           }
         },
-        error: (err) => {
-          console.error('Error getting current position:', err);
-          console.log('Using default position (FCUL)');
+        error: () => {
+          // Keep default position (FCUL) when geolocation is unavailable or slow
         }
       });
 
-      this.motoristaService.getDriverByNIF(this.driverNIF).subscribe({
-        next: (driver) => {
-          this.driver = driver;
-          this.loadCurrentShift();
-        },
-        error: (err) => {
-          console.error('Error getting driver:', err);
-        }
-      });
+      const cachedDriver = this.motoristaService.getDriver();
+      const driverPromise =
+        cachedDriver && cachedDriver.NIF === this.driverNIF
+          ? Promise.resolve(cachedDriver)
+          : firstValueFrom(this.motoristaService.getDriverByNIF(this.driverNIF));
 
-      this.prices = await firstValueFrom(this.precoService.getPrice()) || null;
+      const [driver, shifts, prices] = await Promise.all([
+        driverPromise,
+        firstValueFrom(this.turnoService.getShiftsByDriverNIF(this.driverNIF)).catch(() => [] as Shift[]),
+        firstValueFrom(this.precoService.getPrice()).catch(() => null)
+      ]);
+
+      this.driver = driver;
+      this.prices = prices || null;
+
+      const now = new Date();
+      this.currentShift =
+        (shifts || []).find((shift) => {
+          const start = new Date(shift.start);
+          const end = new Date(shift.end);
+          return (!this.driver?._id || shift.driver === this.driver._id) && now >= start && now <= end;
+        }) || null;
+
+      if (this.currentShift) {
+        this.taxi = await firstValueFrom(this.taxiService.getTaxiById(this.currentShift.taxi));
+        await this.loadPendingRequests();
+      } else {
+        this.loading = false;
+      }
     } catch (error) {
       console.error('Error in loadData:', error);
       this.errorMessage = 'Error loading required data';
@@ -188,163 +214,197 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadCurrentShift() {
-    try {
-      const now = new Date();
-      const shifts = await firstValueFrom(this.turnoService.getShifts()) || [];
-
-      this.currentShift = shifts.find(shift => {
-        const start = new Date(shift.start);
-        const end = new Date(shift.end);
-        return shift.driver === this.driver?._id && now >= start && now <= end;
-      }) || null;
-
-      if (this.currentShift) {
-        this.taxiService.getTaxiById(this.currentShift.taxi).subscribe({
-          next: (taxi) => {
-            this.taxi = taxi;
-            this.loadPendingRequests();
-          },
-          error: (err) => {
-            console.error('Error getting taxi id:', err);
-            this.loading = false;
-          }
-        });
-      } else {
-        this.loading = false;
-      }
-    } catch (error) {
-      console.error('Error in loadCurrentShift:', error);
-    }
-  }
-
   async loadPendingRequests() {
+    if (!this.taxi || !this.driver) {
+      this.loading = false;
+      return;
+    }
+
+    const seq = ++this.loadSeq;
     try {
-      this.clientAddresses.clear();
-      this.destinationAddresses.clear();
-      this.clientDistances.clear();
-      this.arrivalTimes.clear();
-      this.tripDistances.clear();
-      this.tripTimes.clear();
-      this.totalTimes.clear();
-
-      const requests = await firstValueFrom(this.pedidoViagemService.getRideRequests()) || [];
-
-      const myActiveRequest = requests.find(r => r.driverId === this.driver?._id);
-      if (myActiveRequest && myActiveRequest._id) {
-        if (myActiveRequest.clientAccepted) {
-          this.router.navigate([`/driver/accepted-request/${myActiveRequest._id}`]);
-          return;
-        }
-        this.activeRequestId = myActiveRequest._id;
-        this.socketService.joinPedido(myActiveRequest._id);
-        this.loading = false;
+      const requests = (await firstValueFrom(this.pedidoViagemService.getRideRequests())) || [];
+      if (seq !== this.loadSeq) {
         return;
       }
-
-      let filteredRequests = requests.filter(request =>
-        !request.driverId && !(request.rejectedDrivers && request.rejectedDrivers.includes(this.driver?._id))
-      );
-
-      for (const request of filteredRequests) {
-        try {
-          const taxiCapacity = Number(this.taxi.passengerCapacity) || 4;
-          if (request.confort !== this.taxi.confort || request.numberOfPeople > taxiCapacity || !request._id || !request.entryAddress || !request.exitAddress) continue;
-
-          const [clientLat, clientLng] = request.entryAddress.split(',').map(coord => parseFloat(coord));
-          const [destLat, destLng] = request.exitAddress.split(',').map(coord => parseFloat(coord));
-
-          const distanceToClient = this.pedidoViagemService.calculateDistance(
-            this.currentPosition.latitude,
-            this.currentPosition.longitude,
-            clientLat,
-            clientLng
-          );
-
-          const tripDistance = this.pedidoViagemService.calculateDistance(
-            clientLat,
-            clientLng,
-            destLat,
-            destLng
-          );
-
-          const timeToReachClient = Math.ceil(distanceToClient * 4);
-          const tripTime = Math.ceil(tripDistance * 4);
-          const totalTime = timeToReachClient + tripTime;
-
-          this.clientDistances.set(request._id, distanceToClient);
-          this.arrivalTimes.set(request._id, timeToReachClient);
-          this.tripDistances.set(request._id, tripDistance);
-          this.tripTimes.set(request._id, tripTime);
-          this.totalTimes.set(request._id, totalTime);
-
-          try {
-            const clientAddress = await this.geolocationService.getAddressFromCoordinates(
-              clientLat.toString(),
-              clientLng.toString()
-            );
-            if (request._id && clientAddress) {
-              this.clientAddresses.set(request._id, clientAddress);
-            }
-
-            const destinationAddress = await this.geolocationService.getAddressFromCoordinates(
-              destLat.toString(),
-              destLng.toString()
-            );
-            if (destinationAddress !== null) {
-              this.destinationAddresses.set(request._id, destinationAddress ?? 'Address not available');
-            }
-          } catch (addressError) {
-            console.error('Error getting address:', addressError);
-          }
-        } catch (err) {
-          console.error(`Error processing request ${request._id}:`, err);
-        }
-      }
-
-      if (this.currentShift) {
-        const now = new Date();
-        const shiftEnd = new Date(this.currentShift.end);
-        const remainingMinutes = Math.floor((shiftEnd.getTime() - now.getTime()) / 60000);
-
-        filteredRequests = filteredRequests.filter(request =>
-          request._id && this.totalTimes.get(request._id) !== undefined &&
-          (this.totalTimes.get(request._id) || 0) <= remainingMinutes
-        );
-      }
-
-      this.pendingRequests = filteredRequests.sort((a, b) => {
-        const distA = a._id ? (this.clientDistances.get(a._id) || 0) : 0;
-        const distB = b._id ? (this.clientDistances.get(b._id) || 0) : 0;
-        return distA - distB;
-      });
-
-      const nextIds = new Set(
-        this.pendingRequests.map((r) => String(r._id || '')).filter(Boolean)
-      );
-      if (this.hasLoadedInitialRequests) {
-        const newCount = Array.from(nextIds).filter((id) => !this.knownPendingIds.has(id)).length;
-        if (newCount > 0) {
-          this.alertService.notify({
-            title: 'New Ride Request',
-            body:
-              newCount === 1
-                ? 'A new ride request is available nearby.'
-                : `${newCount} new ride requests are available.`,
-            sound: 'new-request',
-            tag: 'driver-new-request'
-          });
-        }
-      }
-      this.knownPendingIds = nextIds;
-      this.hasLoadedInitialRequests = true;
-
-      this.loading = false;
+      this.lastRequests = requests;
+      this.applyPendingRequests(requests);
     } catch (error) {
+      if (seq !== this.loadSeq) {
+        return;
+      }
       console.error('Error in loadPendingRequests:', error);
       this.errorMessage = 'Error loading pending ride requests';
       this.loading = false;
     }
+  }
+
+  private applyPendingRequests(requests: RideRequest[]): void {
+    const myActiveRequest = requests.find((r) => r.driverId === this.driver?._id);
+    if (myActiveRequest && myActiveRequest._id) {
+      if (myActiveRequest.clientAccepted) {
+        this.router.navigate([`/driver/accepted-request/${myActiveRequest._id}`]);
+        return;
+      }
+      this.activeRequestId = myActiveRequest._id;
+      this.socketService.joinPedido(myActiveRequest._id);
+      this.loading = false;
+      return;
+    }
+
+    const nextClientDistances = new Map<string, number>();
+    const nextArrivalTimes = new Map<string, number>();
+    const nextTripDistances = new Map<string, number>();
+    const nextTripTimes = new Map<string, number>();
+    const nextTotalTimes = new Map<string, number>();
+
+    const taxiCapacity = Number(this.taxi.passengerCapacity) || 4;
+    const driverPos: [number, number] = [this.currentPosition.latitude, this.currentPosition.longitude];
+    let filteredRequests = requests.filter(
+      (request) =>
+        !request.driverId && !(request.rejectedDrivers && request.rejectedDrivers.includes(this.driver?._id))
+    );
+
+    for (const request of filteredRequests) {
+      if (
+        request.confort !== this.taxi.confort ||
+        request.numberOfPeople > taxiCapacity ||
+        !request._id
+      ) {
+        continue;
+      }
+
+      const pickup = this.routeEstimateService.parseCoords(request.entryAddress);
+      const dest = this.routeEstimateService.parseCoords(request.exitAddress);
+      if (!pickup || !dest) {
+        continue;
+      }
+
+      const approachEst = this.routeEstimateService.estimateFallback(driverPos, pickup, { allowZero: true });
+      const tripEst = this.routeEstimateService.estimateFallback(pickup, dest);
+      const totalTime = approachEst.durationMin + tripEst.durationMin;
+
+      nextClientDistances.set(request._id, approachEst.distanceKm);
+      nextArrivalTimes.set(request._id, approachEst.durationMin);
+      nextTripDistances.set(request._id, tripEst.distanceKm);
+      nextTripTimes.set(request._id, tripEst.durationMin);
+      nextTotalTimes.set(request._id, totalTime);
+    }
+
+    if (this.currentShift) {
+      const now = new Date();
+      const shiftEnd = new Date(this.currentShift.end);
+      const remainingMinutes = Math.floor((shiftEnd.getTime() - now.getTime()) / 60000);
+
+      filteredRequests = filteredRequests.filter(
+        (request) =>
+          request._id &&
+          nextTotalTimes.get(request._id) !== undefined &&
+          (nextTotalTimes.get(request._id) || 0) <= remainingMinutes
+      );
+    }
+
+    this.clientDistances = nextClientDistances;
+    this.arrivalTimes = nextArrivalTimes;
+    this.tripDistances = nextTripDistances;
+    this.tripTimes = nextTripTimes;
+    this.totalTimes = nextTotalTimes;
+
+    this.pendingRequests = filteredRequests.sort((a, b) => {
+      const distA = a._id ? this.clientDistances.get(a._id) || 0 : 0;
+      const distB = b._id ? this.clientDistances.get(b._id) || 0 : 0;
+      return distA - distB;
+    });
+
+    const nextIds = new Set(this.pendingRequests.map((r) => String(r._id || '')).filter(Boolean));
+    if (this.hasLoadedInitialRequests) {
+      const newCount = Array.from(nextIds).filter((id) => !this.knownPendingIds.has(id)).length;
+      if (newCount > 0) {
+        this.alertService.notify({
+          title: 'New Ride Request',
+          body:
+            newCount === 1
+              ? 'A new ride request is available nearby.'
+              : `${newCount} new ride requests are available.`,
+          sound: 'new-request',
+          tag: 'driver-new-request'
+        });
+      }
+    }
+    this.knownPendingIds = nextIds;
+    this.hasLoadedInitialRequests = true;
+    this.loading = false;
+
+    void this.enrichPendingRequestsWithOsrm(this.pendingRequests, driverPos, ++this.osrmEnrichSeq);
+
+    for (const request of this.pendingRequests) {
+      if (!request._id) continue;
+      const requestId = request._id;
+
+      if (request.entryAddressLabel) {
+        this.clientAddresses.set(requestId, request.entryAddressLabel);
+      } else if (!this.clientAddresses.has(requestId) && request.entryAddress) {
+        void this.geolocationService.resolveDisplayAddress(request.entryAddress).then((addr) => {
+          if (addr) {
+            this.clientAddresses.set(requestId, addr);
+          }
+        });
+      }
+
+      if (request.exitAddressLabel) {
+        this.destinationAddresses.set(requestId, request.exitAddressLabel);
+      } else if (!this.destinationAddresses.has(requestId) && request.exitAddress) {
+        void this.geolocationService.resolveDisplayAddress(request.exitAddress).then((addr) => {
+          if (addr) {
+            this.destinationAddresses.set(requestId, addr);
+          }
+        });
+      }
+    }
+  }
+
+  private async enrichPendingRequestsWithOsrm(
+    requests: RideRequest[],
+    driverPos: [number, number],
+    enrichSeq: number
+  ): Promise<void> {
+    await Promise.all(
+      requests.map(async (request) => {
+        if (!request._id) return;
+        const pickup = this.routeEstimateService.parseCoords(request.entryAddress);
+        const dest = this.routeEstimateService.parseCoords(request.exitAddress);
+        if (!pickup || !dest) return;
+
+        const [approachEst, tripEst] = await Promise.all([
+          this.routeEstimateService.getRouteEstimate(driverPos, pickup, { allowZero: true }),
+          this.routeEstimateService.getRouteEstimate(pickup, dest)
+        ]);
+
+        if (enrichSeq !== this.osrmEnrichSeq) return;
+
+        const id = request._id;
+        const totalTime = approachEst.durationMin + tripEst.durationMin;
+        this.clientDistances.set(id, approachEst.distanceKm);
+        this.arrivalTimes.set(id, approachEst.durationMin);
+        this.tripDistances.set(id, tripEst.distanceKm);
+        this.tripTimes.set(id, tripEst.durationMin);
+        this.totalTimes.set(id, totalTime);
+
+        if (this.currentShift) {
+          const remainingMinutes = Math.floor(
+            (new Date(this.currentShift.end).getTime() - Date.now()) / 60000
+          );
+          this.pendingRequests = this.pendingRequests.filter(
+            (r) => r._id && (this.totalTimes.get(r._id) || 0) <= remainingMinutes
+          );
+        }
+
+        this.pendingRequests = [...this.pendingRequests].sort((a, b) => {
+          const distA = a._id ? this.clientDistances.get(a._id) || 0 : 0;
+          const distB = b._id ? this.clientDistances.get(b._id) || 0 : 0;
+          return distA - distB;
+        });
+      })
+    );
   }
 
   async onAcceptRequest(request: RideRequest) {
@@ -398,11 +458,25 @@ export class PendingRequestsComponent implements OnInit, OnDestroy {
   }
 
   getClientAddress(requestId: string): string {
-    return this.clientAddresses.get(requestId) || 'Address not available';
+    return this.clientAddresses.get(requestId) || 'Resolving address...';
   }
 
   getDestinationAddress(requestId: string): string {
-    return this.destinationAddresses.get(requestId) || 'Address not available';
+    return this.destinationAddresses.get(requestId) || 'Resolving address...';
+  }
+
+  getClientName(request: RideRequest): string {
+    if (request.client && typeof request.client === 'object') {
+      return request.client.name || '';
+    }
+    return '';
+  }
+
+  getClientPhoto(request: RideRequest): string | null {
+    if (request.client && typeof request.client === 'object') {
+      return request.client.profilePhoto || null;
+    }
+    return null;
   }
 
   get hasActiveShift(): boolean {

@@ -13,6 +13,7 @@ export class ClientFormComponent {
   mode: 'login' | 'register' = 'login';
   loginForm: FormGroup;
   registerForm: FormGroup;
+  registerPhoto: string | null = null;
   errorMessage: string = '';
   isSubmitting = false;
   @Output() clienteCriado = new EventEmitter<Client>();
@@ -76,12 +77,16 @@ export class ClientFormComponent {
         return;
       }
       this.isSubmitting = true;
-      this.authService.registerClient(this.registerForm.value).subscribe({
+      this.authService.registerClient({
+        ...this.registerForm.value,
+        profilePhoto: this.registerPhoto
+      }).subscribe({
         next: (res) => {
           this.isSubmitting = false;
           if (res.client) {
             this.clienteCriado.emit(res.client);
             this.registerForm.reset();
+            this.registerPhoto = null;
             this.snackBar.open('Account created successfully!', 'Close', { duration: 3500 });
           }
         },

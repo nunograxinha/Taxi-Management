@@ -95,6 +95,7 @@ docker compose up --build
 ### Option B: Manual Setup
 
 #### Prerequisites
+
 - **Node.js** (v18+) and **npm**
 - **MongoDB** (local instance or MongoDB Atlas)
 

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import * as L from 'leaflet';
@@ -35,6 +35,7 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
   isEndingTrip: boolean = false;
   duracaoViagem: number | null = null;
   nomeCliente: string ='';
+  fotoCliente: string | null = null;
   nomeMotorista: string = '';
   startLocal: string = '';
   endLocal: string = '';
@@ -52,12 +53,20 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
   private approachOuterLine: L.Polyline | null = null;
   private approachInnerLine: L.Polyline | null = null;
   private tripOuterLine: L.Polyline | null = null;
+  private tripInnerLine: L.Polyline | null = null;
   private watchId: number | null = null;
   private lastCarPos: [number, number] | null = null;
   private lastGpsPos: { latitude: string; longitude: string } | null = null;
   private lastGpsAt: number = 0;
   private routeBounds: L.LatLngBounds | null = null;
   private currentBearing: number = 0;
+  private mapRotationDeg: number = 0;
+  private lastReroutePos: [number, number] | null = null;
+  private lastRerouteAt: number = 0;
+  private rerouteInFlight: boolean = false;
+  private orientationListener: ((e: DeviceOrientationEvent) => void) | null = null;
+  private hasAbsoluteOrientation: boolean = false;
+  private lastHeadingSourceAt: number = 0;
   private socketSub = new Subscription();
   private isCompletingTrip = false;
   private checkCancelledIntervalId: any = null;
@@ -77,7 +86,8 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
     private clienteService: ClientService,
     private snackBar: MatSnackBar,
     private socketService: SocketService,
-    private alertService: AlertNotificationService
+    private alertService: AlertNotificationService,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -167,8 +177,10 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
         this.pedido = pedido;
         if (typeof pedido.client === 'object' && pedido.client !== null) {
           this.nomeCliente = (pedido.client as any).name || '';
+          this.fotoCliente = (pedido.client as any).profilePhoto || null;
         } else {
           this.nomeCliente = '';
+          this.fotoCliente = null;
         }
         if (pedido.driverId) {
           this.motoristaService.getDriverById(pedido.driverId).subscribe({
@@ -595,6 +607,7 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
   }
 
   private destroyRouteMap(): void {
+    this.stopCompassTracking();
     if (this.watchId !== null && navigator.geolocation) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
@@ -609,18 +622,143 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
       this.approachOuterLine = null;
       this.approachInnerLine = null;
       this.tripOuterLine = null;
+      this.tripInnerLine = null;
     }
+    this.lastReroutePos = null;
+    this.lastRerouteAt = 0;
+    this.rerouteInFlight = false;
   }
 
   toggleFollowGps(): void {
     this.followGps = !this.followGps;
     if (!this.routeMap) return;
 
-    if (this.followGps && this.lastCarPos) {
-      const [lat, lng] = this.lastCarPos;
-      this.routeMap.setView([lat, lng], 16, { animate: true });
-    } else if (this.routeBounds) {
-      this.routeMap.fitBounds(this.routeBounds, { padding: [40, 40], animate: true });
+    if (this.followGps) {
+      this.requestCompassPermissionIfNeeded();
+      this.applyMapRotation(this.currentBearing);
+      if (this.lastCarPos) {
+        const [lat, lng] = this.lastCarPos;
+        this.routeMap.setView([lat, lng], 16, { animate: true });
+      }
+    } else {
+      this.resetMapRotation();
+      if (this.routeBounds) {
+        this.routeMap.fitBounds(this.routeBounds, { padding: [40, 40], animate: true });
+      }
+    }
+    if (this.lastCarPos && this.carMarker) {
+      this.carMarker.setIcon(this.createArrowIcon(this.currentBearing));
+    }
+  }
+
+  private applyMapRotation(headingDeg: number): void {
+    if (!this.routeMap) return;
+    const container = this.routeMap.getContainer();
+    const rotateWrapper = container.querySelector('.leaflet-map-rotate-host') as HTMLElement | null;
+    if (!rotateWrapper) return;
+
+    const target = -headingDeg;
+    const delta = ((((target - this.mapRotationDeg + 180) % 360) + 360) % 360) - 180;
+    this.mapRotationDeg += delta;
+    rotateWrapper.style.transform = `rotate(${this.mapRotationDeg}deg)`;
+  }
+
+  private resetMapRotation(): void {
+    if (!this.routeMap) return;
+    this.mapRotationDeg = 0;
+    const container = this.routeMap.getContainer();
+    const rotateWrapper = container.querySelector('.leaflet-map-rotate-host') as HTMLElement | null;
+    if (rotateWrapper) {
+      rotateWrapper.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  private setupMapRotationHost(): void {
+    if (!this.routeMap) return;
+    const container = this.routeMap.getContainer();
+    const mapPane = this.routeMap.getPane('mapPane');
+    if (!mapPane || container.querySelector('.leaflet-map-rotate-host')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'leaflet-map-rotate-host';
+    wrapper.style.position = 'absolute';
+    wrapper.style.inset = '-35%';
+    wrapper.style.transformOrigin = '50% 50%';
+    wrapper.style.transition = 'transform 0.35s linear';
+    wrapper.style.willChange = 'transform';
+
+    // Keep controls outside the rotating wrapper; move only the map pane inside
+    const parent = mapPane.parentElement;
+    if (parent) {
+      parent.insertBefore(wrapper, mapPane);
+      wrapper.appendChild(mapPane);
+      // Offset mapPane so its center aligns with the enlarged wrapper center
+      mapPane.style.left = '20.588%';
+      mapPane.style.top = '20.588%';
+    }
+  }
+
+  private requestCompassPermissionIfNeeded(): void {
+    const devOrient = DeviceOrientationEvent as any;
+    if (typeof devOrient !== 'undefined' && typeof devOrient.requestPermission === 'function') {
+      devOrient.requestPermission().then((state: string) => {
+        if (state === 'granted') {
+          this.startCompassTracking();
+        }
+      }).catch(() => {});
+    }
+  }
+
+  private startCompassTracking(): void {
+    if (this.orientationListener || typeof window === 'undefined') return;
+    this.hasAbsoluteOrientation = false;
+
+    this.orientationListener = (event: DeviceOrientationEvent) => {
+      // If GPS recently provided a valid movement heading (last 3s), prefer GPS heading
+      if (Date.now() - this.lastHeadingSourceAt < 3000) return;
+
+      const anyEv = event as any;
+      const isAbsolute =
+        event.type === 'deviceorientationabsolute' ||
+        event.absolute === true ||
+        typeof anyEv.webkitCompassHeading === 'number';
+
+      if (isAbsolute) {
+        this.hasAbsoluteOrientation = true;
+      } else if (this.hasAbsoluteOrientation) {
+        return;
+      }
+
+      let compassHeading: number | null = null;
+      if (typeof anyEv.webkitCompassHeading === 'number' && !isNaN(anyEv.webkitCompassHeading)) {
+        compassHeading = anyEv.webkitCompassHeading;
+      } else if (typeof event.alpha === 'number' && !isNaN(event.alpha)) {
+        const screenAngle = Number((window.screen as any)?.orientation?.angle || 0);
+        compassHeading = ((360 - event.alpha + screenAngle) % 360 + 360) % 360;
+      }
+
+      if (compassHeading === null) return;
+
+      const diff = Math.abs(((((compassHeading - this.currentBearing + 180) % 360) + 360) % 360) - 180);
+      if (diff < 3) return;
+
+      this.currentBearing = compassHeading;
+      if (this.carMarker) {
+        this.carMarker.setIcon(this.createArrowIcon(compassHeading));
+      }
+      if (this.followGps) {
+        this.applyMapRotation(compassHeading);
+      }
+    };
+    window.addEventListener('deviceorientationabsolute', this.orientationListener as EventListener, true);
+    window.addEventListener('deviceorientation', this.orientationListener, true);
+  }
+
+  private stopCompassTracking(): void {
+    if (this.orientationListener && typeof window !== 'undefined') {
+      window.removeEventListener('deviceorientationabsolute', this.orientationListener as EventListener, true);
+      window.removeEventListener('deviceorientation', this.orientationListener, true);
+      this.orientationListener = null;
     }
   }
 
@@ -682,12 +820,14 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
+      keepBuffer: 4,
+      updateWhenIdle: false,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(this.routeMap);
 
     // Draw crisp two-layer blue route line along the roads
     this.tripOuterLine = L.polyline(routeLatLngs, { color: '#1d4ed8', weight: 9, opacity: 0.9 }).addTo(this.routeMap);
-    L.polyline(routeLatLngs, { color: '#3b82f6', weight: 5, opacity: 1 }).addTo(this.routeMap);
+    this.tripInnerLine = L.polyline(routeLatLngs, { color: '#3b82f6', weight: 5, opacity: 1 }).addTo(this.routeMap);
 
     const makePinIcon = (color: string) =>
       L.divIcon({
@@ -705,6 +845,8 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
       .bindPopup('<b>Requested Destination</b>')
       .addTo(this.routeMap);
 
+    this.setupMapRotationHost();
+
     if (!this.startTimeLocal && this.lastGpsPos) {
       await this.drawApproachRouteFromGps(
         Number(this.lastGpsPos.latitude),
@@ -715,12 +857,69 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
       this.placeCarArrow(startLatLng, this.currentBearing);
     }
     this.startLiveGpsTracking();
+    this.startCompassTracking();
 
     if (!this.followGps && this.routeBounds) {
       this.routeMap.fitBounds(this.routeBounds, { padding: [40, 40] });
     }
 
     setTimeout(() => this.routeMap?.invalidateSize(), 150);
+  }
+
+  private async updateActiveTripRouteFromGps(driverPos: [number, number]): Promise<void> {
+    if (!this.routeMap || !this.destCoords || !this.startTimeLocal || this.endTimeLocal) return;
+    if (this.rerouteInFlight) return;
+
+    const now = Date.now();
+    const movedMeters = this.lastReroutePos
+      ? haversineDistance(this.lastReroutePos[0], this.lastReroutePos[1], driverPos[0], driverPos[1]) * 1000
+      : Infinity;
+
+    if (movedMeters < 15 && now - this.lastRerouteAt < 4000) return;
+
+    this.rerouteInFlight = true;
+    this.lastReroutePos = driverPos;
+    this.lastRerouteAt = now;
+
+    const [dLat, dLng] = this.destCoords;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${driverPos[1]},${driverPos[0]};${dLng},${dLat}?overview=full&geometries=geojson&steps=true`;
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) return;
+      const data = await response.json();
+      const route = data?.routes?.[0];
+      if (!route || !this.routeMap || this.endTimeLocal) return;
+
+      const coords: [number, number][] | undefined = route?.geometry?.coordinates;
+      this.ngZone.run(() => {
+        if (coords && coords.length >= 2) {
+          const latLngs: [number, number][] = coords.map(([lng, lat]) => [lat, lng]);
+          this.tripOuterLine?.setLatLngs(latLngs);
+          this.tripInnerLine?.setLatLngs(latLngs);
+          this.routeBounds = L.latLngBounds(latLngs);
+        }
+        if (typeof route?.distance === 'number') {
+          this.routeDistanceLabel = route.distance >= 1000
+            ? `${(route.distance / 1000).toFixed(1)} km`
+            : `${Math.round(route.distance)} m`;
+        }
+        if (typeof route?.duration === 'number') {
+          const mins = Math.max(1, Math.round(route.duration / 60));
+          this.routeDurationLabel = `${mins} min`;
+        }
+        const rawSteps = route?.legs?.[0]?.steps;
+        if (Array.isArray(rawSteps)) {
+          this.routeSteps = rawSteps.map((s: any) => this.formatOsrmStep(s));
+        }
+      });
+    } catch {
+      // Keep existing route if OSRM is temporarily unreachable
+    } finally {
+      clearTimeout(timeoutId);
+      this.rerouteInFlight = false;
+    }
   }
 
   private async drawApproachRouteFromGps(driverLat: number, driverLon: number, fitAllBounds: boolean): Promise<void> {
@@ -838,6 +1037,8 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
     const [lat, lng] = pos;
     this.currentBearing = bearingDeg;
 
+    // Inside the rotated mapPane (-bearingDeg), rotating the arrow by +bearingDeg
+    // keeps it pointing straight up in Follow GPS mode and compass-accurate in Overview mode.
     if (this.carMarker) {
       this.carMarker.setLatLng([lat, lng]);
       this.carMarker.setIcon(this.createArrowIcon(bearingDeg));
@@ -851,6 +1052,7 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
 
     if (this.followGps) {
       this.routeMap.setView([lat, lng], 16, { animate: true });
+      this.applyMapRotation(bearingDeg);
     }
   }
 
@@ -864,11 +1066,40 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
         };
         this.lastGpsAt = Date.now();
         const newPos: [number, number] = [position.coords.latitude, position.coords.longitude];
-        let bearing = position.coords.heading;
-        if (bearing === null || bearing === undefined || isNaN(bearing)) {
-          bearing = this.lastCarPos ? this.calculateBearing(this.lastCarPos, newPos) : 0;
+
+        let bearing: number = this.currentBearing;
+        const movedFromLast = this.lastCarPos
+          ? haversineDistance(this.lastCarPos[0], this.lastCarPos[1], newPos[0], newPos[1]) * 1000
+          : 0;
+
+        if (
+          position.coords.heading !== null &&
+          position.coords.heading !== undefined &&
+          !isNaN(position.coords.heading) &&
+          (position.coords.speed === null || position.coords.speed === undefined || position.coords.speed > 0.5)
+        ) {
+          bearing = position.coords.heading;
+          this.lastHeadingSourceAt = Date.now();
+        } else if (this.lastCarPos && movedFromLast >= 4) {
+          bearing = this.calculateBearing(this.lastCarPos, newPos);
+          this.lastHeadingSourceAt = Date.now();
         }
+
         this.placeCarArrow(newPos, bearing);
+
+        if (this.startTimeLocal && !this.endTimeLocal) {
+          void this.updateActiveTripRouteFromGps(newPos);
+        } else if (!this.startTimeLocal && !this.endTimeLocal) {
+          const movedSinceReroute = this.lastReroutePos
+            ? haversineDistance(this.lastReroutePos[0], this.lastReroutePos[1], newPos[0], newPos[1]) * 1000
+            : Infinity;
+          if (movedSinceReroute >= 15 || Date.now() - this.lastRerouteAt >= 4000) {
+            this.lastReroutePos = newPos;
+            this.lastRerouteAt = Date.now();
+            void this.drawApproachRouteFromGps(newPos[0], newPos[1], false);
+          }
+        }
+
         if (this.pedidoId) {
           this.socketService.emitDriverLocation({
             pedidoId: this.pedidoId,
@@ -881,7 +1112,7 @@ export class AcceptedRequestComponent implements OnInit, OnDestroy {
       (err) => {
         console.warn('GPS watchPosition unavailable:', err.message);
       },
-      { enableHighAccuracy: false, maximumAge: 10000, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
     );
   }
 

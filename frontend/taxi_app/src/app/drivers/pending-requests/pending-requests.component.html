@@ -59,10 +59,21 @@
         <div *ngFor="let request of pendingRequests" class="pedido-card">
           <div class="pedido-header">
             <div class="pedido-title">
-              <div class="request-icon">
-                <mat-icon>hail</mat-icon>
+              <div class="request-icon" [class.has-photo]="!!getClientPhoto(request)">
+                <img
+                  *ngIf="getClientPhoto(request)"
+                  [src]="getClientPhoto(request)"
+                  [alt]="getClientName(request) || 'Client'"
+                  class="request-client-avatar"
+                />
+                <mat-icon *ngIf="!getClientPhoto(request)">hail</mat-icon>
               </div>
-              <h3>Request #{{ request._id?.substr(-5) }}</h3>
+              <div>
+                <h3>Request #{{ request._id?.substr(-5) }}</h3>
+                <span class="request-client-name" *ngIf="getClientName(request)">
+                  Client: {{ getClientName(request) }}
+                </span>
+              </div>
             </div>
             <span class="distance-badge">
               <mat-icon>near_me</mat-icon>
@@ -107,7 +118,7 @@
             </div>
             <div class="stat-item">
               <span class="stat-label">Trip distance</span>
-              <span class="stat-value">{{ getTripDistance(request._id || '') | number:'1.1-1' }} km</span>
+              <span class="stat-value">{{ getTripDistance(request._id || '') | number:'1.2-2' }} km</span>
             </div>
             <div class="stat-item">
               <span class="stat-label">Trip duration</span>

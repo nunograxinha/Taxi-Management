@@ -8,10 +8,17 @@
 .landing-page {
   max-width: 1040px;
   margin: 0 auto;
-  padding: 72px 24px;
+  padding: 28px 24px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.landing-topbar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
 }
 
 .hero-section {

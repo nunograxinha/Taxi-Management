@@ -24,6 +24,7 @@ export class ShareTripComponent implements OnInit, OnDestroy {
   hasLiveTaxiLocation = false;
 
   private trackingRoom = '';
+  private shareToken = '';
   private subscriptions = new Subscription();
   private trackMap: L.Map | null = null;
   private taxiMarker: L.Marker | null = null;
@@ -45,6 +46,7 @@ export class ShareTripComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Invalid share link.';
       return;
     }
+    this.shareToken = shareToken;
 
     this.pedidoViagemService.getSharedTrip(shareToken).subscribe({
       next: (info) => {
@@ -69,7 +71,7 @@ export class ShareTripComponent implements OnInit, OnDestroy {
   }
 
   private listenLiveUpdates(room: string): void {
-    this.socketService.joinPedido(room);
+    this.socketService.joinSharedTrip(this.shareToken, room);
 
     this.subscriptions.add(
       this.socketService.onEvent<RideRequest>('pedido:updated').subscribe((updated) => {
@@ -206,8 +208,8 @@ export class ShareTripComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.trackingRoom) {
-      this.socketService.leavePedido(this.trackingRoom);
+    if (this.trackingRoom || this.shareToken) {
+      this.socketService.leaveSharedTrip(this.trackingRoom);
     }
     this.subscriptions.unsubscribe();
     this.destroyTrackMap();

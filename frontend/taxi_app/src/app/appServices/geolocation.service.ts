@@ -129,11 +129,16 @@ export class GeolocationService {
 
   async getAddressFromCoordinates(lat: string, lon: string): Promise<string> {
     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
-  
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        throw new Error(`Reverse geocoding failed with status ${response.status}`);
+      }
       const data = await response.json();
-      
+
       if (data && data.address) {
         const cidade =
           data.address.city ||
@@ -153,6 +158,8 @@ export class GeolocationService {
     } catch (error) {
       console.error('Error fetching address:', error);
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

@@ -55,6 +55,9 @@ import { ReportBreakdownComponent } from './reports/report-breakdown/report-brea
 import { TripChatComponent } from './shared/trip-chat/trip-chat.component';
 import { AlertToggleComponent } from './shared/alert-toggle/alert-toggle.component';
 import { DriverReviewsModalComponent } from './shared/driver-reviews-modal/driver-reviews-modal.component';
+import { DriverEarningsComponent } from './drivers/driver-earnings/driver-earnings.component';
+import { PhotoPickerComponent } from './shared/photo-picker/photo-picker.component';
+import { ThemeToggleComponent } from './shared/theme-toggle/theme-toggle.component';
 
 @NgModule({
   declarations: [
@@ -95,6 +98,9 @@ import { DriverReviewsModalComponent } from './shared/driver-reviews-modal/drive
     TripChatComponent,
     AlertToggleComponent,
     DriverReviewsModalComponent,
+    DriverEarningsComponent,
+    PhotoPickerComponent,
+    ThemeToggleComponent,
   ],
   imports: [
     BrowserModule,
